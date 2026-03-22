@@ -1,0 +1,21 @@
+:root {
+  --primary: #ff6b35;
+  --bg: #f8fafc;
+  --text: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    Segoe UI,
+    Roboto,
+    sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}

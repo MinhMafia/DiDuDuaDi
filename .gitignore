@@ -1,0 +1,25 @@
+# DiDuDuaDi – Ignore files
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# .NET
+**/bin/
+**/obj/
+*.user
+
+# IDE
+.vscode/
+.idea/
+*.suo
+
+# OS
+.DS_Store
+Thumbs.db

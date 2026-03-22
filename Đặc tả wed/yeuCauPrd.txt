@@ -1,0 +1,1145 @@
+Product Requirements Document (PRD) v1.0
+GPS Admin Dashboard - POI & Tour Management System
+Document Information
+Field Value
+Product Name GPS Admin Dashboard
+Version 1.0 (MVP)0
+Document Date February 2, 2026
+Status Draft for Development
+Owner Business Analyst / Product Owner
+Target Audience Development Team, QA, Stakeholders
+1. Executive Summary
+1.1 Overview
+GPS Admin Dashboard is a web-based administrative interface for managing Points of Interest (POIs) and Tour
+routes in Hoi An Ancient Town. The system enables administrators to create, update, and organize locationbased content that will be consumed by end-user GPS applications.
+1.2 Goals
+Primary Goal: Provide administrators with an efficient tool to manage POIs and Tours through an
+intuitive map-based interface
+Secondary Goals:
+• Ensure data integrity with mandatory location validation
+• Enable visual tour creation through drag-and-drop POI sequencing
+• Maintain referential integrity between POIs and Tours (cascade deletion)
+2. Scope Definition
+2.1 In-Scope (MVP v1.0)
+Module 1: Admin Authentication
+• Username/password login
+• Session management (stay logged in until logout)
+• Basic logout functionality
+Module 2: POI Management
+• Create POI via map click or manual lat/lng entry
+• Edit existing POI (name, description, coordinates, radius, type,
+image) Delete POI with cascade removal from all Tours
+• Categorize POI as:
+o Major/Main (Điểm chính): Primary tourist attraction
+o Minor/Sub (Điểm phụ): Supporting
+facilities
+▪ WC
+▪ Bán vé
+▪ Gửi xe
+▪ Bến thuyền
+View all POIs in list and map view
+Visual map interaction for POI placement
+Module 3: Tour Management
+• Create new Tour
+• Edit existing Tour (name, description, duration, image)
+• Add/remove POIs to/from Tour
+• Reorder POIs in Tour sequence (via drag-and-drop
+UI) View all Tours in card grid layout
+• Delete Tour
+• View POI count and duration per Tour
+2.2 Out-of-Scope (Future Enhancements)
+• The following are explicitly NOT included in MVP v1.0:
+• Multi-language content management (only Vietnamese in MVP)
+Audio guide integration
+• User role management (only single Admin role)
+• Advanced map features (routing, distance calculation, path drawing)
+Image upload/management (MVP uses URL placeholders)
+• Tour publishing/status
+workflow
+• Analytics and reporting
+• Mobile app development (admin panel is web-only)
+API versioning
+• Tour preview/simulation
+• POI search and filtering (only basic search in Tour builder)
+• Batch operations
+• Export/import
+functionality
+• Audit logging
+3. User Personas & Roles
+3.1 Primary Persona: Content Administrator
+Name: Minh Nguyen
+Role: Tourism Content Manager
+Age: 28-45
+Technical Proficiency: Medium (comfortable with web apps, Google Maps)
+Goals:
+• Quickly add new POIs as tourism sites are discovered
+• Update POI information when details change
+• Create themed Tours for different tourist interests
+• Maintain accurate location data
+Pain Points:
+Manual data entry is time-consuming
+Difficulty visualizing tour routes
+Errors in coordinates lead to bad user experience
+Usage Patterns:
+Logs in 2-3 times per week
+Typical session: 30-60 minutes
+Primary tasks: Create 3-5 new POIs, update 1-2 Tours per session
+4. User Stories
+4.1 User Stories Table
+ID Module User Story Priority Acceptance
+Criteria ID
+US001
+Authentication As an Admin, I want to log in with username/password so
+that I can access the dashboard securely
+P0 (Must) AC-001
+US002
+Authentication As an Admin, I want to log out so that my session is
+terminated when I'm done
+P0 (Must) AC-002
+US003
+POI As an Admin, I want to create a new POI by clicking on the
+map so that I can quickly mark locations
+P0 (Must) AC-003
+US004
+POI As an Admin, I want to manually enter lat/lng coordinates so
+that I can add POIs with precise locations
+P1
+(Should)
+AC-004
+US005
+POI As an Admin, I want to edit POI details so that I can update
+outdated information
+P0 (Must) AC-005
+US006
+POI As an Admin, I want to categorize POIs as major or minor
+types so that users can filter by facility type
+P0 (Must) AC-006
+ID Module User Story Priority Acceptance
+Criteria ID
+US007
+POI As an Admin, I want to delete a POI so that I can remove
+obsolete locations
+P0 (Must) AC-007
+US008
+POI As an Admin, I want to see all POIs on a map so that I can
+visualize their distribution
+P0 (Must) AC-008
+US009
+POI As an Admin, I want to view POIs in a list/gallery so that I
+can browse them quickly
+P1
+(Should)
+AC-009
+US010
+Tour As an Admin, I want to create a new Tour so that I can group
+related POIs into a route
+P0 (Must) AC-010
+US011
+Tour As an Admin, I want to add POIs to a Tour so that I can build
+the route sequence
+P0 (Must) AC-011
+US012
+Tour As an Admin, I want to reorder POIs in a Tour so that I can
+adjust the route sequence
+P0 (Must) AC-012
+US013
+Tour As an Admin, I want to remove POIs from a Tour so that I
+can fix route errors
+P0 (Must) AC-013
+US014
+Tour As an Admin, I want to edit Tour metadata (name,
+description, duration, image) so that I can keep information
+current
+P0 (Must) AC-014
+US015
+Tour As an Admin, I want to delete a Tour so that I can remove
+deprecated routes
+P1
+(Should)
+AC-015
+US016
+Tour As an Admin, I want to view all Tours in a grid so that I can
+browse and select them easily
+P0 (Must) AC-016
+US017
+Tour As an Admin, I want to filter POIs (all/major/minor) when
+building a Tour so that I can focus on relevant POIs
+P1
+(Should)
+AC-017
+US018
+Tour As an Admin, I want to search POIs by name when building a
+Tour so that I can find specific locations quickly
+P1
+(Should)
+AC-018
+Priority Legend:
+P0 (Must): Critical for MVP launch; blocks release if missing
+P1 (Should): Important for usability; should be included if time permits
+P2 (Could): Nice-to-have; can be deferred to post-M
+5. Detailed Functional Requirements
+5.1 Module 1: Admin Authentication
+FR-AUTH-001: Login Screen
+Description: Display a secure login interface
+Business Rule: BR-004 (Single Admin role, no registration flow)
+UI Components:
+Username text input
+Password text input (masked, with show/hide toggle)
+"Sign In" submit button
+Error message area for invalid credentials
+Behavior:
+Username and password are pre-filled (for dev: "adminisme" / "******")
+On submit, validate credentials (client-side mock in MVP)
+On success: redirect to Tours Management (default landing page)
+On failure: display "Invalid credentials" error message
+No "Remember Me" or "Forgot Password" in MVP
+FR-AUTH-002: Session Management
+Description: Maintain authenticated state
+Behavior:
+User stays logged in until explicit logout
+No timeout in MVP (session persists until browser close)
+Auth state stored in React state (no persistence across browser sessions)
+FR-AUTH-003: Logout
+Description: Terminate user session
+Behavior:
+Logout button always visible in Sidebar
+On click, clear auth state and return to Login screen
+No confirmation dialog required
+5.2 Module 2: POI Management
+FR-POI-001: Interactive Map Display
+Description: Display a map canvas showing all POIs
+Business Rule: BR-001 (Mandatory location validation)
+UI Components:
+Map canvas (simulated; not Google Maps integration in MVP)
+POI markers (color-coded by type):
+Green: Selected POI
+Blue: Major POI
+Orange: Minor POI
+Legend showing color meanings
+Crosshair cursor for click-to-place functionality
+Behavior:
+Map centered on Hoi An (lat: 15.877, lng: 108.327)
+Click anywhere on map to set lat/lng for new POI
+Click existing marker to edit that POI
+Map does NOT support zoom/pan in MVP (fixed view)
+FR-POI-002: POI Creation Form
+Description: Sidebar form for creating/editing POI
+Form Fields (all in Vietnamese):
+1. Vị trí (Location) - Collapsible section
+Latitude (number input, 6 decimal precision)
+Longitude (number input, 6 decimal precision)
+Radius (integer input, in meters, default: 50)
+Helper text: "Click vào bản đồ hoặc nhập thủ công"
+2. Thông tin đa ngôn ngữ (Info) - Collapsible section
+Tên điểm (POI Name) - Required text input
+Mô tả (Description) - Optional textarea (3 rows)
+3. Loại điểm (Type) - Collapsible section
+Phân loại (Category) - Required dropdown:
+Điểm chính (MAIN)
+WC
+Bán vé (TICKET)
+Gửi xe (PARKING)
+Bến thuyền (BOAT)
+Action Buttons:
+"Đặt lại" (Reset): Clear form to defaults
+"Tạo điểm" / "Cập nhật điểm" (Create/Update): Save POI
+Validation Rules:
+Name: Required, max 200 characters
+Description: Optional, max 1000 characters
+Latitude: Required, range 15.870-15.885 (Hoi An bounds)
+Longitude: Required, range 108.320-108.340
+Radius: Required, range 10-500 meters
+Type: Required (default to MAIN)
+Business Rules Applied:
+BR-001: Lat/lng must be validated before save
+If validation fails, show alert: "Vui lòng nhập tên và chọn vị trí trên bản đồ!"
+FR-POI-003: POI Gallery View
+Description: Bottom horizontal gallery showing all POIs
+UI Components:
+Scrollable horizontal card list
+Each card shows:
+Thumbnail image (aspect 4:3)
+POI name (truncated)
+poiIds
+Lat/lng coordinates
+Type badge
+Radius (e.g., "50m")
+Delete button (visible on hover)
+Behavior:
+Click card to load POI into edit form
+Click Delete icon: show confirmation "Xóa điểm này?"
+On confirm: delete POI and remove from all Tours (BR-003)
+On cancel: no action
+FR-POI-004: POI Edit Mode
+Description: Load existing POI data into form
+Behavior:
+When POI is selected (via map click or gallery click):
+Populate all form fields with POI data
+Highlight selected marker in green on map
+Change action button text to "Cập nhật điểm"
+Saving updates the existing POI (same ID)
+FR-POI-005: POI Deletion with Cascade
+Description: Delete POI and clean up references
+Business Rule: BR-003 (Cascade deletion)
+Behavior:
+On Delete confirmation:
+Remove POI from array
+Remove POI ID from all Tours' arrays
+Show success feedback (visual marker removal)
+If POI is used in 0 Tours: delete without warning
+If POI is used in 1+ Tours: still delete (cascade is automatic, no extra warning)
+pois
+5.3 Module 3: Tour Management
+FR-TOUR-001: Tour List View (Read-Only Mode)
+Description: Default landing page showing all Tours
+UI Components:
+Header: "Danh sách Tours (X)" + "Tạo mới" button
+Grid layout (responsive: 1/2/3 columns)
+Each Tour card shows:
+Cover image (aspect 21:9, fallback icon if missing)
+Tour name (default: "Chưa đặt tên")
+Short description (2 lines max, default: "Chưa có mô tả...")
+Duration icon + minutes
+POI count icon + number of POIs
+Empty state: "Danh sách tour trống" + "Tạo tour ngay" link
+Behavior:
+Click card: enter Edit mode for that Tour
+Click "Tạo mới": enter Edit mode with blank Tour
+FR-TOUR-002: Tour Edit Mode - Layout
+Description: Split-screen editor for Tour building
+Left Sidebar - POI Selection Panel:
+Header: "Điểm tham quan" + subtitle
+Search input: "Tìm kiếm điểm..."
+Filter buttons:
+"Tất cả" (All)
+"Điểm chính" (Main only)
+"Điểm phụ" (Sub only)
+Scrollable POI list:
+Thumbnail + name + distance + type
+Checkmark icon if POI is in Tour
+Click to toggle POI in/out of Tour
+Right Main Area - Tour Editor:
+Top header bar:
+Title: "Chỉnh sửa Tour" / "Tạo Tour mới"
+Subtitle: "Quản lý thông tin và lộ trình tham quan"
+Buttons: "Hủy bỏ" (Cancel), "Cập nhật" (Save)
+Content area (scrollable):
+Banner Section: Upload/display tour cover image
+Info Section: Name, Description, Duration inputs
+Route Section: Ordered list of POIs with drag handles
+FR-TOUR-003: Tour Metadata Form
+Description: Input fieldsfor Tour attributes
+Form Fields:
+1. Ảnh bìa tour (Cover Image)
+Aspect ratio 21:9
+Placeholder: ImageIcon + "Click để chọn ảnh bìa"
+Hover: overlay with "Thay đổi ảnh" button
+MVP: No upload, use image URL field (string input)
+2. Tên tour (Tour Name)
+Required text input
+Placeholder: "Nhập tên tour..."
+Max 200 characters
+3. Mô tả ngắn (Description)
+Optional textarea (3 rows)
+Placeholder: "Mô tả hành trình..."
+Max 1000 characters
+4. Thời lượng (Duration)
+Number input with Clock icon
+Unit: minutes
+Default: 0
+Range: 0-1440 (24 hours)
+Validation Rules:
+Name: Required
+At least 1 POI must be added to Tour (BR-002: minimum 2 POIs for valid route)
+Duration: Optional (can be 0)
+FR-TOUR-004: POI Selection for Tour
+Description: Add/remove POIs from Tour
+Business Rule: BR-002 (Min 2 POIs required)
+Behavior:
+Click POI in left sidebar: toggle inclusion
+If POI not in Tour: add to end of
+If POI in Tour: remove from
+array
+array
+Visual feedback: checkmark icon + green background for selected POIs
+Search Functionality:
+Filter POIs by name (case-insensitive substring match)
+Search updates POI list in real-time
+Filter Functionality:
+"Tất cả": show all POIs
+"Điểm chính": show only POIType.MAIN
+"Điểm phụ": show all POIs except MAIN
+FR-TOUR-005: POI Sequencing in Route
+Description: Reorder POIs to define Tour route
+UI Components:
+"Lộ trình tham quan" section header + POI count badge
+Ordered list of POIs:
+Drag handle icon (GripVertical)
+Sequence number badge (1, 2, 3...)
+POI name
+Remove button (X icon, visible on hover)
+poiIds
+poiIds
+poiIds
+tours
+Behavior:
+Drag POI to reorder (via drag handle)
+Reordering updates array order
+Click X: remove POI from Tour (with hover visibility)
+Empty state: "Hành trình chưa có điểm nào. Chọn từ danh sách bên trái."
+FR-TOUR-006: Tour Save/Update
+Description: Persist Tour data
+Validation on Save:
+Name is required
+At least 1 POI must be included (show alert if empty)
+Alert message: "Vui lòng nhập tên tour và chọn ít nhất một điểm!"
+Behavior:
+If new Tour: generate random ID, prepend to
+If editing existing: update in place
+array
+On success: return to Tour List View (FR-TOUR-001)
+FR-TOUR-007: Tour Deletion
+Description: Remove Tour from system
+Behavior:
+Trigger: (Currently not visible in UI; future: add Delete button in List View)
+Show confirmation: "Xóa tour này?"
+On confirm: remove Tour from array
+Does NOT delete associated POIs (POIs remain independent)
+6. Acceptance Criteria (Given-When-Then)
+AC-001: Admin Login (US-001)
+GIVEN I am on the login page
+WHENI enter valid username " a d m ii n iis m e " and password "******"
+ANDI click " S iig n I n "
+THEN I am redirected to the Tours Management page
+AND I can see the sidebar with Tours/Map navigation
+tours
+gherkin
+AC-002: Admin Logout (US-002)
+AC-003: Create POI via Map Click (US-003)
+AC-004: Manual Lat/Lng Entry (US-004)
+gherkin
+GIVEN I am logged in and viewing any page
+WHEN I click " L o g o u tt "" in the sidebar
+THEN I am returned to the login page
+AND my session is terminated
+AND I cannot navigate back to authenticated pages
+gherkin
+GIVEN I am on the POI Management page
+AND the POI form is in create mode (empty)
+WHEN I click on the map at coordinates (15.878, 108.330)
+THEN the Latitude field is populated with 15.878
+AND the Longitude field is populated with 108.330
+AND I can enter a POI name and save
+THEN the new POI appears on the map with a blue/orange marker
+gherkin
+GIVEN I am on the POI Management page
+WHENImanually enterLatitude " 1 5 ..8 7 9 " andLongitude " 1 0 8 ..3 2 8 "
+ANDI enter POIname " Te st L o c a t i o n "
+AND I click "Tạo điểm"
+THEN the POI is created with the specified coordinates
+AND I see the POI marker at the correct position on the map
+AC-005: Edit POI Details (US-005)
+AC-006: Categorize POI Type (US-006)
+AC-007: Delete POI with Cascade (US-007)
+gherkin GIVEN I am on the POI Management page with existing POIs
+WHEN I click on an existing POI marker or gallery card
+THEN the form populates with that POI's data
+WHEN I change the POI name to " U p d a tte d Name"
+AND I click "Cập n h ậ tt điểm"
+THEN the POI name is updated in the gallery and map
+AND the form button text changes to "Cập n h ậ tt điểm"
+gherkin
+GIVEN I am creating or editing a POI
+WHENI open the " L o ạ ii điểm" section
+AND I select "WC" from the Type dropdown
+AND I save the POI
+THEN the POI is saved with type "WC"
+AND the POI displays an orange marker on the map (minor type)
+AND the gallery card shows "WC" as the type badge
+gherkin
+GIVEN I have a POI "" T e sstt POI" that is used in Tour "My Tour"
+WHEN I click the Delete button on "" T ee ss tt POI" in the gallery
+AND I confirm the deletion dialog "Xóa điểm n àà y ?? ""
+THEN " T e s t POI" is removed from the POI list and map
+AND "My Tour" no longer contains "" T e sstt POI" in its poiIds array
+AND the Tour's POI count is decremented by 1
+AC-008: View POIs on Map (US-008)
+AC-009: View POI Gallery (US-009)
+AC-010: Create New Tour (US-010)
+gherkin
+GIVEN I am on the POI Management page
+WHEN the page loads
+THEN I see all existing POIs displayed as colored markers on the map
+AND major POIs show blue markers
+AND minor POIs show orange markers
+AND the selected POI (if any) shows a green marker
+AND I can see a legend explaining marker colors
+gherkin
+GIVEN I am on the POI Management page with 5 POIs
+WHEN I scroll the bottom gallery
+THEN I see all 5 POIs as cards
+AND each card shows: thumbnail, name, coordinates, type, radius
+AND hovering a card reveals the Delete button
+gherkin
+GIVEN I am on the Tour List page
+WHEN I click "Tạo mới"
+THEN I enter Tour Edit mode
+AND the form is blank (no name, no POIs, duration=0)
+AND the title shows "Tạo Tour mới"
+WHEN I enter name "Beach T o u r "" , add 3 POIs,set duration to 120
+AND I click "Cập n h ậ tt "
+THEN the Tour is created and appears in the Tour List
+AND it shows 3 POIs and 120 phút duration
+AC-011: Add POIs to Tour (US-011)
+AC-012: Reorder POIs in Tour (US-012)
+GIVEN I am editing a Tour with POIs [A, B, C]
+WHEN I drag POI B above POI A using the drag handle
+THEN the sequence becomes [B, A, C]
+AND the sequence numbers update to reflect new order
+AND saving the Tour persists the new order
+AC-013: Remove POI from Tour (US-013)
+AC-014: Edit Tour Metadata (US-014)
+gherkin
+GIVEN I am editing a Tour in Edit mode
+AND the left sidebar shows all available POIs
+WHENIclickonPOI" J a p a n e s e B ri d g e "
+THEN" J a p a n e s e B r i d g e " is added totheRoute section
+AND the POI shows a checkmark icon in the sidebar
+AND the Route section showssequence number "" 11 "" for this POI
+WHEN I click on POI "Tan Ky House"
+THEN "Tan Ky House" is added assequence "" 22 ""
+AND the POI count badge updates to "" 22 điểm"
+gherkin
+gherkin
+GIVEN I am editing a Tour with POI "Museum" in the Route
+WHEN I hover over "Museum" in the Route section
+AND I click the X button
+THEN "Museum" is removed from the Route
+AND the checkmark icon disappears from "Museum" in the sidebar
+AND the POI count badge decrements
+AND "Museum" still exists in the POI database (not deleted)
+gherkin
+GIVEN I am editing an existing Tour "Old Town Walk"
+WHEN I change the name to " H e r iit a g e Walk"
+AND I change duration to 90 minutes
+AND I click "Cập n h ậ tt "
+THEN the Tour is updated
+ANDtheTourListshows " H e r i t a g e Walk" with" 9 0 p h ú t "
+AND returning to edit mode shows the updated values
+AC-015: Delete Tour (US-015)
+AC-016: View All Tours in Grid (US-016)
+ GIVEN I am logged in
+WHEN I navigate to the Tours tab (default landing)
+THEN I see all Tours in a responsive grid (1/2/3 columns)
+AND each Tour card shows: image, name, description, duration, POI count
+AND clicking a card opens it for editing
+AC-017: Filter POIs by Type (US-017)
+AC-018: Search POIs by Name (US-018)
+gherkin
+GIVEN I am on the Tour List page with Tour "" T e sstt Tour"
+WHEN I click the delete button for "" T ee sstt Tour"
+AND I confirm the dialog "Xóa t o u r n à y ? "
+THEN " T e s tt Tour" isremoved from the list
+AND all POIs associated with "" T e sstt Tour" remain in the POI database
+gherkin
+gherkin
+GIVEN I am editing a Tour
+AND there are 10 POIs: 5 major, 5 minor
+WHEN I click the "Điểm c h íí n h "" filter button
+THEN the sidebar shows only the 5 major POIs
+WHEN I click "Điểm phụ"
+THEN the sidebar shows only the 5 minor POIs
+WHEN I click " T ấ t ccảả""
+THEN the sidebar shows all 10 POIs
+gherkin
+GIVEN I am editing a Tour
+ANDtherearePOIsnamed["Museum", "Ma rrkeet " , " Te mppl e " ]
+WHEN I type "mu" in the search box
+THEN the sidebar shows only "Museum"
+WHEN I clear the search
+THEN all POIs are visible again
+7. Non-Functional Requirements (NFRs)
+7.1 Performance
+NFR-PERF-001: All CRUD operations (create, read, update, delete) must complete within 2 seconds
+NFR-PERF-002: Map rendering with up to 100 POIs must display within 1 second
+NFR-PERF-003: Tour list page must load and render 50 Tours within 2 seconds
+7.2 Security
+NFR-SEC-001: All user sessions must be isolated (no session sharing)
+NFR-SEC-002: Password input must be masked by default with toggle visibility option
+NFR-SEC-003: Authentication state must be validated on every page navigation
+NFR-SEC-004: (Future) Use HTTPS for all API communication (currently client-side mock)
+7.3 Usability
+NFR-USE-001: All form validation errors must display clear Vietnamese messages
+NFR-USE-002: All destructive actions (delete) must require confirmation dialog
+NFR-USE-003: Form inputs must support keyboard navigation (tab order)
+NFR-USE-004: UI must be responsive for desktop screens (1280px - 1920px width)
+7.4 Reliability
+NFR-REL-001: Data consistency: Deleting a POI must always remove it from all Tours
+NFR-REL-002: System must prevent saving Tours with 0 POIs (validation alert)
+NFR-REL-003: Form state must persist during edit mode until save or cancel
+7.5 Maintainability
+NFR-MAIN-001: Code must follow React TypeScript best practices
+NFR-MAIN-002: All data types must be strictly typed (POI, Tour, POIType enums)
+NFR-MAIN-003: Components must be modular (Sidebar, InteractiveMap, Page components)
+7.6 Accessibility
+NFR-ACC-001: All interactive elements must be keyboard accessible
+NFR-ACC-002: Color-coded markers must have text labels (legend provided)
+NFR-ACC-003: Form labels must be properly associated with inputs
+7.7 Browser Support
+NFR-BROW-001: Must support latest versions of Chrome, Firefox, Safari, Edge
+NFR-BROW-002: Minimum screen resolution: 1280x720px
+8. Data Requirements
+8.1 POI Data Model
+Field Validation Rules:
+Field Type Required Constraints
+id string Yes Unique, auto-generated
+name string Yes 1-200 characters
+description string No 0-1000 characters
+latitude number Yes 15.870 - 15.885 (Hoi An bounds)
+longitude number Yes 108.320 - 108.340
+radius integer Yes 10-500 meters
+type POIType Yes Must be valid enum value
+image string Yes Valid URL format
+distance string No Display only, not persisted
+typescript
+interface POI {
+id: sstt rr ii n g ; / UUID or random 9-char string (client-generated)
+name: ssttr ii n g ; / Required, max 200 chars
+description: str i n g ; / Optional, max 1000 chars
+latitude: n u m b e r ; / Required, float64, 6 decimal precision
+longitude: n u m b e rr ; / Required, float64, 6 decimal precision
+radius: n u m b e rr ; / Required, integer, meters (10-500)
+type: POIType; / Required, enum
+image: ssttr ii n g ; / Required, URL or placeholder
+distance?: s ttr ii n g ; / Optional, display helper (e.g., "50m")
+}
+enum POIType {
+MAIN = 'Điểm c h í n h '', / Major tourist attraction
+WC = '' W C '' , //// Restroom
+TICKET ='Bán vé', / Ticket of ice
+PARKING = ''G ử ii x e ' ,/ Parking
+BOAT ='Bế n thuy ền ' / Boat dock
+}
+Business Rules:
+BR-001: Latitude and longitude must be validated before save
+BR-003: Deleting a POI cascades to remove it from all Tours
+8.2 Tour Data Model
+Field Validation Rules:
+typescript
+interface Tour {
+id: sstt rr ii n g ; / UUID or random 9-char string (client-generated)
+name: ssttr ii n g ; / Required, max 200 chars
+description: str i n g ; / Optional, max 1000 chars
+duration: n u m b e r ; / Required, integer, minutes (0-1440)
+poiIds:s ttr ii n g []; / Ordered array of POI IDs
+image?: sstt rr ii nn gg ; ////Optional, URL
+createdAt:s ttr ii n g ; / ISO 8601
+time stamp
+}
+poiIds
+Field Type Required Constraints
+id string Yes Unique, auto-generated
+name string Yes 1-200 characters
+description string No 0-1000 characters
+duration integer Yes 0-1440 minutes (24 hours)
+poiIds string[] Yes Array of valid POI IDs, min 1 item
+image string No Valid URL format
+createdAt string Yes ISO 8601 format, auto-generated
+Business Rules:
+BR-002: A Tour must have at least 1 POI (ideally 2+ for a "route")
+BR-003: If a POI is deleted, it is automatically removed from arrays
+POI order in array defines the route sequence (index 0 = first stop)
+8.3 Authentication Data Model
+Notes:
+MVP stores auth state in React state (no persistence)
+No password field exposed (validated server-side in future)
+Session expires on browser close
+poiIds
+typescript
+interface AuthState {
+isAuthenticated: b o o l e a n ;
+username:st r i n g | n u l l ;
+}
+9. API Assumptions
+9.1 Overview
+The current MVP uses client-side mock data (React state). This section documents the expected REST API
+structure for backend integration in future phases.
+9.2 Authentication Endpoints
+POST /api/auth/login
+Purpose: Authenticate admin user
+Request:
+Success Response (200):
+Error Response (401):
+POST /api/auth/logout
+Purpose: Invalidate session token
+Request: Bearer token in header
+Response (200): { "success": true }
+json
+{
+"username": "adminisme",
+"password": "******"
+}
+json
+{
+"token": "jwt-token-string",
+"username": "adminisme",
+"expiresIn": 3600
+}
+json
+{
+"error": "Invalid credentials"
+}
+9.3 POI Endpoints
+GET /api/pois
+Purpose: Retrieve all POIs
+Response (200):
+GET /api/pois/:id
+Purpose: Retrieve single POI
+Response (200): POI object
+Response (404):
+POST /api/pois
+Purpose: Create new POI
+Request:
+{ "error": "POI not found" }
+json
+[
+{
+"id": " 11" ,
+"name": "Japanese Bridge",
+"description": "Historic bridge "",
+"latitude": 15.8787,
+"longitude": 108.3288,
+"radius": 30,
+"type": "Điểm chính",
+"image": "https://picsum.photos/seed/bridge/400/300"
+}
+]
+json
+Success Response (201):
+Error Response (400):
+PUT /api/pois/:id
+Purpose: Update existing POI
+Request: Same as POST (partial updates allowed)
+Response (200): Updated POI object
+Response (404): POI not found
+DELETE /api/pois/:id
+Purpose: Delete POI and cascade remove from Tours
+Business Rule: BR-003
+Response (200):
+{
+"name": "New Location",
+"description": "Optional text",
+"latitude": 15.878,
+"longitude": 108.330,
+"radius": 50,
+"type": "WC",
+"image": "https://example.com/image.jpg"
+}
+json
+{
+"id": "generated-id",
+"name": "New Location",
+...
+}
+json
+{
+"errors": [
+{"field": "latitude","message": "Must be between 15.870 and 15.885" }
+]
+}
+9.4 Tour Endpoints
+GET /api/tours
+Purpose: Retrieve all Tours
+Response (200):
+GET /api/tours/:id
+Purpose: Retrieve single Tour with expanded POI details
+Response (200):
+json
+{
+"deleted": t r u e ,
+"affectedTours": ["tour-1", "tour-2"]
+}
+json
+[
+{
+"id": "tour-1",
+"name": "Heritage Walk",
+"description": "Explore ancient town",
+"duration": 120,
+"poiIds": ["1", "2", "3"],
+"image": "https://example.com/tour.jpg",
+"createdAt": "2026-02-01T10:00:00Z"
+}
+]
+json
+POST /api/tours
+Purpose: Create new Tour
+Request:
+Success Response (201): Created Tour object
+Error Response (400):
+PUT /api/tours/:id
+Purpose: Update existing Tour
+Request: Same as POST
+Response (200): Updated Tour object
+DELETE /api/tours/:id
+{
+"id": "tour-1",
+"name": "Heritage Walk",
+" p o is " : [
+{"id": "1", "name": "Japanese Bridge", ..},
+{"id": "2","name": "Tan Ky House", ..}
+],
+...
+}
+json
+{
+"name": "Beach Tour",
+"description": "Coastal route",
+"duration": 90,
+"poiIds": ["5", "6"],
+"image": "https://example.com/beach.jpg"
+}
+json
+{
+"errors": [
+{"field": "poiIds","message": "Must contain aat lleeaasst 1 POI" }
+]
+}
+{ "error": "message" }
+Purpose: Delete Tour (does NOT delete POIs)
+Response (200):
+9.5 API Conventions
+Base URL:
+Authentication:
+Use JWT Bearer token in
+Token format:
+header
+Request Headers:
+Response Format:
+Success: HTTP 2xx with JSON body
+Error: HTTP 4xx/5xx with or
+Pagination (future):
+Use query params:
+Response includes:
+10. UI/UX Specifications
+10.1 Design System
+Color Palette:
+Primary: Emerald (
+Secondary: Blue (
+Neutral: Slate (
+Error: Red (
+Success: Green (
+/ emerald-600)
+/ blue-600)
+/ slate-500)
+/ red-500)
+)
+{ "deleted": true }
+https://api.gps-admin.example.com/v1
+Authorization
+Bearer <token>
+{ "errors": [...] }
+?page=1&limit=50
+{ "data": [...], "total": 100, "page": 1, "limit": 50 }
+#10B981
+#2563EB
+#64748B
+#EF4444
+#10B981
+Content-Type: application/json
+Authorization: Bearer <jwt-token>
+Typography:
+Font: System font stack (font-sans)
+Headings: Bold, 700 weight
+Body: Regular, 400 weight
+Small text: 10-12px (labels, metadata)
+Spacing:
+Use Tailwind spacing scale (p-4, p-6, gap-3, etc.)
+Consistent padding: Cards (p-6), Inputs (px-4 py-3)
+Borders & Shadows:
+Border radius: rounded-xl (12px) for cards, rounded-lg (8px) for buttons
+Border color: slate-200
+Shadow: shadow-sm (subtle), shadow-lg (prominent)
+10.2 Component Patterns
+Buttons:
+Primary:
+Secondary:
+Destructive:
+Size: (standard)
+Form Inputs:
+Style:
+Focus:
+Label:
+Cards:
+Structure:
+Hover:
+Collapsible Sections:
+Header:
+bg-emerald-600 text-white hover:bg-emerald-700
+bg-slate-100 text-slate-600 hover:bg-slate-200
+bg-red-500 text-white hover:bg-red-600
+px-6 py-2 rounded-xl
+border border-slate-200 rounded-xl px-4 py-3
+focus:ring-1 focus:ring-emerald-500
+text-xs font-bold text-slate-500 uppercase tracking-wider
+bg-white border border-slate-200 rounded-2xl p-6 shadow-sm
+hover:shadow-md transition-shadow
+bg-slate-50 border-b border-slate-200 p-4
+Toggle icon: ChevronUp / ChevronDown
+10.3 Responsive Behavior
+Breakpoints:
+Desktop: 1280px+ (primary target)
+Tablet: 768-1279px (acceptable degradation)
+Mobile: <768px (out of scope for MVP)
+Layout:
+Sidebar: Fixed 256px width (w-64) on left
+Main content: Flex-1 (remaining width)
+Tour grid: 3 columns on large, 2 on medium, 1 on small
+10.4 Loading States
+POI Management:
+Map: Show placeholder "HOI AN ANCIENT TOWN" text
+Gallery: Show card skeletons (if implementing loading)
+Tour Management:
+List view: Show card skeletons
+Edit mode: Show form with disabled inputs
+General:
+Use spinner icon or progress indicator for async actions
+Disable buttons during save operations
+10.5 Empty States
+POI Gallery (if 0 POIs):
+Tour List (if 0 Tours):
+[Icon: MapPin]
+"Chưa có điểm tham quan nào"
+[Button: "Tạo điểm đầu tiên"]
+Tour Route (if 0 POIs in Tour):
+10.6 Error States
+Form Validation Errors:
+Display as browser alert (MVP):
+Future: Inline error messages below fields
+API Errors (future):
+Toast notification: "Lỗi kết nối. Vui lòng thử lại."
+Error boundary for critical failures
+11. Business Rules
+ID Rule Name Description Impact
+BR001
+Mandatory
+Location
+Every POI must have validated Lat/Lng coordinates before
+saving. Coordinates must fall within Hoi An bounds (lat:
+15.870-15.885, lng: 108.320-108.340).
+Preventsinvalid map markers;
+ensures data quality
+BR002
+Route Logic A Tour requires a minimum of 1 POI to save (ideally 2+ for a
+valid route). System shows alert if user tries to save with 0
+POIs.
+Ensures Tours are meaningful;
+prevents empty routes
+BR003
+Cascade
+Deletion
+Deleting a POI automatically removes it from any existing
+Tours' poiIds arrays. POI deletion does not delete the Tours
+themselves.
+Maintainsreferential integrity;
+prevents orphaned POI
+references
+BR004
+Single Admin
+Role
+MVP supports only one admin role with full CRUD access.
+No user registration, role management, or permissions system.
+Simplifies MVP scope; all
+authenticated users have equal
+access
+alert("Vui lòng nhập tên và chọn vị trí trên bản đồ!")
+[Border: Dashed]
+"Danh sách tour trống"
+[Link: "Tạo tour ngay"]
+[Icon: MapPin]
+"Hành trình chưa có điểm nào. Chọn từ danh sách bên trái."
+ID Rule Name Description Impact
+BR005
+Client-Side
+Data
+All data (POIs, Tours, Auth) is stored in React state. No
+backend persistence in MVP. Data resets on browser refresh.
+Enablesrapid prototyping
+without API dependency
+12. Technical Constraints
+12.1 Technology Stack
+Frontend:
+Framework: React 18+ with TypeScript
+Build Tool: Vite
+Styling: Tailwind CSS
+Icons: Lucide React
+State Management: React useState (no Redux/Context in MVP)
+Backend (future):
+Not implemented in MVP
+Recommended: Node.js/Express or Python/FastAPI
+Database: PostgreSQL with PostGIS (for geospatial queries)
+Map Integration:
+MVP: Simulated map canvas (not Google Maps/Mapbox)
+Future: Integrate Google Maps JavaScript API or Mapbox GL
+12.2 Known Limitations
+1. No Image Upload: MVP uses placeholder URLs. Future: implement file upload to cloud storage (S3,
+Cloudinary).
+2. No Drag-and-Drop: MVP POI reordering described in UI, but not fully functional (requires library like
+react-beautiful-dnd).
+3. No Real Map: MVP simulates lat/lng conversion. Future: integrate actual map tiles.
+4. No Data Persistence: All data resets on browser refresh.
+5. No Multi-Language: Only Vietnamese labels. Future: i18n support for English, Chinese, etc.
+13. Dependencies & Integrations
+13.1 External Dependencies
+Dependency Purpose Version Status
+React UI framework 18.3.1 Implemented
+TypeScript Type safety 5.x Implemented
+Tailwind CSS Styling 3.x Implemented
+Vite Build tool 5.x Implemented
+Lucide React Icons Latest Implemented
+13.2 Future Integrations
+Service Purpose Priority Notes
+Google Maps API Real map rendering High Replace simulated map
+AWS S3 / Cloudinary Image hosting Medium For POI/Tour cover images
+PostgreSQL + PostGIS Database High Geospatial queries
+JWT Auth Service Secure authentication High Replace client-side mock
+Google Drive API (Out of scope) Low Potential future export
+14. Risks & Mitigations
+Risk
+ID
+Description Likelihood Impact Mitigation Strategy
+R-001 Users accidentally delete POIs
+used in many Tours
+Medium High Add warning in delete confirmation: "Điểm này
+đang được dùng trong X tours. Xóa?"
+R-002 Lat/lng input errors lead to invalid
+map positions
+Medium Medium Implementstricter validation with Hoi An
+bounds checking (BR-001)
+distance
+Risk
+ID
+Description Likelihood Impact Mitigation Strategy
+R-003 Large number of POIs (100+)
+causes map performance issues
+Low Medium Implement POI pagination or clustering in
+future
+R-004 Browser refresh loses all unsaved
+data
+High High Add explicit warning: "MVP does not persist
+data" (documentation)
+R-005 No undo functionality for
+destructive actions
+Medium Medium Implement soft delete or undo stack in postMVP
+R-006 Image URLs may break or expire Low Low Validate URL format; future: host images
+internally
+15. Open Questions
+15.1 Data & Business Logic
+1. Q1: Should POI deletion show a warning if the POI is used in multiple Tours? Or is silent cascade
+sufficient?
+Recommendation: Add count warning: "Điểm này đang được dùng trong X tours. Xóa?"
+2. Q2: What happens if a Tour has only 1 POI after cascade deletion? Does it become invalid?
+Recommendation: Allow 1-POI Tours (user can manually delete if needed).
+3. Q3: Should POI field be auto-calculated or manual input?
+Recommendation: Auto-calculate in future (based on user location or prev POI in Tour).
+4. Q4: How to handle duplicate POI names?
+Recommendation: Allow duplicates (ID is unique); future: add warning on save.
+15.2 UI/UX
+5. Q5: Should drag-and-drop reordering be implemented in MVP? (Currently UI mock only)
+Recommendation: Yes, if time permits; otherwise defer to post-MVP.
+6. Q6: Should empty Tours (0 POIs) be deletable from list view, or only via edit mode?
+Recommendation: Add delete button in list view hover state.
+7. Q7: Should there be a "Draft" vs "Published" status for Tours?
+Decision: Out of scope for MVP. All Tours are implicitly "draft".
+15.3 Technical
+8. Q8: What is the expected backend API authentication scheme?
+Recommendation: JWT Bearer token with 1-hour expiry.
+9. Q9: Should the system support concurrent editing by multiple admins?
+Decision: No, out of scope for MVP. Last-write-wins in future.
+10. Q10: What is the expected data volume at launch?
+Estimate: ~50 POIs, ~10 Tours initially. Scale plan for 500 POIs, 100 Tours.
+16. Success Criteria & Acceptance
+16.1 MVP Launch Checklist
+All P0 (Must) user stories implemented and tested
+All acceptance criteria (AC-001 to AC-018) pass manual testing
+No P0 bugs or data loss scenarios
+Business Rules (BR-001 to BR-005) enforced
+UI matches provided design (responsive desktop 1280px+)
+Documentation: README with setup instructions
+16.2 Testing Requirements
+Manual Testing:
+Happy path flows for Create/Edit/Delete POI
+Happy path flows for Create/Edit/Delete Tour
+Cascade deletion: POI removal from Tours
+Form validation errors display correctly
+Map click interaction works across different screen areas
+Edge Cases:
+Delete last POI in a Tour
+Delete POI used in 10+ Tours
+Enter invalid lat/lng (out of bounds)
+Save Tour with empty name
+Save POI with missing required fields
+Cross-Browser:
+Test in Chrome, Firefox, Safari, Edge (latest versions)
+16.3 Go-Live Criteria
+All P0 features functional
+Zero critical bugs (data loss, security, crashes)
+Admin training complete (1-hour session)
+Rollback plan documented
+17. Future Enhancements (Post-MVP)
+These features are OUT of scope for v1.0 but documented for future roadmap:
+17.1 Phase 2 (v1.1-1.2)
+1. Multi-language support: English, Chinese translations
+2. Image upload: Cloud storage integration (S3, Cloudinary)
+3. Real map integration: Google Maps or Mapbox
+4. Tour status workflow: Draft → Published states
+5. User role management: Super Admin, Content Editor roles
+6. Audit logging: Track who created/edited what and when
+17.2 Phase 3 (v2.0)
+7. Audio guide integration: Link audio files to POIs
+8. Route calculation: Auto-calculate distance/time between POIs
+9. Advanced search: Filter POIs by radius, type, creation date
+10. Analytics dashboard: View POI visit counts, popular Tours
+11. Mobile app: iOS/Android admin app
+12. Batch operations: Bulk POI import/export (CSV/JSON)
+17.3 Phase 4 (v3.0)
+13. Public API: Expose read-only endpoints for 3rd-party apps
+14. Tour preview: 3D/AR preview of Tour route
+15. Collaborative editing: Real-time multi-admin editing
+16. Version history: Restore previous versions of POIs/Tours
+17. Geofencing alerts: Notify when users enter POI radius (end-user app feature)
+18. Appendix
+18.1 Glossary
+Term Definition
+POI Point of Interest: A geographic location with associated metadata (name, description, radius, type)
+Tour A curated sequence of POIs forming a route for visitors to follow
+Major POI Primary tourist attraction (type: MAIN)
+Minor POI Supporting facility (WC, parking, ticket office, boat dock)
+Cascade Deletion Automatic removal of references when a parent entity is deleted
+MVP Minimum Viable Product: Initial release with core features only
+Hoi An Bounds Geographic rectangle: lat 15.870-15.885, lng 108.320-108.340
+18.2 Related Documents
+UI Mockups: Embedded in codebase (
+API Design: Section 9 of this PRD
+User Manual: (To be created post-MVP)
+Deployment Guide: (To be created post-MVP)
+18.3 Revision History
+Business Artifacts overlay)
+Version Date Author Changes
+1.0 2026-02-02 BA/PO Team Initial PRD for MVP development
+App.tsx
+18.4 Approval Sign-Off
+Role Name Signature Date
+Product Owner [Name]
+Tech Lead [Name]
+QA Lead [Name]
+Stakeholder [Name]
+19. Contact & Feedback
+For questions or clarifications:
+Product Owner: [email@example.com]
+Development Team: [team-email@example.com]
+Issue Tracker: [Link to Jira/GitHub Issues]
+Document Feedback:
+Submit PRD suggestions via [feedback form link]
+Request PRD updates via [communication channel]
+End of Document

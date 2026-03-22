@@ -1,0 +1,148 @@
+.home-page {
+  max-width: 920px;
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+.hero-card,
+.status-card,
+.controls-card,
+.list-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.hero-card {
+  padding: 20px;
+  background: linear-gradient(135deg, #fff7ed, #ffffff);
+}
+
+.hero-card h1 {
+  margin: 0;
+  font-size: 1.7rem;
+}
+
+.hero-card p {
+  margin-top: 8px;
+  color: #475569;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.status-card {
+  padding: 14px;
+}
+
+.label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.value {
+  margin: 6px 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.value.ok {
+  color: #166534;
+}
+
+.controls-card,
+.list-card {
+  padding: 16px;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+button {
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: #ff6b35;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.input-row {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+label {
+  font-size: 0.82rem;
+  color: #475569;
+  display: grid;
+  gap: 6px;
+}
+
+input {
+  height: 36px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0 10px;
+}
+
+.error-text {
+  color: #b91c1c;
+  margin: 10px 0 0;
+}
+
+.hint {
+  color: #64748b;
+}
+
+.list-card h2 {
+  margin-top: 0;
+}
+
+.list-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 8px;
+}
+
+.list-card li {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.list-card li span {
+  color: #475569;
+  font-size: 0.88rem;
+  text-transform: capitalize;
+}
+
+@media (max-width: 760px) {
+  .stats-grid,
+  .input-row {
+    grid-template-columns: 1fr;
+  }
+}
