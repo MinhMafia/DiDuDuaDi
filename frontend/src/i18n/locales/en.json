@@ -1,4 +1,73 @@
 {
   "appName": "DiDuDuaDi",
-  "hello": "Hello"
+  "hello": "Hello",
+  "layout": {
+    "tagline": "Maps, audio, and travel assistant"
+  },
+  "nav": {
+    "home": "Home",
+    "map": "Map",
+    "routes": "Routes",
+    "settings": "Settings"
+  },
+  "map": {
+    "title": "Vinh Khanh discovery map",
+    "subtitle": "Track the visitor's location, browse nearby food spots, and jump into the next stop quickly.",
+    "liveMap": "Live map",
+    "gpsOn": "GPS is active",
+    "gpsWaiting": "Waiting for GPS",
+    "demoMode": "Demo mode at Vinh Khanh",
+    "poiCount_one": "{{count}} place visible",
+    "poiCount_other": "{{count}} places visible",
+    "searchRadius": "Search radius around you: {{radius}}m",
+    "centerOnMe": "Center on me",
+    "jumpToVinhKhanh": "Jump to Vinh Khanh food street",
+    "usingDefaultCenter": "Using the food street default center",
+    "legendYou": "Teal pin: you",
+    "legendPoi": "Blue pin: POI",
+    "legendSelected": "Orange pin: selected spot",
+    "locationStatus": "Location status",
+    "requestingLocation": "Requesting permission and current location...",
+    "locationReady": "Current position ready: {{lat}}, {{lng}}",
+    "userLocationLabel": "Your current location",
+    "demoLocationLabel": "Demo position on Vinh Khanh food street",
+    "demoHint": "Using a demo location so you can quickly inspect the restaurants on Vinh Khanh food street.",
+    "nearestPoi": "The closest place right now is {{name}}, about {{distance}} away.",
+    "nearbyTitle": "Nearby places",
+    "loadError": "Unable to load POI data.",
+    "emptyNearby": "No places found in the current radius yet.",
+    "noDescription": "No description for this place yet.",
+    "selectedPoi": "Quick details",
+    "selectHint": "Pick a marker on the map or a card in the list to inspect it.",
+    "distanceFromYou": "About {{distance}} away from you",
+    "tapPoiHint": "Enable GPS to see the real distance."
+  },
+  "settings": {
+    "title": "Experience settings",
+    "subtitle": "Adjust language and audio behavior now so the next chatbot and guide features have a stable foundation.",
+    "language": "Language",
+    "mapProviderTitle": "Current map provider",
+    "mapProviderDescription": "The app now uses OpenStreetMap through Leaflet so it is easier to test, does not need an API key, and still fits GPS, markers, and nearby discovery well.",
+    "autoPlayTitle": "Auto-play audio guide",
+    "autoPlayDescription": "When enabled, the app can automatically start audio as you approach a point of interest in the next milestones.",
+    "enabled": "On",
+    "disabled": "Off"
+  },
+  "audio": {
+    "title": "Audio guide",
+    "play": "Play",
+    "pause": "Pause",
+    "stop": "Stop",
+    "ttsReady": "Using the browser speech engine to narrate the restaurant in your selected language.",
+    "unavailable": "This POI does not have an audio file yet. As soon as the backend provides an audio URL, this player is ready to use.",
+    "noPoiSelected": "Select a place to inspect its audio guide.",
+    "autoPlayReady": "auto-play ready"
+  },
+  "chat": {
+    "title": "AI food assistant",
+    "subtitle": "Ask about the demo restaurants on Vinh Khanh street",
+    "welcome": "Hello. You can ask what to eat, which demo spots are on the map, or mention a restaurant name to get a short explanation.",
+    "placeholder": "Ask about food, restaurants, or the map...",
+    "send": "Send"
+  }
 }

@@ -1,12 +1,15 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   getBackendHealth,
   getNearbyPois,
   getPois,
 } from "../services/healthService";
 import "./HomePage.css";
+import { getLocalizedValue } from "../utils/helpers";
 
 export default function HomePage() {
+  const { i18n } = useTranslation();
   const [healthStatus, setHealthStatus] = useState("Chua kiem tra");
   const [serverTime, setServerTime] = useState("");
   const [poiCount, setPoiCount] = useState(null);
@@ -142,7 +145,7 @@ export default function HomePage() {
           <ul>
             {nearbyPois.map((poi) => (
               <li key={poi.id}>
-                <strong>{poi.name}</strong>
+                <strong>{getLocalizedValue(poi.name, i18n.language)}</strong>
                 <span>{poi.category}</span>
               </li>
             ))}

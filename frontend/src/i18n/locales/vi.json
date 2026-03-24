@@ -1,4 +1,73 @@
 {
   "appName": "DiDuDuaDi",
-  "hello": "Xin chao"
+  "hello": "Xin chao",
+  "layout": {
+    "tagline": "Ban do, audio va tro ly du lich"
+  },
+  "nav": {
+    "home": "Trang chu",
+    "map": "Ban do",
+    "routes": "Lo trinh",
+    "settings": "Cai dat"
+  },
+  "map": {
+    "title": "Ban do kham pha Vinh Khanh",
+    "subtitle": "Theo doi vi tri cua ban, xem cac diem an uong gan day va chon nhanh diem muon ghe.",
+    "liveMap": "Ban do thoi gian thuc",
+    "gpsOn": "GPS dang hoat dong",
+    "gpsWaiting": "Dang cho GPS",
+    "demoMode": "Dang demo tai Vinh Khanh",
+    "poiCount_one": "{{count}} diem hien thi",
+    "poiCount_other": "{{count}} diem hien thi",
+    "searchRadius": "Ban kinh tim quanh ban: {{radius}}m",
+    "centerOnMe": "Ve vi tri cua toi",
+    "jumpToVinhKhanh": "Den pho am thuc Vinh Khanh",
+    "usingDefaultCenter": "Dang dung tam mac dinh cua pho am thuc",
+    "legendYou": "Cham xanh: ban",
+    "legendPoi": "Cham xanh duong: POI",
+    "legendSelected": "Cham cam: diem dang chon",
+    "locationStatus": "Trang thai vi tri",
+    "requestingLocation": "Dang xin quyen va lay vi tri hien tai...",
+    "locationReady": "Da xac dinh vi tri: {{lat}}, {{lng}}",
+    "userLocationLabel": "Vi tri hien tai cua ban",
+    "demoLocationLabel": "Vi tri demo tai pho am thuc Vinh Khanh",
+    "demoHint": "Dang dung vi tri demo de ban xem nhanh cac quan o pho am thuc Vinh Khanh.",
+    "nearestPoi": "Diem gan nhat luc nay la {{name}}, cach ban khoang {{distance}}.",
+    "nearbyTitle": "Diem gan ban",
+    "loadError": "Khong tai duoc du lieu POI.",
+    "emptyNearby": "Chua tim thay diem nao trong ban kinh hien tai.",
+    "noDescription": "Chua co mo ta cho dia diem nay.",
+    "selectedPoi": "Chi tiet nhanh",
+    "selectHint": "Chon mot diem tren ban do hoac trong danh sach de xem nhanh.",
+    "distanceFromYou": "Cach ban khoang {{distance}}",
+    "tapPoiHint": "Bat GPS de xem khoang cach thuc te."
+  },
+  "settings": {
+    "title": "Cai dat trai nghiem",
+    "subtitle": "Tinh chinh ngon ngu va hanh vi audio truoc khi mo rong sang chatbot va huong dan tu dong.",
+    "language": "Ngon ngu",
+    "mapProviderTitle": "Nen ban do hien tai",
+    "mapProviderDescription": "Ung dung dang dung OpenStreetMap qua Leaflet de de test, khong can API key va van rat hop cho phat trien tinh nang GPS, marker va nearby.",
+    "autoPlayTitle": "Tu dong phat audio guide",
+    "autoPlayDescription": "Khi bat, app co the tu dong phat audio khi ban tien den gan diem tham quan trong cac buoc tiep theo.",
+    "enabled": "Bat",
+    "disabled": "Tat"
+  },
+  "audio": {
+    "title": "Audio guide",
+    "play": "Phat",
+    "pause": "Tam dung",
+    "stop": "Dung doc",
+    "ttsReady": "Dang dung trinh doc giong noi tren trinh duyet de mo ta quan an theo ngon ngu ban chon.",
+    "unavailable": "POI nay chua co file audio. Khi backend bo sung audio URL, player nay se dung duoc ngay.",
+    "noPoiSelected": "Chon mot diem de xem audio guide.",
+    "autoPlayReady": "san sang tu dong phat"
+  },
+  "chat": {
+    "title": "Tro ly am thuc AI",
+    "subtitle": "Hoi nhanh ve cac quan demo o Vinh Khanh",
+    "welcome": "Xin chao. Ban co the hoi minh nen an gi, quan nao dang co tren ban do, hoac ten mot quan cu the de nghe giai thich ngan.",
+    "placeholder": "Hoi ve mon an, quan an, ban do...",
+    "send": "Gui"
+  }
 }

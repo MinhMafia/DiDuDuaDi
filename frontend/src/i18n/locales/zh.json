@@ -1,0 +1,73 @@
+{
+  "appName": "DiDuDuaDi",
+  "hello": "你好",
+  "layout": {
+    "tagline": "地图、语音导览与旅行助手"
+  },
+  "nav": {
+    "home": "首页",
+    "map": "地图",
+    "routes": "路线",
+    "settings": "设置"
+  },
+  "map": {
+    "title": "永庆美食街探索地图",
+    "subtitle": "查看你的位置、附近餐馆，并快速选择想去的地点。",
+    "liveMap": "实时地图",
+    "gpsOn": "GPS 已开启",
+    "gpsWaiting": "等待 GPS",
+    "demoMode": "永庆演示模式",
+    "poiCount_one": "显示 {{count}} 个地点",
+    "poiCount_other": "显示 {{count}} 个地点",
+    "searchRadius": "你周围的搜索半径：{{radius}} 米",
+    "centerOnMe": "回到我的位置",
+    "jumpToVinhKhanh": "前往永庆美食街",
+    "usingDefaultCenter": "正在使用美食街默认中心点",
+    "legendYou": "青绿色点：你",
+    "legendPoi": "蓝色点：兴趣点",
+    "legendSelected": "橙色点：已选地点",
+    "locationStatus": "位置状态",
+    "requestingLocation": "正在请求定位权限并获取当前位置...",
+    "locationReady": "当前位置：{{lat}}, {{lng}}",
+    "userLocationLabel": "你当前的位置",
+    "demoLocationLabel": "永庆美食街演示位置",
+    "demoHint": "当前使用演示位置，方便你快速查看永庆美食街的餐馆。",
+    "nearestPoi": "离你最近的是 {{name}}，大约 {{distance}}。",
+    "nearbyTitle": "附近地点",
+    "loadError": "无法加载兴趣点数据。",
+    "emptyNearby": "当前半径内还没有找到地点。",
+    "noDescription": "这个地点还没有描述。",
+    "selectedPoi": "快速详情",
+    "selectHint": "点击地图标记或列表卡片查看详情。",
+    "distanceFromYou": "距离你约 {{distance}}",
+    "tapPoiHint": "开启 GPS 以查看真实距离。"
+  },
+  "settings": {
+    "title": "体验设置",
+    "subtitle": "先调整语言和语音行为，为后续聊天机器人和自动导览打好基础。",
+    "language": "语言",
+    "mapProviderTitle": "当前地图底图",
+    "mapProviderDescription": "应用目前通过 Leaflet 使用 OpenStreetMap，便于测试，不需要 API key，也适合 GPS、标记和附近发现功能。",
+    "autoPlayTitle": "自动播放语音导览",
+    "autoPlayDescription": "开启后，当你靠近兴趣点时，应用可以自动开始播放语音导览。",
+    "enabled": "开",
+    "disabled": "关"
+  },
+  "audio": {
+    "title": "语音导览",
+    "play": "播放",
+    "pause": "暂停",
+    "stop": "停止",
+    "ttsReady": "正在使用浏览器语音引擎，以你选择的语言朗读餐厅介绍。",
+    "unavailable": "这个地点暂时没有音频文件。一旦后端提供音频地址，这里就能直接使用。",
+    "noPoiSelected": "请选择一个地点查看语音导览。",
+    "autoPlayReady": "可自动播放"
+  },
+  "chat": {
+    "title": "AI 美食助手",
+    "subtitle": "询问永庆美食街的演示餐馆",
+    "welcome": "你好。你可以问我吃什么、地图上有哪些演示餐馆，或者直接输入一家餐馆的名字获取简短介绍。",
+    "placeholder": "询问美食、餐馆或地图...",
+    "send": "发送"
+  }
+}

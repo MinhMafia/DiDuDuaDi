@@ -1,0 +1,73 @@
+{
+  "appName": "DiDuDuaDi",
+  "hello": "Bonjour",
+  "layout": {
+    "tagline": "Carte, guide audio et assistant de voyage"
+  },
+  "nav": {
+    "home": "Accueil",
+    "map": "Carte",
+    "routes": "Itinéraires",
+    "settings": "Paramètres"
+  },
+  "map": {
+    "title": "Carte gourmande de Vinh Khanh",
+    "subtitle": "Suivez votre position, découvrez les restaurants proches et choisissez rapidement votre prochain arrêt.",
+    "liveMap": "Carte en direct",
+    "gpsOn": "GPS actif",
+    "gpsWaiting": "En attente du GPS",
+    "demoMode": "Mode démo à Vinh Khanh",
+    "poiCount_one": "{{count}} lieu affiché",
+    "poiCount_other": "{{count}} lieux affichés",
+    "searchRadius": "Rayon de recherche autour de vous : {{radius}} m",
+    "centerOnMe": "Revenir à ma position",
+    "jumpToVinhKhanh": "Aller à la rue gourmande Vinh Khanh",
+    "usingDefaultCenter": "Utilisation du centre par défaut de la rue gourmande",
+    "legendYou": "Point turquoise : vous",
+    "legendPoi": "Point bleu : POI",
+    "legendSelected": "Point orange : sélectionné",
+    "locationStatus": "État de la position",
+    "requestingLocation": "Demande d'autorisation et récupération de la position actuelle...",
+    "locationReady": "Position actuelle : {{lat}}, {{lng}}",
+    "userLocationLabel": "Votre position actuelle",
+    "demoLocationLabel": "Position de démonstration à Vinh Khanh",
+    "demoHint": "Une position de démonstration est utilisée afin que vous puissiez explorer rapidement les restaurants de la rue Vinh Khanh.",
+    "nearestPoi": "Le lieu le plus proche en ce moment est {{name}}, à environ {{distance}}.",
+    "nearbyTitle": "Lieux proches",
+    "loadError": "Impossible de charger les données des POI.",
+    "emptyNearby": "Aucun lieu trouvé dans le rayon actuel.",
+    "noDescription": "Aucune description pour ce lieu pour le moment.",
+    "selectedPoi": "Détails rapides",
+    "selectHint": "Touchez un marqueur sur la carte ou une carte dans la liste pour voir les détails.",
+    "distanceFromYou": "À environ {{distance}} de vous",
+    "tapPoiHint": "Activez le GPS pour voir la distance réelle."
+  },
+  "settings": {
+    "title": "Paramètres d'expérience",
+    "subtitle": "Ajustez d'abord la langue et le comportement audio pour préparer les prochaines étapes avec le chatbot et le guidage automatique.",
+    "language": "Langue",
+    "mapProviderTitle": "Fournisseur de carte actuel",
+    "mapProviderDescription": "L'application utilise maintenant OpenStreetMap avec Leaflet, ce qui est plus simple à tester, sans clé API, tout en restant adapté au GPS, aux marqueurs et à la découverte des lieux proches.",
+    "autoPlayTitle": "Lecture automatique du guide audio",
+    "autoPlayDescription": "Lorsqu'elle est activée, l'application peut lancer automatiquement l'audio lorsque vous approchez d'un point d'intérêt.",
+    "enabled": "Activé",
+    "disabled": "Désactivé"
+  },
+  "audio": {
+    "title": "Guide audio",
+    "play": "Lire",
+    "pause": "Pause",
+    "stop": "Arrêter",
+    "ttsReady": "Le moteur vocal du navigateur est utilisé pour raconter le restaurant dans la langue choisie.",
+    "unavailable": "Ce POI n'a pas encore de fichier audio. Dès qu'une URL audio sera fournie par le backend, ce lecteur sera prêt.",
+    "noPoiSelected": "Sélectionnez un lieu pour consulter son guide audio.",
+    "autoPlayReady": "lecture auto prête"
+  },
+  "chat": {
+    "title": "Assistant culinaire IA",
+    "subtitle": "Posez des questions sur les restaurants de démonstration de Vinh Khanh",
+    "welcome": "Bonjour. Vous pouvez demander quoi manger, quels restaurants de démonstration apparaissent sur la carte, ou mentionner le nom d'un restaurant pour obtenir une courte explication.",
+    "placeholder": "Posez une question sur la nourriture, les restaurants ou la carte...",
+    "send": "Envoyer"
+  }
+}

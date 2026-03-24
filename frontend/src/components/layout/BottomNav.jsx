@@ -1,6 +1,9 @@
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function BottomNav() {
+  const { t } = useTranslation();
+
   const linkStyle = ({ isActive }) => ({
     color: isActive ? "#ff6b35" : "#334155",
     textDecoration: "none",
@@ -21,17 +24,11 @@ export default function BottomNav() {
         padding: "12px 8px",
       }}
     >
-      <NavLink to="/" style={linkStyle}>
-        Home
-      </NavLink>
       <NavLink to="/map" style={linkStyle}>
-        Map
-      </NavLink>
-      <NavLink to="/routes" style={linkStyle}>
-        Routes
+        {t("nav.map")}
       </NavLink>
       <NavLink to="/settings" style={linkStyle}>
-        Settings
+        {t("nav.settings")}
       </NavLink>
     </nav>
   );

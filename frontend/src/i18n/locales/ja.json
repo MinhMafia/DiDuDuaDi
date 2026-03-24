@@ -1,0 +1,73 @@
+{
+  "appName": "DiDuDuaDi",
+  "hello": "こんにちは",
+  "layout": {
+    "tagline": "地図、音声ガイド、旅行アシスタント"
+  },
+  "nav": {
+    "home": "ホーム",
+    "map": "地図",
+    "routes": "ルート",
+    "settings": "設定"
+  },
+  "map": {
+    "title": "ヴィンカイン食通りマップ",
+    "subtitle": "現在地を確認し、近くの飲食店を見つけ、次の立ち寄り先をすばやく選べます。",
+    "liveMap": "ライブマップ",
+    "gpsOn": "GPS が有効です",
+    "gpsWaiting": "GPS を待機中",
+    "demoMode": "ヴィンカインのデモモード",
+    "poiCount_one": "{{count}} 件を表示中",
+    "poiCount_other": "{{count}} 件を表示中",
+    "searchRadius": "周辺検索半径：{{radius}}m",
+    "centerOnMe": "現在地に戻る",
+    "jumpToVinhKhanh": "ヴィンカイン食通りへ移動",
+    "usingDefaultCenter": "食通りの既定中心を使用中",
+    "legendYou": "青緑の点：あなた",
+    "legendPoi": "青い点：スポット",
+    "legendSelected": "オレンジの点：選択中",
+    "locationStatus": "位置情報",
+    "requestingLocation": "位置情報の許可を求め、現在地を取得しています...",
+    "locationReady": "現在地：{{lat}}, {{lng}}",
+    "userLocationLabel": "あなたの現在地",
+    "demoLocationLabel": "ヴィンカイン食通りのデモ位置",
+    "demoHint": "ヴィンカイン食通りの店舗をすぐ確認できるよう、デモ位置を使用しています。",
+    "nearestPoi": "今いちばん近いのは {{name}}、約 {{distance}} です。",
+    "nearbyTitle": "近くのスポット",
+    "loadError": "スポットデータを読み込めませんでした。",
+    "emptyNearby": "現在の範囲内にスポットは見つかりませんでした。",
+    "noDescription": "この場所にはまだ説明がありません。",
+    "selectedPoi": "クイック詳細",
+    "selectHint": "地図上のマーカーまたは一覧カードを選ぶと詳細が表示されます。",
+    "distanceFromYou": "あなたから約 {{distance}}",
+    "tapPoiHint": "実際の距離を見るには GPS を有効にしてください。"
+  },
+  "settings": {
+    "title": "体験設定",
+    "subtitle": "後でチャットボットや自動ガイドを広げやすいように、まず言語と音声動作を調整します。",
+    "language": "言語",
+    "mapProviderTitle": "現在の地図プロバイダー",
+    "mapProviderDescription": "現在は Leaflet を通して OpenStreetMap を使用しており、API キー不要でテストしやすく、GPS やマーカー、周辺検索にも適しています。",
+    "autoPlayTitle": "音声ガイドを自動再生",
+    "autoPlayDescription": "有効にすると、スポットに近づいたとき自動で音声ガイドを開始できます。",
+    "enabled": "オン",
+    "disabled": "オフ"
+  },
+  "audio": {
+    "title": "音声ガイド",
+    "play": "再生",
+    "pause": "一時停止",
+    "stop": "停止",
+    "ttsReady": "選択した言語で店舗紹介を読み上げるため、ブラウザの音声エンジンを使用しています。",
+    "unavailable": "このスポットにはまだ音声ファイルがありません。バックエンドで音声 URL が追加されれば、すぐに使えます。",
+    "noPoiSelected": "音声ガイドを見るにはスポットを選択してください。",
+    "autoPlayReady": "自動再生対応"
+  },
+  "chat": {
+    "title": "AI フードアシスタント",
+    "subtitle": "ヴィンカイン通りのデモ店舗について質問できます",
+    "welcome": "こんにちは。何を食べるべきか、地図上のデモ店舗、または特定の店名を入力して簡単な説明を聞くことができます。",
+    "placeholder": "食べ物、店舗、地図について質問...",
+    "send": "送信"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "appName": "DiDuDuaDi",
+  "hello": "안녕하세요",
+  "layout": {
+    "tagline": "지도, 음성 가이드, 여행 도우미"
+  },
+  "nav": {
+    "home": "홈",
+    "map": "지도",
+    "routes": "경로",
+    "settings": "설정"
+  },
+  "map": {
+    "title": "빈카인 음식 거리 지도",
+    "subtitle": "현재 위치를 확인하고, 근처 음식점을 찾고, 다음으로 갈 장소를 빠르게 선택하세요.",
+    "liveMap": "실시간 지도",
+    "gpsOn": "GPS 활성화됨",
+    "gpsWaiting": "GPS 대기 중",
+    "demoMode": "빈카인 데모 모드",
+    "poiCount_one": "{{count}}개 장소 표시 중",
+    "poiCount_other": "{{count}}개 장소 표시 중",
+    "searchRadius": "주변 검색 반경: {{radius}}m",
+    "centerOnMe": "내 위치로 이동",
+    "jumpToVinhKhanh": "빈카인 음식 거리로 이동",
+    "usingDefaultCenter": "음식 거리 기본 중심 사용 중",
+    "legendYou": "청록색 점: 나",
+    "legendPoi": "파란 점: POI",
+    "legendSelected": "주황 점: 선택된 장소",
+    "locationStatus": "위치 상태",
+    "requestingLocation": "위치 권한을 요청하고 현재 위치를 가져오는 중...",
+    "locationReady": "현재 위치: {{lat}}, {{lng}}",
+    "userLocationLabel": "현재 위치",
+    "demoLocationLabel": "빈카인 음식 거리 데모 위치",
+    "demoHint": "빈카인 음식 거리의 식당을 빠르게 확인할 수 있도록 데모 위치를 사용 중입니다.",
+    "nearestPoi": "지금 가장 가까운 곳은 {{name}}이며 약 {{distance}} 떨어져 있습니다.",
+    "nearbyTitle": "근처 장소",
+    "loadError": "POI 데이터를 불러올 수 없습니다.",
+    "emptyNearby": "현재 반경 안에 장소가 없습니다.",
+    "noDescription": "이 장소에는 아직 설명이 없습니다.",
+    "selectedPoi": "빠른 정보",
+    "selectHint": "지도 마커나 목록 카드를 선택하면 자세한 정보를 볼 수 있습니다.",
+    "distanceFromYou": "나로부터 약 {{distance}}",
+    "tapPoiHint": "실제 거리를 보려면 GPS를 켜세요."
+  },
+  "settings": {
+    "title": "체험 설정",
+    "subtitle": "이후 챗봇과 자동 가이드를 확장하기 전에 언어와 오디오 동작을 먼저 조정하세요.",
+    "language": "언어",
+    "mapProviderTitle": "현재 지도 제공자",
+    "mapProviderDescription": "앱은 현재 Leaflet 기반 OpenStreetMap을 사용하므로 API 키 없이도 테스트하기 쉽고 GPS, 마커, 주변 탐색 기능에 잘 맞습니다.",
+    "autoPlayTitle": "오디오 가이드 자동 재생",
+    "autoPlayDescription": "활성화하면 관심 지점에 가까워졌을 때 자동으로 오디오 가이드를 시작할 수 있습니다.",
+    "enabled": "켬",
+    "disabled": "끔"
+  },
+  "audio": {
+    "title": "오디오 가이드",
+    "play": "재생",
+    "pause": "일시정지",
+    "stop": "정지",
+    "ttsReady": "선택한 언어로 식당 설명을 읽기 위해 브라우저 음성 엔진을 사용합니다.",
+    "unavailable": "이 POI에는 아직 오디오 파일이 없습니다. 백엔드에서 오디오 URL을 제공하면 바로 사용할 수 있습니다.",
+    "noPoiSelected": "오디오 가이드를 보려면 장소를 선택하세요.",
+    "autoPlayReady": "자동 재생 준비됨"
+  },
+  "chat": {
+    "title": "AI 음식 도우미",
+    "subtitle": "빈카인 거리의 데모 식당에 대해 물어보세요",
+    "welcome": "안녕하세요. 무엇을 먹을지, 지도에 있는 데모 식당, 또는 특정 식당 이름을 물어보면 짧게 설명해 드릴 수 있습니다.",
+    "placeholder": "음식, 식당 또는 지도에 대해 질문하세요...",
+    "send": "보내기"
+  }
+}
