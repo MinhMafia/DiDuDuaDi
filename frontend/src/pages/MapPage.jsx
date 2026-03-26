@@ -6,6 +6,7 @@ import SpeechGuidePlayer from "../components/audio/SpeechGuidePlayer";
 import MapView from "../components/map/MapView";
 import Loading from "../components/common/Loading";
 import useGeolocation from "../hooks/useGeolocation";
+import { trackAudioPlay, trackPoiView } from "../services/analyticsService";
 import { getNearbyPois, getPois } from "../services/poiService";
 import { SUPPORTED_LANGUAGES } from "../i18n";
 import { VINH_KHANH_CENTER } from "../utils/constants";
@@ -22,6 +23,8 @@ export default function MapPage() {
   const { i18n, t } = useTranslation();
   const autoPlayAudio = useSelector((state) => state.app.autoPlayAudio);
   const autoFocusedPoiRef = useRef("");
+  const trackedAudioRef = useRef("");
+  const trackedPoiViewRef = useRef("");
   const [radius, setRadius] = useState(DEFAULT_RADIUS);
   const [demoLocation, setDemoLocation] = useState(null);
   const [selectedPoi, setSelectedPoi] = useState(null);
@@ -74,6 +77,22 @@ export default function MapPage() {
     if (!selectedPoi) return;
     setSelectedPoiPlaybackKey(`${selectedPoi.id}-${i18n.language}-${Date.now()}`);
   }, [i18n.language, selectedPoi]);
+
+  useEffect(() => {
+    if (!selectedPoi?.shopId) return;
+
+    const trackingKey = `${selectedPoi.id}:${i18n.language}`;
+    if (trackedPoiViewRef.current === trackingKey) {
+      return;
+    }
+
+    trackedPoiViewRef.current = trackingKey;
+    trackPoiView({
+      poiId: selectedPoi.id,
+      languageCode: i18n.language,
+      source: demoLocation ? "demo-map" : "map",
+    }).catch(() => {});
+  }, [demoLocation, i18n.language, selectedPoi]);
 
   useEffect(() => {
     if (selectedPoi) {
@@ -150,6 +169,22 @@ export default function MapPage() {
   const speechLanguage =
     SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)?.speechLocale ||
     "vi-VN";
+
+  function handleAudioPlaybackStart() {
+    if (!selectedPoi?.shopId) return;
+
+    const trackingKey = `${selectedPoi.id}:${i18n.language}:${selectedPoiPlaybackKey || "manual"}`;
+    if (trackedAudioRef.current === trackingKey) {
+      return;
+    }
+
+    trackedAudioRef.current = trackingKey;
+    trackAudioPlay({
+      poiId: selectedPoi.id,
+      languageCode: i18n.language,
+      source: selectedPoi.audioUrl ? "audio-file" : "tts",
+    }).catch(() => {});
+  }
 
   return (
     <section className="map-page">
@@ -325,13 +360,41 @@ export default function MapPage() {
                   <strong>{selectedPoi.displayName}</strong>
                   <span className="poi-category">{selectedPoi.category}</span>
                   <p>{selectedPoi.displayDescription || t("map.noDescription")}</p>
+                  {selectedPoi.approvedIntroduction ? (
+                    <p className="selected-poi-intro">{selectedPoi.approvedIntroduction}</p>
+                  ) : null}
+                  {selectedPoi.shopAddress ? (
+                    <p className="selected-poi-address">{selectedPoi.shopAddress}</p>
+                  ) : null}
                   {selectedPoiDistance ? (
                     <p>{t("map.distanceFromYou", { distance: formatDistance(selectedPoiDistance) })}</p>
                   ) : (
                     <p>{t("map.tapPoiHint")}</p>
                   )}
+                  {selectedPoi.menuItems?.length ? (
+                    <div className="poi-menu-preview">
+                      <h3>{t("map.menuTitle")}</h3>
+                      <div className="poi-menu-list">
+                        {selectedPoi.menuItems.map((item) => (
+                          <article key={item.id} className="poi-menu-item">
+                            {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : null}
+                            <div>
+                              <strong>{item.name}</strong>
+                              <p>{item.description}</p>
+                              <span>{new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                                maximumFractionDigits: 0,
+                              }).format(item.price || 0)}</span>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                   <SpeechGuidePlayer
                     audioUrl={selectedPoi.audioUrl}
+                    onPlaybackStart={handleAudioPlaybackStart}
                     playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
                     speechLanguage={speechLanguage}
                     speechText={selectedPoi.displayDescription}

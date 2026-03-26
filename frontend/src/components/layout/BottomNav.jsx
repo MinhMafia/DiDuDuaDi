@@ -1,7 +1,9 @@
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
 
 export default function BottomNav() {
+  const currentUser = useSelector((state) => state.app.currentUser);
   const { t } = useTranslation();
 
   const linkStyle = ({ isActive }) => ({
@@ -24,9 +26,21 @@ export default function BottomNav() {
         padding: "12px 8px",
       }}
     >
-      <NavLink to="/map" style={linkStyle}>
-        {t("nav.map")}
-      </NavLink>
+      {currentUser?.role === "user" ? (
+        <NavLink to="/map" style={linkStyle}>
+          {t("nav.map")}
+        </NavLink>
+      ) : null}
+      {currentUser?.role === "owner" ? (
+        <NavLink to="/owner" style={linkStyle}>
+          {t("nav.owner")}
+        </NavLink>
+      ) : null}
+      {currentUser?.role === "admin" ? (
+        <NavLink to="/admin" style={linkStyle}>
+          {t("nav.admin")}
+        </NavLink>
+      ) : null}
       <NavLink to="/settings" style={linkStyle}>
         {t("nav.settings")}
       </NavLink>

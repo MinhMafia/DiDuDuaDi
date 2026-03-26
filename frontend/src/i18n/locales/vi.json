@@ -7,8 +7,27 @@
   "nav": {
     "home": "Trang chu",
     "map": "Ban do",
+    "owner": "Chu quan",
+    "admin": "Admin",
     "routes": "Lo trinh",
     "settings": "Cai dat"
+  },
+  "auth": {
+    "badge": "Dang nhap he thong",
+    "title": "Chon vai tro de vao he thong",
+    "subtitle": "Phien ban MVP hien dung tai khoan demo cho 3 luong: nguoi dung, chu quan va admin.",
+    "demoAccounts": "Tai khoan demo",
+    "username": "Ten dang nhap",
+    "password": "Mat khau",
+    "login": "Dang nhap",
+    "logout": "Dang xuat",
+    "loading": "Dang dang nhap...",
+    "loginError": "Dang nhap that bai. Hay kiem tra lai tai khoan demo.",
+    "roles": {
+      "user": "Nguoi dung",
+      "owner": "Chu quan",
+      "admin": "Admin"
+    }
   },
   "map": {
     "title": "Ban do kham pha Vinh Khanh",
@@ -38,6 +57,7 @@
     "emptyNearby": "Chua tim thay diem nao trong ban kinh hien tai.",
     "noDescription": "Chua co mo ta cho dia diem nay.",
     "selectedPoi": "Chi tiet nhanh",
+    "menuTitle": "Mon dang hien tai quan",
     "selectHint": "Chon mot diem tren ban do hoac trong danh sach de xem nhanh.",
     "distanceFromYou": "Cach ban khoang {{distance}}",
     "tapPoiHint": "Bat GPS de xem khoang cach thuc te."
@@ -50,6 +70,11 @@
     "mapProviderDescription": "Ung dung dang dung OpenStreetMap qua Leaflet de de test, khong can API key va van rat hop cho phat trien tinh nang GPS, marker va nearby.",
     "autoPlayTitle": "Tu dong phat audio guide",
     "autoPlayDescription": "Khi bat, app co the tu dong phat audio khi ban tien den gan diem tham quan trong cac buoc tiep theo.",
+    "voiceTitle": "Tinh trang giong doc tren may nay",
+    "voiceDescription": "Danh sach duoi day cho biet trinh duyet hien co voice nao cho tung ngon ngu va voice nao se duoc app uu tien su dung.",
+    "voiceReady": "Co the doc native",
+    "voiceMissing": "Dang fallback",
+    "voiceFallback": "Khong tim thay voice phu hop",
     "enabled": "Bat",
     "disabled": "Tat"
   },
@@ -69,5 +94,63 @@
     "welcome": "Xin chao. Ban co the hoi minh nen an gi, quan nao dang co tren ban do, hoac ten mot quan cu the de nghe giai thich ngan.",
     "placeholder": "Hoi ve mon an, quan an, ban do...",
     "send": "Gui"
+  },
+  "owner": {
+    "badge": "Khong gian chu quan",
+    "title": "Bang dieu khien chu quan",
+    "subtitle": "Quan ly menu, thong tin gioi thieu, claim code va thong ke de cap nhat noi dung quán cho du khach.",
+    "noShop": "Chua co quan lien ket",
+    "error": "Khong tai duoc du lieu dashboard chu quan.",
+    "statsTitle": "Thong ke nhanh",
+    "shopInfoTitle": "Thong tin gioi thieu quan",
+    "menuTitle": "Quan ly thuc don",
+    "menuSubtitle": "Nhung mon dang bat se hien cho du khach khi ho mo POI cua quan ban.",
+    "claimTitle": "Claim code tien mat",
+    "claimSubtitle": "Tao ma kich hoat de xac nhan thanh toan tien mat tai quan.",
+    "saveProfile": "Luu thong tin quan",
+    "saving": "Dang luu...",
+    "addMenu": "Them mon",
+    "updateMenu": "Cap nhat mon",
+    "cancelEdit": "Huy sua",
+    "createClaim": "Tao claim code",
+    "available": "Dang hien",
+    "hidden": "Dang an",
+    "edit": "Sua",
+    "delete": "Xoa",
+    "feedback": {
+      "saved": "Da cap nhat thong tin quan.",
+      "menuCreated": "Da them mon moi.",
+      "menuUpdated": "Da cap nhat mon.",
+      "menuDeleted": "Da xoa mon.",
+      "claimCreated": "Da tao claim code moi"
+    },
+    "stats": {
+      "totalVisits": "Luot ghe xem",
+      "audioPlays": "Luot phat thuyet minh",
+      "claimCodes": "Claim code da tao",
+      "todayVisits": "Luot ghe hom nay",
+      "todayAudio": "Audio hom nay"
+    },
+    "fields": {
+      "shopName": "Ten quan",
+      "address": "Dia chi",
+      "description": "Mo ta ngan hien tai",
+      "pendingIntro": "Ban gioi thieu gui admin duyet",
+      "hours": "Gio mo cua",
+      "phone": "So dien thoai",
+      "imageUrl": "Link hinh anh",
+      "menuName": "Ten mon",
+      "menuDescription": "Mo ta mon",
+      "price": "Gia ban",
+      "order": "Thu tu hien thi",
+      "available": "Cho phep hien cho du khach",
+      "amount": "So tien",
+      "expireAfterHours": "Het han sau (gio)",
+      "note": "Ghi chu"
+    }
+  },
+  "admin": {
+    "title": "Bang dieu khien admin",
+    "subtitle": "Khu nay se dung de quan ly toan bo he thong, du lieu POI va kiem duyet noi dung trong cac buoc tiep theo."
   }
 }

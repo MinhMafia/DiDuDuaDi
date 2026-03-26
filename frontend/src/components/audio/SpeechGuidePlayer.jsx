@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 export default function SpeechGuidePlayer({
   audioUrl,
+  onPlaybackStart,
   playbackKey,
   speechLanguage = "vi-VN",
   speechText,
@@ -35,7 +36,10 @@ export default function SpeechGuidePlayer({
       src: [audioUrl],
       html5: true,
       onload: () => setDuration(player.duration()),
-      onplay: () => setIsPlaying(true),
+      onplay: () => {
+        setIsPlaying(true);
+        onPlaybackStart?.();
+      },
       onpause: () => setIsPlaying(false),
       onstop: () => {
         setIsPlaying(false);
@@ -57,7 +61,7 @@ export default function SpeechGuidePlayer({
       player.unload();
       playerRef.current = null;
     };
-  }, [audioUrl, speechText]);
+  }, [audioUrl, onPlaybackStart, speechText]);
 
   useEffect(() => {
     if (!isPlaying || !playerRef.current) return undefined;
@@ -99,7 +103,7 @@ export default function SpeechGuidePlayer({
 
     lastAutoSpeakRef.current = autoSpeakToken;
     startSpeech();
-  }, [playbackKey, speechLanguage, speechText, triggerAutoSpeak, voices]);
+  }, [onPlaybackStart, playbackKey, speechLanguage, speechText, triggerAutoSpeak, voices]);
 
   function togglePlayback() {
     if (!audioUrl && speechText) {
@@ -141,7 +145,10 @@ export default function SpeechGuidePlayer({
     utterance.lang = speechLanguage;
     utterance.rate = 1;
     utterance.pitch = 1;
-    utterance.onstart = () => setIsPlaying(true);
+    utterance.onstart = () => {
+      setIsPlaying(true);
+      onPlaybackStart?.();
+    };
     utterance.onend = () => setIsPlaying(false);
     utterance.onerror = () => setIsPlaying(false);
 

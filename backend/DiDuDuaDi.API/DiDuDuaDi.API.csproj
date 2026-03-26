@@ -5,4 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DiDuDuaDi.API</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="MySqlConnector" Version="2.4.0" />
+  </ItemGroup>
 </Project>

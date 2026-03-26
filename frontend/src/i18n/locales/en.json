@@ -7,8 +7,27 @@
   "nav": {
     "home": "Home",
     "map": "Map",
+    "owner": "Owner",
+    "admin": "Admin",
     "routes": "Routes",
     "settings": "Settings"
+  },
+  "auth": {
+    "badge": "System login",
+    "title": "Choose a role to enter the app",
+    "subtitle": "This MVP currently uses demo accounts for three flows: user, shop owner, and admin.",
+    "demoAccounts": "Demo accounts",
+    "username": "Username",
+    "password": "Password",
+    "login": "Log in",
+    "logout": "Log out",
+    "loading": "Logging in...",
+    "loginError": "Login failed. Please check the demo account credentials.",
+    "roles": {
+      "user": "User",
+      "owner": "Owner",
+      "admin": "Admin"
+    }
   },
   "map": {
     "title": "Vinh Khanh discovery map",
@@ -38,6 +57,7 @@
     "emptyNearby": "No places found in the current radius yet.",
     "noDescription": "No description for this place yet.",
     "selectedPoi": "Quick details",
+    "menuTitle": "Current menu highlights",
     "selectHint": "Pick a marker on the map or a card in the list to inspect it.",
     "distanceFromYou": "About {{distance}} away from you",
     "tapPoiHint": "Enable GPS to see the real distance."
@@ -50,6 +70,11 @@
     "mapProviderDescription": "The app now uses OpenStreetMap through Leaflet so it is easier to test, does not need an API key, and still fits GPS, markers, and nearby discovery well.",
     "autoPlayTitle": "Auto-play audio guide",
     "autoPlayDescription": "When enabled, the app can automatically start audio as you approach a point of interest in the next milestones.",
+    "voiceTitle": "Voice availability on this device",
+    "voiceDescription": "The list below shows which browser voices are currently available for each language and which one the app is most likely to use.",
+    "voiceReady": "Native voice ready",
+    "voiceMissing": "Using fallback",
+    "voiceFallback": "No matching voice found",
     "enabled": "On",
     "disabled": "Off"
   },
@@ -69,5 +94,63 @@
     "welcome": "Hello. You can ask what to eat, which demo spots are on the map, or mention a restaurant name to get a short explanation.",
     "placeholder": "Ask about food, restaurants, or the map...",
     "send": "Send"
+  },
+  "owner": {
+    "badge": "Owner workspace",
+    "title": "Owner dashboard",
+    "subtitle": "Manage menu items, intro content, claim codes, and stats so the tourist app shows richer shop information.",
+    "noShop": "No linked shop yet",
+    "error": "Unable to load the owner dashboard.",
+    "statsTitle": "Quick stats",
+    "shopInfoTitle": "Shop profile and intro",
+    "menuTitle": "Menu management",
+    "menuSubtitle": "Available dishes here will be shown to visitors when they open your POI on the map.",
+    "claimTitle": "Cash claim codes",
+    "claimSubtitle": "Generate activation codes for customers who pay cash at the restaurant.",
+    "saveProfile": "Save shop profile",
+    "saving": "Saving...",
+    "addMenu": "Add item",
+    "updateMenu": "Update item",
+    "cancelEdit": "Cancel edit",
+    "createClaim": "Create claim code",
+    "available": "Visible",
+    "hidden": "Hidden",
+    "edit": "Edit",
+    "delete": "Delete",
+    "feedback": {
+      "saved": "Shop profile updated.",
+      "menuCreated": "Menu item created.",
+      "menuUpdated": "Menu item updated.",
+      "menuDeleted": "Menu item deleted.",
+      "claimCreated": "Claim code created"
+    },
+    "stats": {
+      "totalVisits": "POI visits",
+      "audioPlays": "Audio plays",
+      "claimCodes": "Claim codes created",
+      "todayVisits": "Visits today",
+      "todayAudio": "Audio today"
+    },
+    "fields": {
+      "shopName": "Shop name",
+      "address": "Address",
+      "description": "Current short description",
+      "pendingIntro": "Intro draft waiting for admin review",
+      "hours": "Opening hours",
+      "phone": "Phone number",
+      "imageUrl": "Image URL",
+      "menuName": "Dish name",
+      "menuDescription": "Dish description",
+      "price": "Price",
+      "order": "Display order",
+      "available": "Visible to visitors",
+      "amount": "Amount",
+      "expireAfterHours": "Expire after (hours)",
+      "note": "Note"
+    }
+  },
+  "admin": {
+    "title": "Admin dashboard",
+    "subtitle": "This area will be used to manage the whole system, POI data, and content moderation in the next milestones."
   }
 }

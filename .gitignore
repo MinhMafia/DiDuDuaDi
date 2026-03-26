@@ -13,6 +13,8 @@ frontend/.vite/
 # .NET
 **/bin/
 **/obj/
+.dotnet/
+.nuget/
 *.user
 
 # IDE
