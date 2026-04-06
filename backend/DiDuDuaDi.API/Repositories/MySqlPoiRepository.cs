@@ -105,14 +105,16 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
             .ToDictionary(
                 group => group.Key,
                 group => group
-                    .Select(row => new MenuItemSummary(
-                        row.Id,
-                        row.Name,
-                        row.Description,
-                        row.Price,
-                        row.ImageUrl,
-                        row.IsAvailable,
-                        row.DisplayOrder))
+                    .Select(row => new MenuItemSummary
+                    {
+                        Id = row.Id,
+                        Name = row.Name,
+                        Description = row.Description,
+                        Price = row.Price,
+                        ImageUrl = row.ImageUrl,
+                        IsAvailable = row.IsAvailable,
+                        DisplayOrder = row.DisplayOrder
+                    })
                     .ToList());
     }
 

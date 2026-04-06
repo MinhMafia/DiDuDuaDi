@@ -16,13 +16,31 @@
     "badge": "System login",
     "title": "Choose a role to enter the app",
     "subtitle": "This MVP currently uses demo accounts for three flows: user, shop owner, and admin.",
+    "loginTitle": "Sign in to the platform",
+    "loginSubtitle": "Log in to continue exploring the map, listening to audio guides, and managing your role.",
+    "registerTitle": "Create a tourist account",
+    "registerSubtitle": "Register a new user account to start using the Vinh Khanh food-street travel app.",
     "demoAccounts": "Demo accounts",
     "username": "Username",
+    "displayName": "Display name",
     "password": "Password",
+    "confirmPassword": "Confirm password",
+    "emailOptional": "Email (optional)",
     "login": "Log in",
+    "register": "Register",
     "logout": "Log out",
     "loading": "Logging in...",
+    "registerLoading": "Creating account...",
     "loginError": "Login failed. Please check the demo account credentials.",
+    "registerError": "Registration failed. Please try again.",
+    "registerSuccess": "Registration successful. Please log in to continue.",
+    "passwordMismatch": "Passwords do not match.",
+    "passwordTooShort": "Password must be at least 6 characters.",
+    "noAccount": "Don't have an account yet?",
+    "haveAccount": "Already have an account?",
+    "goRegister": "Register now",
+    "goLogin": "Back to login",
+    "registerAsTourist": "Create a new tourist account",
     "roles": {
       "user": "User",
       "owner": "Owner",
@@ -88,12 +106,65 @@
     "noPoiSelected": "Select a place to inspect its audio guide.",
     "autoPlayReady": "auto-play ready"
   },
+  "common": {
+    "loading": "Loading..."
+  },
   "chat": {
     "title": "AI food assistant",
     "subtitle": "Ask about the demo restaurants on Vinh Khanh street",
     "welcome": "Hello. You can ask what to eat, which demo spots are on the map, or mention a restaurant name to get a short explanation.",
     "placeholder": "Ask about food, restaurants, or the map...",
-    "send": "Send"
+    "send": "Send",
+    "close": "Close",
+    "fabLabel": "AI"
+  },
+  "home": {
+    "title": "DiDuDuaDi system test dashboard",
+    "subtitle": "A basic screen to verify that the frontend is connected to the backend and sample APIs.",
+    "healthNotChecked": "Not checked yet",
+    "healthConnected": "Backend connected",
+    "healthFailed": "Connection failed",
+    "connectError": "Unable to connect to the backend",
+    "poiApiError": "Unable to call the POIs API",
+    "nearbyApiError": "Unable to call the Nearby API",
+    "errorLabel": "Error",
+    "loading": "Loading data...",
+    "nearbyTitle": "Nearby POIs",
+    "emptyNearby": "No data yet. Press \"Test Nearby API\" to see results.",
+    "labels": {
+      "backendStatus": "Backend status",
+      "serverTime": "Server time",
+      "totalPoi": "Total POIs"
+    },
+    "actions": {
+      "testHealth": "Test Health API",
+      "testPois": "Test POIs API",
+      "testNearby": "Test Nearby API"
+    },
+    "fields": {
+      "lat": "Latitude",
+      "lng": "Longitude",
+      "radius": "Radius (m)"
+    }
+  },
+  "routes": {
+    "placeholder": "The route page will be completed in the next milestone."
+  },
+  "collaboration": {
+    "title": "Partner with us",
+    "subtitle": "Fill in the restaurant information to request an upgrade from user to owner. An admin will review it before granting access.",
+    "currentUser": "Current account",
+    "submit": "Submit owner registration request",
+    "submitting": "Submitting...",
+    "success": "Your owner upgrade request has been submitted successfully.",
+    "error": "Unable to submit the request.",
+    "fields": {
+      "shopName": "Shop name",
+      "address": "Address in Vinh Khanh",
+      "idCardImageUrl": "ID card image URL",
+      "businessLicenseImageUrl": "Business license image URL (optional)",
+      "note": "Note"
+    }
   },
   "owner": {
     "badge": "Owner workspace",
@@ -103,6 +174,8 @@
     "error": "Unable to load the owner dashboard.",
     "statsTitle": "Quick stats",
     "shopInfoTitle": "Shop profile and intro",
+    "poiTitle": "POI content on the map",
+    "poiSubtitle": "The name and description below are what visitors will see when they open your place on the map.",
     "menuTitle": "Menu management",
     "menuSubtitle": "Available dishes here will be shown to visitors when they open your POI on the map.",
     "claimTitle": "Cash claim codes",
@@ -119,6 +192,7 @@
     "delete": "Delete",
     "feedback": {
       "saved": "Shop profile updated.",
+      "poiSaved": "POI content updated on the map.",
       "menuCreated": "Menu item created.",
       "menuUpdated": "Menu item updated.",
       "menuDeleted": "Menu item deleted.",
@@ -131,15 +205,31 @@
       "todayVisits": "Visits today",
       "todayAudio": "Audio today"
     },
+    "status": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "pending": "Pending review",
+      "notSubmitted": "Not submitted"
+    },
+    "labels": {
+      "issuedAt": "Issued at"
+    },
     "fields": {
       "shopName": "Shop name",
       "address": "Address",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
       "description": "Current short description",
       "pendingIntro": "Intro draft waiting for admin review",
       "hours": "Opening hours",
       "phone": "Phone number",
       "imageUrl": "Image URL",
       "menuName": "Dish name",
+      "poiCategory": "Place category",
+      "poiNameVi": "POI name (Vietnamese)",
+      "poiNameEn": "POI name (English)",
+      "poiDescriptionVi": "POI description (Vietnamese)",
+      "poiDescriptionEn": "POI description (English)",
       "menuDescription": "Dish description",
       "price": "Price",
       "order": "Display order",
@@ -148,9 +238,49 @@
       "expireAfterHours": "Expire after (hours)",
       "note": "Note"
     }
+    ,
+    "savePoi": "Save POI content"
   },
   "admin": {
     "title": "Admin dashboard",
-    "subtitle": "This area will be used to manage the whole system, POI data, and content moderation in the next milestones."
+    "subtitle": "Review owner requests, moderate shop content, and track recent moderation history.",
+    "ownerRequestsTitle": "Owner upgrade requests",
+    "ownerRequestsSubtitle": "Review user submissions and approve or reject requests to become a shop owner.",
+    "shopIntroTitle": "Pending shop introductions",
+    "shopIntroSubtitle": "Review shop introduction drafts before they appear to tourists on the map and audio guide.",
+    "reviewHistoryTitle": "Recent review history",
+    "reviewHistorySubtitle": "Track handled requests so it is easier to revisit decisions and moderation notes.",
+    "ownerHistoryTitle": "Owner request history",
+    "shopIntroHistoryTitle": "Shop intro review history",
+    "labels": {
+      "user": "User",
+      "owner": "Owner",
+      "address": "Address",
+      "idCard": "ID card",
+      "businessLicense": "Business license",
+      "note": "Note",
+      "reviewNote": "Review note",
+      "latestReviewNote": "Latest review note",
+      "currentContent": "Current content",
+      "pendingContent": "Submitted content",
+      "noContent": "No content yet."
+    },
+    "status": {
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "pending": "Pending"
+    },
+    "approve": "Approve",
+    "reject": "Reject",
+    "approveContent": "Approve content",
+    "processing": "Processing...",
+    "reviewNotePlaceholder": "Enter an approval note or rejection reason",
+    "loadOwnerRequestsError": "Unable to load owner requests.",
+    "loadShopIntrosError": "Unable to load shop intro drafts.",
+    "loadHistoryError": "Unable to load review history.",
+    "emptyPendingOwnerRequests": "There are no pending owner requests.",
+    "emptyPendingShopIntros": "There are no pending shop intros.",
+    "emptyOwnerHistory": "No owner request history yet.",
+    "emptyShopIntroHistory": "No shop intro review history yet."
   }
 }

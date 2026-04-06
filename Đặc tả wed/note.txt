@@ -1,0 +1,8 @@
+1. Chưa sort theo khoảng cách trong GetNearby():
+Có thể thêm .OrderBy(...) để POI gần nhất lên đầu.
+
+2. GetNearby() đang gọi GetAll() rồi lọc trong C#:
+Với dữ liệu lớn sẽ tốn RAM/CPU.
+Tối ưu sau: lọc ngay trong SQL bằng bounding box/haversine SQL.
+
+3. Validate ở controller chỉ kiểm tra tọa độ, chưa kiểm tra radius âm hoặc quá lớn.

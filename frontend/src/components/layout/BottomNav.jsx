@@ -31,6 +31,11 @@ export default function BottomNav() {
           {t("nav.map")}
         </NavLink>
       ) : null}
+      {currentUser?.role === "user" ? (
+        <NavLink to="/cooperate" style={linkStyle}>
+          Đăng ký chủ quán
+        </NavLink>
+      ) : null}
       {currentUser?.role === "owner" ? (
         <NavLink to="/owner" style={linkStyle}>
           {t("nav.owner")}

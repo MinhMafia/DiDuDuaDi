@@ -101,8 +101,9 @@ export default function ChatButton() {
                 cursor: "pointer",
                 fontWeight: 700,
               }}
+              aria-label={t("chat.close")}
             >
-              x
+              {t("chat.close")}
             </button>
           </header>
 
@@ -193,8 +194,9 @@ export default function ChatButton() {
         }}
         type="button"
         onClick={() => setIsOpen((current) => !current)}
+        aria-label={t("chat.fabLabel")}
       >
-        AI
+        {t("chat.fabLabel")}
       </button>
     </>
   );
@@ -209,9 +211,7 @@ function buildAssistantReply(message, pois, language) {
   );
 
   if (matchedPoi) {
-    return language === "en"
-      ? `${matchedPoi.displayName}: ${matchedPoi.displayDescription}`
-      : `${matchedPoi.displayName}: ${matchedPoi.displayDescription}`;
+    return `${matchedPoi.displayName}: ${matchedPoi.displayDescription}`;
   }
 
   if (
@@ -229,7 +229,7 @@ function buildAssistantReply(message, pois, language) {
 
     return language === "en"
       ? `Here are a few demo spots on Vinh Khanh food street:\n${shortlist}\nYou can tap a marker on the map to hear the description.`
-      : `Day la vai quan demo o pho am thuc Vinh Khanh:\n${shortlist}\nBan co the cham vao marker tren ban do de nghe mo ta.`;
+      : `Đây là vài quán demo ở phố ẩm thực Vĩnh Khánh:\n${shortlist}\nBạn có thể chạm vào marker trên bản đồ để nghe mô tả.`;
   }
 
   if (
@@ -240,10 +240,10 @@ function buildAssistantReply(message, pois, language) {
   ) {
     return language === "en"
       ? "Open the map and allow GPS. The app will highlight nearby restaurants and can auto-narrate when you get close."
-      : "Hay mo ban do va cap quyen GPS. Ung dung se hien cac quan gan ban va co the tu dong doc mo ta khi ban den gan.";
+      : "Hãy mở bản đồ và cấp quyền GPS. Ứng dụng sẽ hiện các quán gần bạn và có thể tự động đọc mô tả khi bạn đến gần.";
   }
 
   return language === "en"
     ? "I can suggest demo restaurants on Vinh Khanh food street, explain a selected place, or guide you to use the live map and audio narration."
-    : "Minh co the goi y cac quan demo o pho am thuc Vinh Khanh, giai thich ve tung quan, hoac huong dan ban dung ban do va nghe mo ta bang giong noi.";
+    : "Mình có thể gợi ý các quán demo ở phố ẩm thực Vĩnh Khánh, giải thích về từng quán, hoặc hướng dẫn bạn dùng bản đồ và nghe mô tả bằng giọng nói.";
 }

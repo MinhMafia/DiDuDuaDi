@@ -9,8 +9,8 @@ import "./HomePage.css";
 import { getLocalizedValue } from "../utils/helpers";
 
 export default function HomePage() {
-  const { i18n } = useTranslation();
-  const [healthStatus, setHealthStatus] = useState("Chua kiem tra");
+  const { i18n, t } = useTranslation();
+  const [healthStatus, setHealthStatus] = useState(t("home.healthNotChecked"));
   const [serverTime, setServerTime] = useState("");
   const [poiCount, setPoiCount] = useState(null);
   const [nearbyPois, setNearbyPois] = useState([]);
@@ -32,11 +32,11 @@ export default function HomePage() {
       setError("");
       setLoading(true);
       const health = await getBackendHealth();
-      setHealthStatus(health.message || "Backend connected");
+      setHealthStatus(health.message || t("home.healthConnected"));
       setServerTime(health.serverTime || "");
     } catch (err) {
-      setHealthStatus("Ket noi that bai");
-      setError(err?.message || "Khong the ket noi backend");
+      setHealthStatus(t("home.healthFailed"));
+      setError(err?.message || t("home.connectError"));
     } finally {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ export default function HomePage() {
       setPoiCount(count);
       setNearbyPois([]);
     } catch (err) {
-      setError(err?.message || "Khong goi duoc API POIs");
+      setError(err?.message || t("home.poiApiError"));
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,7 @@ export default function HomePage() {
       setNearbyPois(Array.isArray(result?.data) ? result.data : []);
     } catch (err) {
       setNearbyPois([]);
-      setError(err?.message || "Khong goi duoc API Nearby");
+      setError(err?.message || t("home.nearbyApiError"));
     } finally {
       setLoading(false);
     }
@@ -78,21 +78,21 @@ export default function HomePage() {
   return (
     <section className="home-page">
       <div className="hero-card">
-        <h1>DiDuDuaDi Test Dashboard</h1>
-        <p>Giao dien co ban de kiem tra frontend da ket noi backend chua.</p>
+        <h1>{t("home.title")}</h1>
+        <p>{t("home.subtitle")}</p>
       </div>
 
       <div className="stats-grid">
         <article className="status-card">
-          <p className="label">Backend status</p>
+          <p className="label">{t("home.labels.backendStatus")}</p>
           <p className={backendOk ? "value ok" : "value"}>{healthStatus}</p>
         </article>
         <article className="status-card">
-          <p className="label">Server time</p>
+          <p className="label">{t("home.labels.serverTime")}</p>
           <p className="value">{serverTime || "-"}</p>
         </article>
         <article className="status-card">
-          <p className="label">Tong POI</p>
+          <p className="label">{t("home.labels.totalPoi")}</p>
           <p className="value">{poiCount ?? "-"}</p>
         </article>
       </div>
@@ -100,27 +100,27 @@ export default function HomePage() {
       <div className="controls-card">
         <div className="button-row">
           <button type="button" onClick={testConnection} disabled={loading}>
-            Test Health API
+            {t("home.actions.testHealth")}
           </button>
           <button type="button" onClick={testPoisApi} disabled={loading}>
-            Test POIs API
+            {t("home.actions.testPois")}
           </button>
           <button type="button" onClick={testNearbyApi} disabled={loading}>
-            Test Nearby API
+            {t("home.actions.testNearby")}
           </button>
         </div>
 
         <div className="input-row">
           <label>
-            Lat
+            {t("home.fields.lat")}
             <input value={lat} onChange={(e) => setLat(e.target.value)} />
           </label>
           <label>
-            Lng
+            {t("home.fields.lng")}
             <input value={lng} onChange={(e) => setLng(e.target.value)} />
           </label>
           <label>
-            Radius (m)
+            {t("home.fields.radius")}
             <input
               type="number"
               min="50"
@@ -131,16 +131,18 @@ export default function HomePage() {
           </label>
         </div>
 
-        {error ? <p className="error-text">Loi: {error}</p> : null}
-        {loading ? <p className="hint">Dang tai du lieu...</p> : null}
+        {error ? (
+          <p className="error-text">
+            {t("home.errorLabel")}: {error}
+          </p>
+        ) : null}
+        {loading ? <p className="hint">{t("home.loading")}</p> : null}
       </div>
 
       <div className="list-card">
-        <h2>POI gan day</h2>
+        <h2>{t("home.nearbyTitle")}</h2>
         {nearbyPois.length === 0 ? (
-          <p className="hint">
-            Chua co du lieu. Bam "Test Nearby API" de xem ket qua.
-          </p>
+          <p className="hint">{t("home.emptyNearby")}</p>
         ) : (
           <ul>
             {nearbyPois.map((poi) => (

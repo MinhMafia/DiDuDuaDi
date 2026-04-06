@@ -270,6 +270,7 @@ INSERT INTO accounts (
 VALUES
     ('11111111-1111-1111-1111-111111111111', 'admin', '123456', 'Demo Admin', 1, 1),
     ('22222222-2222-2222-2222-222222222222', 'owner', '123456', 'Demo Shop Owner', 2, 1),
+    ('66666666-6666-6666-6666-666666666666', 'owner_demo', '123456', 'Chu quan Demo Vinh Khanh', 2, 1),
     ('33333333-3333-3333-3333-333333333333', 'user', '123456', 'Demo Tourist User', 3, 1)
 ON DUPLICATE KEY UPDATE
     display_name = VALUES(display_name),
@@ -282,10 +283,15 @@ INSERT INTO shops (
     name,
     slug,
     description,
+    approved_intro,
+    pending_intro,
+    intro_review_status,
     address_line,
     latitude,
     longitude,
     opening_hours,
+    phone,
+    image_url,
     is_active
 )
 VALUES
@@ -302,6 +308,8 @@ VALUES
         10.75855600,
         106.70328400,
         '16:00 - 23:30',
+        '0909000111',
+        'https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=900&q=80',
         1
     ),
     (
@@ -317,6 +325,25 @@ VALUES
         10.75899500,
         106.70362100,
         '15:00 - 22:30',
+        '0909000222',
+        'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=900&q=80',
+        1
+    ),
+    (
+        '77777777-7777-7777-7777-777777777777',
+        '66666666-6666-6666-6666-666666666666',
+        'Bo La Lot Chi Ba Demo',
+        'bo-la-lot-chi-ba-demo',
+        'Quan demo danh rieng cho luong chu quan, co the sua menu, claim code va thong tin map.',
+        'Bo La Lot Chi Ba Demo la dia diem mau de kiem thu day du luong quan ly chu quan tren ban do.',
+        NULL,
+        'approved',
+        '129 Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh',
+        10.75878000,
+        106.70351000,
+        '16:30 - 23:30',
+        '0909000123',
+        'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=900&q=80',
         1
     )
 ON DUPLICATE KEY UPDATE
@@ -371,6 +398,24 @@ VALUES
         'Do uong giai khat di kem mon nuong.',
         18000,
         'https://images.unsplash.com/photo-1497534446932-c925b458314e?auto=format&fit=crop&w=900&q=80',
+        1,
+        2
+    ),
+    (
+        '77777777-7777-7777-7777-777777777777',
+        'Bo la lot phan dac biet',
+        'Phan bo la lot an kem rau song va nuoc cham nha lam.',
+        69000,
+        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80',
+        1,
+        1
+    ),
+    (
+        '77777777-7777-7777-7777-777777777777',
+        'Cha dum nuong',
+        'Mon nuong them de chu quan thu tinh nang cap nhat menu.',
+        49000,
+        'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80',
         1,
         2
     );
@@ -429,6 +474,17 @@ VALUES
         35,
         'vi',
         0,
+        1
+    ),
+    (
+        '88888888-8888-8888-8888-888888888888',
+        '77777777-7777-7777-7777-777777777777',
+        'grilled_food',
+        10.75878000,
+        106.70351000,
+        35,
+        'vi',
+        1,
         1
     )
 ON DUPLICATE KEY UPDATE
@@ -510,6 +566,22 @@ VALUES
         'Bo La Lot Co Van',
         'A grilled snack stop on the street.',
         'This POI is included to demonstrate marker selection, popup details, and spoken descriptions on the map.',
+        NULL
+    ),
+    (
+        '88888888-8888-8888-8888-888888888888',
+        'vi',
+        'Bo La Lot Chi Ba Demo',
+        'Quan demo cho chu quan.',
+        'Day la POI mau gan voi tai khoan owner_demo, giup ban thu cap nhat vi tri, menu, mo ta va thong ke ngay tren ban do.',
+        NULL
+    ),
+    (
+        '88888888-8888-8888-8888-888888888888',
+        'en',
+        'Chi Ba Grilled Beef Demo',
+        'A demo place for the owner flow.',
+        'This POI is linked to the owner_demo account so you can test menu editing, map updates, and owner management immediately.',
         NULL
     )
 ON DUPLICATE KEY UPDATE

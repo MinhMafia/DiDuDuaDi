@@ -1,0 +1,8 @@
+
+
+Thiết lập: Cập nhật tọa độ chính xác, hình ảnh và thực đơn.
+Cập nhật hình ảnh: Đăng tải hình ảnh thực tế của quán (Thumbnail) để hiển thị trên Marker khi du khách nhấn vào trên bản đồ.
+
+Mô tả đặc trưng: Viết đoạn giới thiệu ngắn về lịch sử quán hoặc các món "signature" (món đinh) của mình.
+
+Quản lý Menu: Cập nhật danh sách món ăn và giá cả theo thời gian thực (giúp du khách xem nhanh trước khi quyết định ghé vào).

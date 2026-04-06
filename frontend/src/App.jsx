@@ -2,17 +2,22 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import MainLayout from "./components/layout/MainLayout";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+import CollaborationPage from "./pages/CollaborationPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import OwnerDashboardPage from "./pages/OwnerDashboardPage";
+import RegisterPage from "./pages/RegisterPage";
 import SettingsPage from "./pages/SettingsPage";
 
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
 
-      <Route element={<ProtectedRoute allowedRoles={["user", "owner", "admin"]} />}>
+      <Route
+        element={<ProtectedRoute allowedRoles={["user", "owner", "admin"]} />}
+      >
         <Route
           path="/"
           element={
@@ -34,6 +39,17 @@ export default function App() {
           element={
             <MainLayout>
               <SettingsPage />
+            </MainLayout>
+          }
+        />
+      </Route>
+
+      <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
+        <Route
+          path="/cooperate"
+          element={
+            <MainLayout>
+              <CollaborationPage />
             </MainLayout>
           }
         />

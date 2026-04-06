@@ -1,3 +1,7 @@
+import { useTranslation } from "react-i18next";
+
 export default function RoutePage() {
-  return <section>Route Page</section>;
+  const { t } = useTranslation();
+
+  return <section>{t("routes.placeholder")}</section>;
 }

@@ -8,6 +8,7 @@ import {
   createMenuItem,
   deleteMenuItem,
   getOwnerDashboard,
+  updatePoiContent,
   updateMenuItem,
   updateShopProfile,
 } from "../services/ownerService";
@@ -18,6 +19,8 @@ const EMPTY_PROFILE = {
   description: "",
   pendingIntroduction: "",
   addressLine: "",
+  latitude: "",
+  longitude: "",
   openingHours: "",
   phone: "",
   imageUrl: "",
@@ -32,6 +35,14 @@ const EMPTY_MENU_ITEM = {
   displayOrder: 1,
 };
 
+const EMPTY_POI_FORM = {
+  category: "food",
+  nameVi: "",
+  descriptionVi: "",
+  nameEn: "",
+  descriptionEn: "",
+};
+
 const EMPTY_CLAIM_CODE = {
   amount: "",
   note: "",
@@ -42,17 +53,17 @@ export default function OwnerDashboardPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const currentUser = useSelector((state) => state.app.currentUser);
-  const username = currentUser?.username;
   const [profileForm, setProfileForm] = useState(EMPTY_PROFILE);
   const [menuForm, setMenuForm] = useState(EMPTY_MENU_ITEM);
+  const [poiForm, setPoiForm] = useState(EMPTY_POI_FORM);
   const [claimCodeForm, setClaimCodeForm] = useState(EMPTY_CLAIM_CODE);
   const [editingMenuItemId, setEditingMenuItemId] = useState(null);
   const [feedback, setFeedback] = useState("");
 
   const dashboardQuery = useQuery({
-    queryKey: ["owner-dashboard", username],
-    queryFn: () => getOwnerDashboard(username),
-    enabled: Boolean(username),
+    queryKey: ["owner-dashboard", currentUser?.username],
+    queryFn: () => getOwnerDashboard(),
+    enabled: Boolean(currentUser?.username),
     select: (response) => response.data,
   });
 
@@ -64,17 +75,27 @@ export default function OwnerDashboardPage() {
       description: dashboardQuery.data.description || "",
       pendingIntroduction: dashboardQuery.data.pendingIntroduction || "",
       addressLine: dashboardQuery.data.addressLine || "",
+      latitude: dashboardQuery.data.latitude ?? "",
+      longitude: dashboardQuery.data.longitude ?? "",
       openingHours: dashboardQuery.data.openingHours || "",
       phone: dashboardQuery.data.phone || "",
       imageUrl: dashboardQuery.data.imageUrl || "",
     });
+
+    setPoiForm({
+      category: dashboardQuery.data.primaryPoi?.category || "food",
+      nameVi: dashboardQuery.data.primaryPoi?.nameVi || "",
+      descriptionVi: dashboardQuery.data.primaryPoi?.descriptionVi || "",
+      nameEn: dashboardQuery.data.primaryPoi?.nameEn || "",
+      descriptionEn: dashboardQuery.data.primaryPoi?.descriptionEn || "",
+    });
   }, [dashboardQuery.data]);
 
   const invalidateDashboard = () =>
-    queryClient.invalidateQueries({ queryKey: ["owner-dashboard", username] });
+    queryClient.invalidateQueries({ queryKey: ["owner-dashboard", currentUser?.username] });
 
   const profileMutation = useMutation({
-    mutationFn: (payload) => updateShopProfile(username, payload),
+    mutationFn: (payload) => updateShopProfile(payload),
     onSuccess: async (response) => {
       setFeedback(response.message || t("owner.feedback.saved"));
       await invalidateDashboard();
@@ -82,7 +103,7 @@ export default function OwnerDashboardPage() {
   });
 
   const createMenuMutation = useMutation({
-    mutationFn: (payload) => createMenuItem(username, payload),
+    mutationFn: (payload) => createMenuItem(payload),
     onSuccess: async (response) => {
       setFeedback(response.message || t("owner.feedback.menuCreated"));
       setMenuForm(EMPTY_MENU_ITEM);
@@ -91,8 +112,17 @@ export default function OwnerDashboardPage() {
     },
   });
 
+  const poiMutation = useMutation({
+    mutationFn: (payload) => updatePoiContent(payload),
+    onSuccess: async (response) => {
+      setFeedback(response.message || t("owner.feedback.poiSaved"));
+      await invalidateDashboard();
+    },
+  });
+
   const updateMenuMutation = useMutation({
-    mutationFn: ({ menuItemId, payload }) => updateMenuItem(username, menuItemId, payload),
+    mutationFn: ({ menuItemId, payload }) =>
+      updateMenuItem(menuItemId, payload),
     onSuccess: async (response) => {
       setFeedback(response.message || t("owner.feedback.menuUpdated"));
       setMenuForm(EMPTY_MENU_ITEM);
@@ -102,7 +132,7 @@ export default function OwnerDashboardPage() {
   });
 
   const deleteMenuMutation = useMutation({
-    mutationFn: (menuItemId) => deleteMenuItem(username, menuItemId),
+    mutationFn: (menuItemId) => deleteMenuItem(menuItemId),
     onSuccess: async (response) => {
       setFeedback(response.message || t("owner.feedback.menuDeleted"));
       await invalidateDashboard();
@@ -110,10 +140,12 @@ export default function OwnerDashboardPage() {
   });
 
   const claimCodeMutation = useMutation({
-    mutationFn: (payload) => createClaimCode(username, payload),
+    mutationFn: (payload) => createClaimCode(payload),
     onSuccess: async (response) => {
       const code = response.data?.code ? ` (${response.data.code})` : "";
-      setFeedback(`${response.message || t("owner.feedback.claimCreated")}${code}`);
+      setFeedback(
+        `${response.message || t("owner.feedback.claimCreated")}${code}`,
+      );
       setClaimCodeForm(EMPTY_CLAIM_CODE);
       await invalidateDashboard();
     },
@@ -127,7 +159,13 @@ export default function OwnerDashboardPage() {
   function handleProfileSubmit(event) {
     event.preventDefault();
     setFeedback("");
-    profileMutation.mutate(profileForm);
+    profileMutation.mutate({
+      ...profileForm,
+      latitude:
+        profileForm.latitude === "" ? null : Number(profileForm.latitude),
+      longitude:
+        profileForm.longitude === "" ? null : Number(profileForm.longitude),
+    });
   }
 
   function handleMenuSubmit(event) {
@@ -146,6 +184,12 @@ export default function OwnerDashboardPage() {
     }
 
     createMenuMutation.mutate(payload);
+  }
+
+  function handlePoiSubmit(event) {
+    event.preventDefault();
+    setFeedback("");
+    poiMutation.mutate(poiForm);
   }
 
   function handleClaimSubmit(event) {
@@ -198,11 +242,26 @@ export default function OwnerDashboardPage() {
           <article className="owner-card owner-stats-card">
             <h2>{t("owner.statsTitle")}</h2>
             <div className="owner-stats-grid">
-              <StatCard label={t("owner.stats.totalVisits")} value={stats?.totalVisitCount ?? 0} />
-              <StatCard label={t("owner.stats.audioPlays")} value={stats?.totalAudioPlayCount ?? 0} />
-              <StatCard label={t("owner.stats.claimCodes")} value={stats?.claimCodesIssuedCount ?? 0} />
-              <StatCard label={t("owner.stats.todayVisits")} value={stats?.visitCountToday ?? 0} />
-              <StatCard label={t("owner.stats.todayAudio")} value={stats?.audioPlayCountToday ?? 0} />
+              <StatCard
+                label={t("owner.stats.totalVisits")}
+                value={stats?.totalVisitCount ?? 0}
+              />
+              <StatCard
+                label={t("owner.stats.audioPlays")}
+                value={stats?.totalAudioPlayCount ?? 0}
+              />
+              <StatCard
+                label={t("owner.stats.claimCodes")}
+                value={stats?.claimCodesIssuedCount ?? 0}
+              />
+              <StatCard
+                label={t("owner.stats.todayVisits")}
+                value={stats?.visitCountToday ?? 0}
+              />
+              <StatCard
+                label={t("owner.stats.todayAudio")}
+                value={stats?.audioPlayCountToday ?? 0}
+              />
             </div>
           </article>
 
@@ -214,7 +273,10 @@ export default function OwnerDashboardPage() {
                 <input
                   value={profileForm.shopName}
                   onChange={(event) =>
-                    setProfileForm((prev) => ({ ...prev, shopName: event.target.value }))
+                    setProfileForm((prev) => ({
+                      ...prev,
+                      shopName: event.target.value,
+                    }))
                   }
                 />
               </label>
@@ -223,17 +285,53 @@ export default function OwnerDashboardPage() {
                 <input
                   value={profileForm.addressLine}
                   onChange={(event) =>
-                    setProfileForm((prev) => ({ ...prev, addressLine: event.target.value }))
+                    setProfileForm((prev) => ({
+                      ...prev,
+                      addressLine: event.target.value,
+                    }))
                   }
                 />
               </label>
+              <div className="owner-inline-grid">
+                <label>
+                  <span>{t("owner.fields.latitude")}</span>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    value={profileForm.latitude}
+                    onChange={(event) =>
+                      setProfileForm((prev) => ({
+                        ...prev,
+                        latitude: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  <span>{t("owner.fields.longitude")}</span>
+                  <input
+                    type="number"
+                    step="0.000001"
+                    value={profileForm.longitude}
+                    onChange={(event) =>
+                      setProfileForm((prev) => ({
+                        ...prev,
+                        longitude: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              </div>
               <label>
                 <span>{t("owner.fields.description")}</span>
                 <textarea
                   rows="3"
                   value={profileForm.description}
                   onChange={(event) =>
-                    setProfileForm((prev) => ({ ...prev, description: event.target.value }))
+                    setProfileForm((prev) => ({
+                      ...prev,
+                      description: event.target.value,
+                    }))
                   }
                 />
               </label>
@@ -256,7 +354,10 @@ export default function OwnerDashboardPage() {
                   <input
                     value={profileForm.openingHours}
                     onChange={(event) =>
-                      setProfileForm((prev) => ({ ...prev, openingHours: event.target.value }))
+                      setProfileForm((prev) => ({
+                        ...prev,
+                        openingHours: event.target.value,
+                      }))
                     }
                   />
                 </label>
@@ -265,7 +366,10 @@ export default function OwnerDashboardPage() {
                   <input
                     value={profileForm.phone}
                     onChange={(event) =>
-                      setProfileForm((prev) => ({ ...prev, phone: event.target.value }))
+                      setProfileForm((prev) => ({
+                        ...prev,
+                        phone: event.target.value,
+                      }))
                     }
                   />
                 </label>
@@ -275,13 +379,104 @@ export default function OwnerDashboardPage() {
                 <input
                   value={profileForm.imageUrl}
                   onChange={(event) =>
-                    setProfileForm((prev) => ({ ...prev, imageUrl: event.target.value }))
+                    setProfileForm((prev) => ({
+                      ...prev,
+                      imageUrl: event.target.value,
+                    }))
                   }
                 />
               </label>
-              <div className="owner-status-pill">{dashboard.introReviewStatus}</div>
-              <button type="submit" className="owner-button" disabled={profileMutation.isPending}>
-                {profileMutation.isPending ? t("owner.saving") : t("owner.saveProfile")}
+              <div className="owner-status-pill">
+                {translateOwnerStatus(t, dashboard.introReviewStatus)}
+              </div>
+              <button
+                type="submit"
+                className="owner-button"
+                disabled={profileMutation.isPending}
+              >
+                {profileMutation.isPending
+                  ? t("owner.saving")
+                  : t("owner.saveProfile")}
+              </button>
+            </form>
+          </article>
+
+          <article className="owner-card">
+            <h2>{t("owner.poiTitle")}</h2>
+            <p>{t("owner.poiSubtitle")}</p>
+            <form className="owner-form" onSubmit={handlePoiSubmit}>
+              <label>
+                <span>{t("owner.fields.poiCategory")}</span>
+                <input
+                  value={poiForm.category}
+                  onChange={(event) =>
+                    setPoiForm((prev) => ({
+                      ...prev,
+                      category: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+              <div className="owner-inline-grid">
+                <label>
+                  <span>{t("owner.fields.poiNameVi")}</span>
+                  <input
+                    value={poiForm.nameVi}
+                    onChange={(event) =>
+                      setPoiForm((prev) => ({
+                        ...prev,
+                        nameVi: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  <span>{t("owner.fields.poiNameEn")}</span>
+                  <input
+                    value={poiForm.nameEn}
+                    onChange={(event) =>
+                      setPoiForm((prev) => ({
+                        ...prev,
+                        nameEn: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+              <div className="owner-inline-grid">
+                <label>
+                  <span>{t("owner.fields.poiDescriptionVi")}</span>
+                  <textarea
+                    rows="4"
+                    value={poiForm.descriptionVi}
+                    onChange={(event) =>
+                      setPoiForm((prev) => ({
+                        ...prev,
+                        descriptionVi: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+                <label>
+                  <span>{t("owner.fields.poiDescriptionEn")}</span>
+                  <textarea
+                    rows="4"
+                    value={poiForm.descriptionEn}
+                    onChange={(event) =>
+                      setPoiForm((prev) => ({
+                        ...prev,
+                        descriptionEn: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+              <button
+                type="submit"
+                className="owner-button"
+                disabled={poiMutation.isPending}
+              >
+                {poiMutation.isPending ? t("owner.saving") : t("owner.savePoi")}
               </button>
             </form>
           </article>
@@ -301,7 +496,10 @@ export default function OwnerDashboardPage() {
                   <input
                     value={menuForm.name}
                     onChange={(event) =>
-                      setMenuForm((prev) => ({ ...prev, name: event.target.value }))
+                      setMenuForm((prev) => ({
+                        ...prev,
+                        name: event.target.value,
+                      }))
                     }
                   />
                 </label>
@@ -313,7 +511,10 @@ export default function OwnerDashboardPage() {
                     step="1000"
                     value={menuForm.price}
                     onChange={(event) =>
-                      setMenuForm((prev) => ({ ...prev, price: event.target.value }))
+                      setMenuForm((prev) => ({
+                        ...prev,
+                        price: event.target.value,
+                      }))
                     }
                   />
                 </label>
@@ -324,7 +525,10 @@ export default function OwnerDashboardPage() {
                   rows="3"
                   value={menuForm.description}
                   onChange={(event) =>
-                    setMenuForm((prev) => ({ ...prev, description: event.target.value }))
+                    setMenuForm((prev) => ({
+                      ...prev,
+                      description: event.target.value,
+                    }))
                   }
                 />
               </label>
@@ -334,7 +538,10 @@ export default function OwnerDashboardPage() {
                   <input
                     value={menuForm.imageUrl}
                     onChange={(event) =>
-                      setMenuForm((prev) => ({ ...prev, imageUrl: event.target.value }))
+                      setMenuForm((prev) => ({
+                        ...prev,
+                        imageUrl: event.target.value,
+                      }))
                     }
                   />
                 </label>
@@ -345,7 +552,10 @@ export default function OwnerDashboardPage() {
                     min="0"
                     value={menuForm.displayOrder}
                     onChange={(event) =>
-                      setMenuForm((prev) => ({ ...prev, displayOrder: event.target.value }))
+                      setMenuForm((prev) => ({
+                        ...prev,
+                        displayOrder: event.target.value,
+                      }))
                     }
                   />
                 </label>
@@ -355,7 +565,10 @@ export default function OwnerDashboardPage() {
                   type="checkbox"
                   checked={menuForm.isAvailable}
                   onChange={(event) =>
-                    setMenuForm((prev) => ({ ...prev, isAvailable: event.target.checked }))
+                    setMenuForm((prev) => ({
+                      ...prev,
+                      isAvailable: event.target.checked,
+                    }))
                   }
                 />
                 <span>{t("owner.fields.available")}</span>
@@ -364,9 +577,13 @@ export default function OwnerDashboardPage() {
                 <button
                   type="submit"
                   className="owner-button"
-                  disabled={createMenuMutation.isPending || updateMenuMutation.isPending}
+                  disabled={
+                    createMenuMutation.isPending || updateMenuMutation.isPending
+                  }
                 >
-                  {editingMenuItemId ? t("owner.updateMenu") : t("owner.addMenu")}
+                  {editingMenuItemId
+                    ? t("owner.updateMenu")
+                    : t("owner.addMenu")}
                 </button>
                 {editingMenuItemId ? (
                   <button
@@ -392,7 +609,11 @@ export default function OwnerDashboardPage() {
                   </div>
                   <div className="owner-menu-meta">
                     <span>{formatCurrency(item.price)}</span>
-                    <span>{item.isAvailable ? t("owner.available") : t("owner.hidden")}</span>
+                    <span>
+                      {item.isAvailable
+                        ? t("owner.available")
+                        : t("owner.hidden")}
+                    </span>
                   </div>
                   <div className="owner-form-actions">
                     <button
@@ -428,7 +649,10 @@ export default function OwnerDashboardPage() {
                     step="1000"
                     value={claimCodeForm.amount}
                     onChange={(event) =>
-                      setClaimCodeForm((prev) => ({ ...prev, amount: event.target.value }))
+                      setClaimCodeForm((prev) => ({
+                        ...prev,
+                        amount: event.target.value,
+                      }))
                     }
                   />
                 </label>
@@ -453,11 +677,18 @@ export default function OwnerDashboardPage() {
                 <input
                   value={claimCodeForm.note}
                   onChange={(event) =>
-                    setClaimCodeForm((prev) => ({ ...prev, note: event.target.value }))
+                    setClaimCodeForm((prev) => ({
+                      ...prev,
+                      note: event.target.value,
+                    }))
                   }
                 />
               </label>
-              <button type="submit" className="owner-button" disabled={claimCodeMutation.isPending}>
+              <button
+                type="submit"
+                className="owner-button"
+                disabled={claimCodeMutation.isPending}
+              >
                 {t("owner.createClaim")}
               </button>
             </form>
@@ -467,10 +698,16 @@ export default function OwnerDashboardPage() {
                 <article key={claimCode.id} className="owner-claim-card">
                   <div className="owner-claim-top">
                     <strong>{claimCode.code}</strong>
-                    <span className="owner-status-pill">{claimCode.status}</span>
+                    <span className="owner-status-pill">
+                      {claimCode.status}
+                    </span>
                   </div>
                   <p>{formatCurrency(claimCode.amount)}</p>
-                  <small>{new Date(claimCode.issuedAt).toLocaleString()} {claimCode.note ? `- ${claimCode.note}` : ""}</small>
+                  <small>
+                    {t("owner.labels.issuedAt")}:{" "}
+                    {new Date(claimCode.issuedAt).toLocaleString()}{" "}
+                    {claimCode.note ? `- ${claimCode.note}` : ""}
+                  </small>
                 </article>
               ))}
             </div>
@@ -479,6 +716,13 @@ export default function OwnerDashboardPage() {
       )}
     </section>
   );
+}
+
+function translateOwnerStatus(t, status) {
+  if (status === "approved") return t("owner.status.approved");
+  if (status === "rejected") return t("owner.status.rejected");
+  if (status === "pending") return t("owner.status.pending");
+  return status || t("owner.status.notSubmitted");
 }
 
 function StatCard({ label, value }) {

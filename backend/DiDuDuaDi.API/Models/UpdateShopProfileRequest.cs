@@ -5,6 +5,8 @@ public record UpdateShopProfileRequest(
     string? Description,
     string? PendingIntroduction,
     string AddressLine,
+    decimal? Latitude,
+    decimal? Longitude,
     string? OpeningHours,
     string? Phone,
     string? ImageUrl);

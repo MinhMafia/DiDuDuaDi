@@ -38,6 +38,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
                     ELSE 'pending'
                 END,
                 address_line = @AddressLine,
+                latitude = COALESCE(@Latitude, latitude),
+                longitude = COALESCE(@Longitude, longitude),
                 opening_hours = @OpeningHours,
                 phone = @Phone,
                 image_url = @ImageUrl
@@ -51,12 +53,73 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
             request.Description,
             request.PendingIntroduction,
             request.AddressLine,
+            request.Latitude,
+            request.Longitude,
             request.OpeningHours,
             request.Phone,
             request.ImageUrl
         });
 
-        return BuildDashboard(connection, shop);
+        connection.Execute(
+            """
+            UPDATE pois
+            SET
+                latitude = COALESCE(@Latitude, latitude),
+                longitude = COALESCE(@Longitude, longitude)
+            WHERE shop_id = @ShopId;
+            """,
+            new
+            {
+                ShopId = shop.ShopId,
+                request.Latitude,
+                request.Longitude
+            });
+
+        var refreshedShop = GetShopRowById(connection, shop.ShopId);
+        return refreshedShop is null ? null : BuildDashboard(connection, refreshedShop);
+    }
+
+    public OwnerShopDashboard? UpdatePoiContent(string username, UpdateOwnerPoiContentRequest request)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        var shop = GetShopRow(connection, username);
+        if (shop is null)
+        {
+            return null;
+        }
+
+        var poiId = connection.ExecuteScalar<Guid?>(
+            """
+            SELECT id
+            FROM pois
+            WHERE shop_id = @ShopId
+            ORDER BY created_at ASC
+            LIMIT 1;
+            """,
+            new { shop.ShopId });
+
+        if (!poiId.HasValue)
+        {
+            return null;
+        }
+
+        connection.Execute(
+            """
+            UPDATE pois
+            SET category = @Category
+            WHERE id = @PoiId;
+            """,
+            new
+            {
+                PoiId = poiId.Value,
+                request.Category
+            });
+
+        UpsertPoiTranslation(connection, poiId.Value, "vi", request.NameVi, request.DescriptionVi);
+        UpsertPoiTranslation(connection, poiId.Value, "en", request.NameEn, request.DescriptionEn);
+
+        var refreshedShop = GetShopRowById(connection, shop.ShopId);
+        return refreshedShop is null ? null : BuildDashboard(connection, refreshedShop);
     }
 
     public MenuItemSummary? CreateMenuItem(string username, UpsertMenuItemRequest request)
@@ -209,6 +272,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
             ShopId = shop.ShopId,
             ShopName = shop.ShopName,
             AddressLine = shop.AddressLine,
+            Latitude = shop.Latitude,
+            Longitude = shop.Longitude,
             Description = shop.Description,
             ApprovedIntroduction = shop.ApprovedIntroduction,
             PendingIntroduction = shop.PendingIntroduction,
@@ -262,7 +327,92 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
             """,
             new { shop.ShopId });
 
+        dashboard.PrimaryPoi = connection.QuerySingleOrDefault<OwnerPoiContentSummary>(
+            """
+            SELECT
+                p.id AS PoiId,
+                p.category AS Category,
+                COALESCE(MAX(CASE WHEN pt.language_code = 'vi' THEN pt.name END), '') AS NameVi,
+                COALESCE(MAX(CASE WHEN pt.language_code = 'vi' THEN pt.description END), '') AS DescriptionVi,
+                COALESCE(MAX(CASE WHEN pt.language_code = 'en' THEN pt.name END), '') AS NameEn,
+                COALESCE(MAX(CASE WHEN pt.language_code = 'en' THEN pt.description END), '') AS DescriptionEn
+            FROM pois p
+            LEFT JOIN poi_translations pt ON pt.poi_id = p.id
+            WHERE p.shop_id = @ShopId
+            GROUP BY p.id, p.category
+            ORDER BY p.created_at ASC
+            LIMIT 1;
+            """,
+            new { shop.ShopId });
+
         return dashboard;
+    }
+
+    private static void UpsertPoiTranslation(
+        System.Data.IDbConnection connection,
+        Guid poiId,
+        string languageCode,
+        string name,
+        string description)
+    {
+        var exists = connection.ExecuteScalar<int>(
+            """
+            SELECT COUNT(*)
+            FROM poi_translations
+            WHERE poi_id = @PoiId
+              AND language_code = @LanguageCode;
+            """,
+            new { PoiId = poiId, LanguageCode = languageCode }) > 0;
+
+        if (exists)
+        {
+            connection.Execute(
+                """
+                UPDATE poi_translations
+                SET
+                    name = @Name,
+                    description = @Description,
+                    short_description = LEFT(@Description, 300)
+                WHERE poi_id = @PoiId
+                  AND language_code = @LanguageCode;
+                """,
+                new
+                {
+                    PoiId = poiId,
+                    LanguageCode = languageCode,
+                    Name = name,
+                    Description = description
+                });
+
+            return;
+        }
+
+        connection.Execute(
+            """
+            INSERT INTO poi_translations (
+                poi_id,
+                language_code,
+                name,
+                short_description,
+                description,
+                audio_url
+            )
+            VALUES (
+                @PoiId,
+                @LanguageCode,
+                @Name,
+                LEFT(@Description, 300),
+                @Description,
+                NULL
+            );
+            """,
+            new
+            {
+                PoiId = poiId,
+                LanguageCode = languageCode,
+                Name = name,
+                Description = description
+            });
     }
 
     private static ShopRow? GetShopRow(System.Data.IDbConnection connection, string username) =>
@@ -272,6 +422,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
                 s.id AS ShopId,
                 s.name AS ShopName,
                 s.address_line AS AddressLine,
+                s.latitude AS Latitude,
+                s.longitude AS Longitude,
                 s.description AS Description,
                 s.approved_intro AS ApprovedIntroduction,
                 s.pending_intro AS PendingIntroduction,
@@ -287,6 +439,28 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
             LIMIT 1;
             """,
             new { username });
+
+    private static ShopRow? GetShopRowById(System.Data.IDbConnection connection, Guid shopId) =>
+        connection.QuerySingleOrDefault<ShopRow>(
+            """
+            SELECT
+                s.id AS ShopId,
+                s.name AS ShopName,
+                s.address_line AS AddressLine,
+                s.latitude AS Latitude,
+                s.longitude AS Longitude,
+                s.description AS Description,
+                s.approved_intro AS ApprovedIntroduction,
+                s.pending_intro AS PendingIntroduction,
+                s.intro_review_status AS IntroReviewStatus,
+                s.opening_hours AS OpeningHours,
+                s.phone AS Phone,
+                s.image_url AS ImageUrl
+            FROM shops s
+            WHERE s.id = @shopId
+            LIMIT 1;
+            """,
+            new { shopId });
 
     private static MenuItemSummary? GetMenuItem(System.Data.IDbConnection connection, Guid shopId, long menuItemId) =>
         connection.QuerySingleOrDefault<MenuItemSummary>(
@@ -329,6 +503,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
         public Guid ShopId { get; init; }
         public string ShopName { get; init; } = string.Empty;
         public string AddressLine { get; init; } = string.Empty;
+        public decimal Latitude { get; init; }
+        public decimal Longitude { get; init; }
         public string? Description { get; init; }
         public string? ApprovedIntroduction { get; init; }
         public string? PendingIntroduction { get; init; }
