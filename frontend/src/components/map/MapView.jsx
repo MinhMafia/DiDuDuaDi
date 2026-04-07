@@ -5,6 +5,7 @@ import {
   Popup,
   TileLayer,
   useMap,
+  useMapEvents,
   ZoomControl,
 } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -21,9 +22,11 @@ export default function MapView({
   selectedPoi,
   selectedPoiId,
   selectedPoiDistanceLabel,
-  userLocation,
   userLocationLabel,
   onSelectPoi,
+  onMapClick,
+  onMapMoveEnd,
+  onMapLongPress,
 }) {
   return (
     <MapContainer
@@ -34,6 +37,11 @@ export default function MapView({
       scrollWheelZoom
     >
       <ChangeView center={center} />
+      <MapEventHandler 
+        onMapClick={onMapClick} 
+        onMapMoveEnd={onMapMoveEnd}
+        onMapLongPress={onMapLongPress}
+      />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -106,6 +114,22 @@ function ChangeView({ center }) {
   useEffect(() => {
     map.setView(center);
   }, [center, map]);
+
+  return null;
+}
+
+function MapEventHandler({ onMapClick, onMapMoveEnd, onMapLongPress }) {
+  useMapEvents({
+    click(event) {
+      onMapClick?.(event.latlng);
+    },
+    moveend(event) {
+      onMapMoveEnd?.(event.target.getCenter());
+    },
+    contextmenu(event) {
+      onMapLongPress?.(event.latlng);
+    }
+  });
 
   return null;
 }

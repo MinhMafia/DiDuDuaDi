@@ -11,3 +11,23 @@ export async function getNearbyPois(lat, lng, radius = 500) {
   });
   return response.data;
 }
+
+export async function getPoiById(id) {
+  const response = await apiClient.get(`/pois/${id}`);
+  return response.data;
+}
+
+export async function createPoi(poiData) {
+  const response = await apiClient.post("/pois", poiData);
+  return response.data;
+}
+
+export async function updatePoi(id, poiData) {
+  const response = await apiClient.put(`/pois/${id}`, poiData);
+  return response.data;
+}
+
+export async function deletePoi(id) {
+  const response = await apiClient.delete(`/pois/${id}`);
+  return response.data;
+}

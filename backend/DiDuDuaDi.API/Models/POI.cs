@@ -12,4 +12,6 @@ public class POI
     public string? ShopAddress { get; set; }
     public string? ApprovedIntroduction { get; set; }
     public List<MenuItemSummary> MenuItems { get; set; } = [];
+    public double Radius { get; set; } = 500;
+    public string? ImageUrl { get; set; }
 }

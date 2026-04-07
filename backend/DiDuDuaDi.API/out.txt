@@ -1,0 +1,19 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Controllers\POIsController.cs(32,5): error CS0106: The modifier 'public' is not valid for this item [C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\DiDuDuaDi.API.csproj]
+C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Controllers\POIsController.cs(40,5): error CS0106: The modifier 'public' is not valid for this item [C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\DiDuDuaDi.API.csproj]
+C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Controllers\POIsController.cs(47,5): error CS0106: The modifier 'public' is not valid for this item [C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\DiDuDuaDi.API.csproj]
+C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Controllers\POIsController.cs(57,5): error CS0106: The modifier 'public' is not valid for this item [C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\DiDuDuaDi.API.csproj]
+C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Controllers\POIsController.cs(63,2): error CS1513: } expected [C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\DiDuDuaDi.API.csproj]
+
+Build FAILED.
+
+C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Controllers\POIsController.cs(32,5): error CS0106: The modifier 'public' is not valid for this item [C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\DiDuDuaDi.API.csproj]
+C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Controllers\POIsController.cs(40,5): error CS0106: The modifier 'public' is not valid for this item [C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\DiDuDuaDi.API.csproj]
+C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Controllers\POIsController.cs(47,5): error CS0106: The modifier 'public' is not valid for this item [C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\DiDuDuaDi.API.csproj]
+C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Controllers\POIsController.cs(57,5): error CS0106: The modifier 'public' is not valid for this item [C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\DiDuDuaDi.API.csproj]
+C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Controllers\POIsController.cs(63,2): error CS1513: } expected [C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\DiDuDuaDi.API.csproj]
+    0 Warning(s)
+    5 Error(s)
+
+Time Elapsed 00:00:01.20
