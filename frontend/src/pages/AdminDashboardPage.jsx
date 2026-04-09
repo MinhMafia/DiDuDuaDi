@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-<<<<<<< Updated upstream
 import { useSelector } from "react-redux";
 import Loading from "../components/common/Loading";
 import {
@@ -10,9 +9,7 @@ import {
   reviewOwnerUpgradeRequest,
   reviewShopIntro,
 } from "../services/adminService";
-=======
 import PoiManagement from "../components/admin/PoiManagement";
->>>>>>> Stashed changes
 
 export default function AdminDashboardPage() {
   const { t } = useTranslation();
@@ -82,7 +79,6 @@ export default function AdminDashboardPage() {
         <strong>{currentUser?.displayName}</strong>
       </article>
 
-<<<<<<< Updated upstream
       <article style={cardStyle}>
         <h2 style={{ marginTop: 0 }}>{t("admin.ownerRequestsTitle")}</h2>
         <p style={{ color: "#475569" }}>{t("admin.ownerRequestsSubtitle")}</p>
@@ -96,12 +92,12 @@ export default function AdminDashboardPage() {
 
         {!pendingOwnerRequestsQuery.isLoading &&
         !pendingOwnerRequestsQuery.error &&
-        pendingOwnerRequestsQuery.data.length === 0 ? (
+        pendingOwnerRequestsQuery.data?.length === 0 ? (
           <p style={{ color: "#475569" }}>{t("admin.emptyPendingOwnerRequests")}</p>
         ) : null}
 
         <div style={{ display: "grid", gap: 10 }}>
-          {pendingOwnerRequestsQuery.data.map((request) => (
+          {pendingOwnerRequestsQuery.data?.map((request) => (
             <div key={request.id} style={itemCardStyle}>
               <div style={itemHeadStyle}>
                 <div>
@@ -192,12 +188,12 @@ export default function AdminDashboardPage() {
 
         {!pendingIntroReviewsQuery.isLoading &&
         !pendingIntroReviewsQuery.error &&
-        pendingIntroReviewsQuery.data.length === 0 ? (
+        pendingIntroReviewsQuery.data?.length === 0 ? (
           <p style={{ color: "#475569" }}>{t("admin.emptyPendingShopIntros")}</p>
         ) : null}
 
         <div style={{ display: "grid", gap: 10 }}>
-          {pendingIntroReviewsQuery.data.map((item) => (
+          {pendingIntroReviewsQuery.data?.map((item) => (
             <div key={item.shopId} style={itemCardStyle}>
               <strong>{item.shopName}</strong>
               <p style={mutedTextStyle}>
@@ -367,14 +363,11 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </article>
-=======
       <PoiManagement />
->>>>>>> Stashed changes
     </section>
   );
 }
 
-<<<<<<< Updated upstream
 function translateReviewStatus(t, status) {
   if (status === "approved") return t("admin.status.approved");
   if (status === "rejected") return t("admin.status.rejected");
@@ -382,10 +375,7 @@ function translateReviewStatus(t, status) {
   return status;
 }
 
-const pageStyle = { display: "grid", gap: 16 };
-=======
 const pageStyle = { display: "flex", flexDirection: "column", gap: 16, width: "100%", maxWidth: "1200px", margin: "0 auto", paddingBottom: "40px" };
->>>>>>> Stashed changes
 const cardStyle = {
   background: "#fff",
   border: "1px solid #e2e8f0",

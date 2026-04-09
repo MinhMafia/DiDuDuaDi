@@ -22,6 +22,7 @@ export default function MapView({
   selectedPoi,
   selectedPoiId,
   selectedPoiDistanceLabel,
+  userLocation,
   userLocationLabel,
   onSelectPoi,
   onMapClick,
