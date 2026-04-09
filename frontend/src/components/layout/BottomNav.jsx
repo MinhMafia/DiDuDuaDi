@@ -33,7 +33,7 @@ export default function BottomNav() {
       ) : null}
       {currentUser?.role === "user" ? (
         <NavLink to="/cooperate" style={linkStyle}>
-          Đăng ký chủ quán
+          {t("nav.cooperate")}
         </NavLink>
       ) : null}
       {currentUser?.role === "owner" ? (

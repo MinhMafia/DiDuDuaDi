@@ -7,6 +7,7 @@
   "nav": {
     "home": "Trang chủ",
     "map": "Bản đồ",
+    "cooperate": "Đăng ký chủ quán",
     "owner": "Chủ quán",
     "admin": "Admin",
     "routes": "Lộ trình",
@@ -106,7 +107,9 @@
     "autoPlayReady": "sẵn sàng tự động phát"
   },
   "common": {
-    "loading": "Đang tải..."
+    "loading": "Đang tải...",
+    "unexpectedErrorTitle": "Trang vừa gặp lỗi",
+    "unexpectedErrorDescription": "Hãy tải lại trang hoặc đăng nhập lại để tiếp tục."
   },
   "chat": {
     "title": "Trợ lý ẩm thực AI",
