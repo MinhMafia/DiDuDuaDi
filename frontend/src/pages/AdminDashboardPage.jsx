@@ -9,7 +9,6 @@ import {
   reviewOwnerUpgradeRequest,
   reviewShopIntro,
 } from "../services/adminService";
-import PoiManagement from "../components/admin/PoiManagement";
 
 export default function AdminDashboardPage() {
   const { t } = useTranslation();
@@ -71,6 +70,19 @@ export default function AdminDashboardPage() {
     },
   });
 
+  const pendingOwnerRequests = Array.isArray(pendingOwnerRequestsQuery.data)
+    ? pendingOwnerRequestsQuery.data
+    : [];
+  const reviewedOwnerRequests = Array.isArray(reviewedOwnerRequestsQuery.data)
+    ? reviewedOwnerRequestsQuery.data
+    : [];
+  const pendingIntroReviews = Array.isArray(pendingIntroReviewsQuery.data)
+    ? pendingIntroReviewsQuery.data
+    : [];
+  const reviewedIntroReviews = Array.isArray(reviewedIntroReviewsQuery.data)
+    ? reviewedIntroReviewsQuery.data
+    : [];
+
   return (
     <section style={pageStyle}>
       <article style={cardStyle}>
@@ -92,12 +104,12 @@ export default function AdminDashboardPage() {
 
         {!pendingOwnerRequestsQuery.isLoading &&
         !pendingOwnerRequestsQuery.error &&
-        pendingOwnerRequestsQuery.data?.length === 0 ? (
+        pendingOwnerRequests.length === 0 ? (
           <p style={{ color: "#475569" }}>{t("admin.emptyPendingOwnerRequests")}</p>
         ) : null}
 
         <div style={{ display: "grid", gap: 10 }}>
-          {pendingOwnerRequestsQuery.data?.map((request) => (
+          {pendingOwnerRequests.map((request) => (
             <div key={request.id} style={itemCardStyle}>
               <div style={itemHeadStyle}>
                 <div>
@@ -188,12 +200,12 @@ export default function AdminDashboardPage() {
 
         {!pendingIntroReviewsQuery.isLoading &&
         !pendingIntroReviewsQuery.error &&
-        pendingIntroReviewsQuery.data?.length === 0 ? (
+        pendingIntroReviews.length === 0 ? (
           <p style={{ color: "#475569" }}>{t("admin.emptyPendingShopIntros")}</p>
         ) : null}
 
         <div style={{ display: "grid", gap: 10 }}>
-          {pendingIntroReviewsQuery.data?.map((item) => (
+          {pendingIntroReviews.map((item) => (
             <div key={item.shopId} style={itemCardStyle}>
               <strong>{item.shopName}</strong>
               <p style={mutedTextStyle}>
@@ -284,11 +296,11 @@ export default function AdminDashboardPage() {
             ) : null}
             {!reviewedOwnerRequestsQuery.isLoading &&
             !reviewedOwnerRequestsQuery.error &&
-            reviewedOwnerRequestsQuery.data?.length === 0 ? (
+            reviewedOwnerRequests.length === 0 ? (
               <p style={{ color: "#475569" }}>{t("admin.emptyOwnerHistory")}</p>
             ) : null}
             <div style={{ display: "grid", gap: 10 }}>
-              {(reviewedOwnerRequestsQuery.data ?? []).map((request) => (
+              {reviewedOwnerRequests.map((request) => (
                 <div key={`history-owner-${request.id}`} style={itemCardStyle}>
                   <div style={statusRowStyle}>
                     <strong>{request.shopName}</strong>
@@ -327,11 +339,11 @@ export default function AdminDashboardPage() {
             ) : null}
             {!reviewedIntroReviewsQuery.isLoading &&
             !reviewedIntroReviewsQuery.error &&
-            reviewedIntroReviewsQuery.data?.length === 0 ? (
+            reviewedIntroReviews.length === 0 ? (
               <p style={{ color: "#475569" }}>{t("admin.emptyShopIntroHistory")}</p>
             ) : null}
             <div style={{ display: "grid", gap: 10 }}>
-              {(reviewedIntroReviewsQuery.data ?? []).map((item) => (
+              {reviewedIntroReviews.map((item) => (
                 <div key={`history-intro-${item.shopId}`} style={itemCardStyle}>
                   <div style={statusRowStyle}>
                     <strong>{item.shopName}</strong>
@@ -363,7 +375,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </article>
-      <PoiManagement />
     </section>
   );
 }
@@ -375,7 +386,7 @@ function translateReviewStatus(t, status) {
   return status;
 }
 
-const pageStyle = { display: "flex", flexDirection: "column", gap: 16, width: "100%", maxWidth: "1200px", margin: "0 auto", paddingBottom: "40px" };
+const pageStyle = { display: "grid", gap: 16 };
 const cardStyle = {
   background: "#fff",
   border: "1px solid #e2e8f0",
