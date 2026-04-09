@@ -22,6 +22,103 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
             .ToList();
     }
 
+    public POI? GetById(Guid id)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        var query = GetBaseQuery().Replace("WHERE p.is_active = 1", "WHERE p.is_active = 1 AND p.id = @Id");
+        var rows = connection.Query<PoiTranslationRow>(query, new { Id = id });
+        return MapPois(rows, GetMenuItemsByShop(connection)).FirstOrDefault();
+    }
+
+    public POI Add(POI poi)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        poi.Id = Guid.NewGuid();
+        
+        var poiSql = """
+            INSERT INTO pois (id, shop_id, category, latitude, longitude, trigger_radius_meters, hero_image_url, is_active)
+            VALUES (@Id, @ShopId, @Category, @Latitude, @Longitude, @Radius, @ImageUrl, 1);
+            """;
+        connection.Execute(poiSql, new {
+            Id = poi.Id,
+            ShopId = poi.ShopId,
+            Category = poi.Category,
+            Latitude = poi.Location.Lat,
+            Longitude = poi.Location.Lng,
+            Radius = poi.Radius,
+            ImageUrl = poi.ImageUrl
+        });
+
+        if (poi.Name != null && poi.Name.Any())
+        {
+            var transSql = """
+                INSERT INTO poi_translations (poi_id, language_code, name, description)
+                VALUES (@PoiId, @LanguageCode, @Name, @Description);
+                """;
+            foreach (var lang in poi.Name.Keys)
+            {
+                connection.Execute(transSql, new {
+                    PoiId = poi.Id,
+                    LanguageCode = lang,
+                    Name = poi.Name[lang],
+                    Description = poi.Description != null && poi.Description.TryGetValue(lang, out var desc) ? desc : ""
+                });
+            }
+        }
+        return poi;
+    }
+
+    public POI Update(POI poi)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        var poiSql = """
+            UPDATE pois 
+            SET shop_id = @ShopId, 
+                category = @Category, 
+                latitude = @Latitude, 
+                longitude = @Longitude, 
+                trigger_radius_meters = @Radius, 
+                hero_image_url = @ImageUrl
+            WHERE id = @Id;
+            """;
+        connection.Execute(poiSql, new {
+            Id = poi.Id,
+            ShopId = poi.ShopId,
+            Category = poi.Category,
+            Latitude = poi.Location.Lat,
+            Longitude = poi.Location.Lng,
+            Radius = poi.Radius,
+            ImageUrl = poi.ImageUrl
+        });
+
+        connection.Execute("DELETE FROM poi_translations WHERE poi_id = @Id", new { Id = poi.Id });
+        
+        if (poi.Name != null && poi.Name.Any())
+        {
+            var transSql = """
+                INSERT INTO poi_translations (poi_id, language_code, name, description)
+                VALUES (@PoiId, @LanguageCode, @Name, @Description);
+                """;
+            foreach (var lang in poi.Name.Keys)
+            {
+                connection.Execute(transSql, new {
+                    PoiId = poi.Id,
+                    LanguageCode = lang,
+                    Name = poi.Name[lang],
+                    Description = poi.Description != null && poi.Description.TryGetValue(lang, out var desc) ? desc : ""
+                });
+            }
+        }
+        return poi;
+    }
+
+    public bool Delete(Guid id)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        var rowsAffected = connection.Execute("DELETE FROM pois WHERE id = @Id", new { Id = id });
+        return rowsAffected > 0;
+    }
+
     private static string GetBaseQuery() =>
         """
         SELECT
@@ -30,6 +127,8 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
             p.category AS Category,
             p.latitude AS Latitude,
             p.longitude AS Longitude,
+            p.trigger_radius_meters AS Radius,
+            p.hero_image_url AS ImageUrl,
             s.name AS ShopName,
             s.address_line AS ShopAddress,
             COALESCE(s.approved_intro, s.description) AS ApprovedIntroduction,
@@ -61,7 +160,9 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
                     ShopAddress = row.ShopAddress,
                     ApprovedIntroduction = row.ApprovedIntroduction,
                     Category = row.Category,
-                    Location = new GeoPoint((double)row.Latitude, (double)row.Longitude)
+                    Location = new GeoPoint((double)row.Latitude, (double)row.Longitude),
+                    Radius = row.Radius,
+                    ImageUrl = row.ImageUrl
                 };
 
                 if (row.ShopId.HasValue && menuItemsByShop.TryGetValue(row.ShopId.Value, out var menuItems))
@@ -141,6 +242,8 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
         public string Category { get; init; } = "food";
         public decimal Latitude { get; init; }
         public decimal Longitude { get; init; }
+        public double Radius { get; init; }
+        public string? ImageUrl { get; init; }
         public string? ShopName { get; init; }
         public string? ShopAddress { get; init; }
         public string? ApprovedIntroduction { get; init; }

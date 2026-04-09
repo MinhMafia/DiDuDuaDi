@@ -5,6 +5,7 @@ namespace DiDuDuaDi.API.Repositories;
 public class InMemoryPoiRepository : IPoiRepository
 {
     private readonly List<POI> _pois =
+
     [
         new()
         {
@@ -97,6 +98,40 @@ public class InMemoryPoiRepository : IPoiRepository
     ];
 
     public IReadOnlyList<POI> GetAll() => _pois;
+
+    public POI? GetById(Guid id) => _pois.FirstOrDefault(p => p.Id == id);
+
+    public POI Add(POI poi)
+    {
+        poi.Id = Guid.NewGuid();
+        _pois.Add(poi);
+        return poi;
+    }
+
+    public POI Update(POI poi)
+    {
+        var existing = _pois.FirstOrDefault(p => p.Id == poi.Id);
+        if (existing != null)
+        {
+            existing.Name = poi.Name;
+            existing.Category = poi.Category;
+            existing.Description = poi.Description;
+            existing.Location = poi.Location;
+            existing.Radius = poi.Radius;
+            existing.ImageUrl = poi.ImageUrl;
+        }
+        return existing ?? poi; // Should throw NotFoundException ideally, but MVP
+    }
+
+    public bool Delete(Guid id)
+    {
+        var poi = _pois.FirstOrDefault(p => p.Id == id);
+        if (poi != null)
+        {
+            return _pois.Remove(poi);
+        }
+        return false;
+    }
 
     public IReadOnlyList<POI> GetNearby(double lat, double lng, double radiusMeters)
     {

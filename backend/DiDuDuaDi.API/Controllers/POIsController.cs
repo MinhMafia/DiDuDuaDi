@@ -25,8 +25,40 @@ public class POIsController(IPoiRepository repository) : ControllerBase
         {
             return BadRequest(new ApiResponse<IReadOnlyList<POI>>([], false, "Invalid coordinates"));
         }
-
         var data = repository.GetNearby(lat, lng, radius);
         return Ok(new ApiResponse<IReadOnlyList<POI>>(data));
+    }
+
+    [HttpGet("{id:guid}")]
+    public ActionResult<ApiResponse<POI?>> GetById(Guid id)
+    {
+        var poi = repository.GetById(id);
+        if (poi == null) return NotFound(new ApiResponse<POI?>(null, false, "POI not found"));
+        return Ok(new ApiResponse<POI?>(poi));
+    }
+
+    [HttpPost]
+    public ActionResult<ApiResponse<POI>> Create([FromBody] POI poi)
+    {
+        var result = repository.Add(poi);
+        return Ok(new ApiResponse<POI>(result));
+    }
+
+    [HttpPut("{id:guid}")]
+    public ActionResult<ApiResponse<POI?>> Update(Guid id, [FromBody] POI poi)
+    {
+        poi.Id = id;
+        var existing = repository.GetById(id);
+        if (existing == null) return NotFound(new ApiResponse<POI?>(null, false, "POI not found"));
+        var result = repository.Update(poi);
+        return Ok(new ApiResponse<POI?>(result));
+    }
+
+    [HttpDelete("{id:guid}")]
+    public ActionResult<ApiResponse<bool>> Delete(Guid id)
+    {
+        var success = repository.Delete(id);
+        if (!success) return NotFound(new ApiResponse<bool>(false, false, "POI not found"));
+        return Ok(new ApiResponse<bool>(true));
     }
 }

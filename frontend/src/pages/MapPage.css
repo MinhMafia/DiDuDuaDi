@@ -130,6 +130,7 @@
 }
 
 .map-canvas {
+  position: relative;
   height: min(68vh, 640px);
   overflow: hidden;
   border-radius: 20px;
@@ -137,6 +138,28 @@
     radial-gradient(circle at top, rgba(255, 255, 255, 0.5), transparent 42%),
     linear-gradient(180deg, #dbeafe, #ecfccb);
   border: 1px solid #d8e3ee;
+}
+
+.search-area-btn {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 10px 20px;
+  border-radius: 9999px;
+  font-weight: 700;
+  color: #0f766e;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.search-area-btn:hover {
+  background-color: #f8fafc;
+  transform: translateX(-50%) scale(1.02);
 }
 
 .map-legend {

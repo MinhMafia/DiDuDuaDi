@@ -1,0 +1,24 @@
+﻿Using launch settings from C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API\Properties\launchSettings.json...
+Building...
+info: DiDuDuaDi.API.Data.MySqlDatabaseInitializer[0]
+      Adding missing column intro_review_note to shops
+info: DiDuDuaDi.API.Data.MySqlDatabaseInitializer[0]
+      Creating missing table: owner_upgrade_requests
+info: DiDuDuaDi.API.Data.MySqlDatabaseInitializer[0]
+      Adding missing column review_note to owner_upgrade_requests
+info: DiDuDuaDi.API.Data.MySqlDatabaseInitializer[0]
+      Creating demo owner account owner_demo
+info: DiDuDuaDi.API.Data.MySqlDatabaseInitializer[0]
+      Creating demo owner shop
+info: DiDuDuaDi.API.Data.MySqlDatabaseInitializer[0]
+      Creating demo owner POI
+info: DiDuDuaDi.API.Data.MySqlDatabaseInitializer[0]
+      Resetting password for demo admin account admin
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5000
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Users\ADMIN\Documents\GitHub\DiDuDuaDi\backend\DiDuDuaDi.API

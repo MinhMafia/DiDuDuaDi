@@ -1,0 +1,169 @@
+.poi-management {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  margin-top: 24px;
+}
+
+.poi-management h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1e293b;
+}
+
+.poi-management h3 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  color: #334155;
+  margin-bottom: 16px;
+}
+
+.poi-management-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1024px) {
+  .poi-management-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.poi-map-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 500px;
+}
+
+.poi-map-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.poi-form-container {
+  background: #f8fafc;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.poi-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.poi-form label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #475569;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.poi-form input,
+.poi-form select,
+.poi-form textarea {
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  outline: none;
+  font-family: inherit;
+}
+
+.poi-form input[readonly] {
+  background: #e2e8f0;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-primary:active {
+  background: #1d4ed8;
+}
+
+.btn-primary:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #475569;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: #cbd5e1;
+}
+
+.poi-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+.poi-table th,
+.poi-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.poi-table th {
+  font-weight: 600;
+  color: #475569;
+  background: #f8fafc;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}
+
+.text-danger {
+  color: #dc2626;
+}

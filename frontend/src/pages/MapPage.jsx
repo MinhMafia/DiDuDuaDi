@@ -30,6 +30,7 @@ export default function MapPage() {
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [selectedPoiPlaybackKey, setSelectedPoiPlaybackKey] = useState("");
   const [mapCenter, setMapCenter] = useState(VINH_KHANH_CENTER);
+  const [viewCenter, setViewCenter] = useState(null);
   const { error: geoError, isLoading: geoLoading, location } = useGeolocation();
   const effectiveLocation = demoLocation ?? location;
 
@@ -166,6 +167,26 @@ export default function MapPage() {
     setMapCenter(VINH_KHANH_CENTER);
   }
 
+  function handleMapMoveEnd(center) {
+    setViewCenter(center);
+  }
+
+  function handleMapLongPress(latlng) {
+    setDemoLocation({ lat: latlng.lat, lng: latlng.lng });
+    setMapCenter({ lat: latlng.lat, lng: latlng.lng });
+  }
+
+  function handleSearchThisArea() {
+    if (viewCenter) {
+      setDemoLocation({ lat: viewCenter.lat, lng: viewCenter.lng });
+    }
+  }
+
+  const distanceToViewCenter = viewCenter && effectiveLocation 
+    ? calculateDistanceMeters(effectiveLocation, viewCenter) 
+    : 0;
+  const showSearchBtn = distanceToViewCenter > 50;
+
   const speechLanguage =
     SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)?.speechLocale ||
     "vi-VN";
@@ -255,6 +276,15 @@ export default function MapPage() {
             </div>
 
             <div className="map-canvas">
+              {showSearchBtn && (
+                <button
+                  className="search-area-btn"
+                  onClick={handleSearchThisArea}
+                  type="button"
+                >
+                  Tìm quanh khu vực này
+                </button>
+              )}
               <MapView
                 center={mapCenter}
                 pois={visiblePois}
@@ -270,6 +300,8 @@ export default function MapPage() {
                 userLocation={effectiveLocation}
                 userLocationLabel={demoLocation ? t("map.demoLocationLabel") : t("map.userLocationLabel")}
                 onSelectPoi={handleSelectPoi}
+                onMapMoveEnd={handleMapMoveEnd}
+                onMapLongPress={handleMapLongPress}
               />
             </div>
 

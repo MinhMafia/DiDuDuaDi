@@ -51,8 +51,16 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var databaseInitializer = scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>();
-    databaseInitializer.EnsureSchema();
+    try
+    {
+        var databaseInitializer = scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>();
+        databaseInitializer.EnsureSchema();
+    }
+    catch (Exception ex)
+    {
+        System.IO.File.WriteAllText("fatal_error.log", ex.ToString());
+        throw;
+    }
 }
 
 app.UseCors();

@@ -24,6 +24,60 @@ public class MySqlDatabaseInitializer(
         EnsureOwnerUpgradeRequestsTable(connection, databaseName);
         EnsureOwnerReviewColumns(connection, databaseName);
         EnsureOwnerDemoSeed(connection);
+        EnsureAdminDemoSeed(connection);
+    }
+
+    private void EnsureAdminDemoSeed(System.Data.IDbConnection connection)
+    {
+        const string adminUsername = "admin";
+        var adminExists = connection.ExecuteScalar<int>(
+            "SELECT COUNT(*) FROM accounts WHERE username = @adminUsername;",
+            new { adminUsername }) > 0;
+
+        if (!adminExists)
+        {
+            logger.LogInformation("Creating demo admin account {Username}", adminUsername);
+            var adminRoleId = connection.ExecuteScalar<int>(
+                "SELECT id FROM roles WHERE code = 'admin' LIMIT 1;");
+
+            connection.Execute(
+                """
+                INSERT INTO accounts (
+                    id,
+                    username,
+                    password_hash,
+                    display_name,
+                    email,
+                    role_id,
+                    is_active
+                )
+                VALUES (
+                    @Id,
+                    @Username,
+                    @PasswordHash,
+                    @DisplayName,
+                    @Email,
+                    @RoleId,
+                    1
+                );
+                """,
+                new
+                {
+                    Id = "11111111-1111-1111-1111-111111111111",
+                    Username = adminUsername,
+                    PasswordHash = "123456",
+                    DisplayName = "Demo Admin",
+                    Email = "admin@didududadi.local",
+                    RoleId = adminRoleId
+                });
+        }
+        else
+        {
+            logger.LogInformation("Resetting password for demo admin account {Username}", adminUsername);
+            connection.Execute(
+                "UPDATE accounts SET password_hash = '123456' WHERE username = @adminUsername;",
+                new { adminUsername });
+        }
     }
 
     private void EnsureOwnerDemoSeed(System.Data.IDbConnection connection)
