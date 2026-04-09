@@ -1,15 +1,17 @@
 using DiDuDuaDi.API.Models;
 using DiDuDuaDi.API.Repositories;
+using DiDuDuaDi.API.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace DiDuDuaDi.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "owner")]
-public class OwnerController(IOwnerRepository ownerRepository) : ControllerBase
+public class OwnerController(IOwnerRepository ownerRepository, ITranslationService translationService) : ControllerBase
 {
     [HttpGet("dashboard")]
     public ActionResult<ApiResponse<OwnerShopDashboard>> GetDashboard()
@@ -63,7 +65,7 @@ public class OwnerController(IOwnerRepository ownerRepository) : ControllerBase
     }
 
     [HttpPut("poi-content")]
-    public ActionResult<ApiResponse<OwnerShopDashboard>> UpdatePoiContent([FromBody] UpdateOwnerPoiContentRequest request)
+    public async Task<ActionResult<ApiResponse<OwnerShopDashboard>>> UpdatePoiContent([FromBody] UpdateOwnerPoiContentRequest request)
     {
         var username = User.FindFirstValue(ClaimTypes.Name);
         if (string.IsNullOrWhiteSpace(username))
@@ -72,19 +74,36 @@ public class OwnerController(IOwnerRepository ownerRepository) : ControllerBase
         }
 
         if (string.IsNullOrWhiteSpace(request.NameVi)
-            || string.IsNullOrWhiteSpace(request.DescriptionVi)
-            || string.IsNullOrWhiteSpace(request.NameEn)
-            || string.IsNullOrWhiteSpace(request.DescriptionEn))
+            || string.IsNullOrWhiteSpace(request.DescriptionVi))
         {
-            return BadRequest(new ApiResponse<OwnerShopDashboard>(null!, false, "POI name and description are required in both VI and EN"));
+            return BadRequest(new ApiResponse<OwnerShopDashboard>(null!, false, "POI name and description are required in VI"));
         }
 
-        var dashboard = ownerRepository.UpdatePoiContent(username, request);
+        var dashboard = await ownerRepository.UpdatePoiContentAsync(username, request);
         if (dashboard is null)
         {
             return NotFound(new ApiResponse<OwnerShopDashboard>(null!, false, "Owner POI not found"));
         }
 
+        var poiId = dashboard.PrimaryPoi?.PoiId; 
+
+        if (poiId != null) // Đảm bảo POI tồn tại
+        {
+            string[] targetLanguages = new[] { "en", "zh", "ja", "ko", "fr", "th" };
+
+            foreach (var lang in targetLanguages)
+            {
+                // Gọi API dịch thuật (Hàm này vẫn cần await vì nó gọi ra ngoài internet)
+                var (translatedName, translatedDesc) = await translationService.TranslatePoiContentAsync(request.NameVi, request.DescriptionVi, lang);
+
+                ownerRepository.UpsertPoiTranslation(
+                    poiId.Value,
+                    lang, 
+                    translatedName, 
+                    translatedDesc
+                );
+            }
+        }
         return Ok(new ApiResponse<OwnerShopDashboard>(dashboard, true, "POI content updated"));
     }
 

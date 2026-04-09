@@ -37,6 +37,7 @@ builder.Services.AddScoped<IAuthRepository, MySqlAuthRepository>();
 builder.Services.AddScoped<IOwnerRepository, MySqlOwnerRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, MySqlAnalyticsRepository>();
 builder.Services.AddScoped<IAdminRepository, MySqlAdminRepository>();
+builder.Services.AddScoped<ITranslationService, GoogleFreeTranslationService>();
 
 builder.Services.AddCors(options =>
 {

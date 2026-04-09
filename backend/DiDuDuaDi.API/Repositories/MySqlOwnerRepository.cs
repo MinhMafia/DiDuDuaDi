@@ -265,7 +265,20 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
         return GetClaimCode(connection, shop.ShopId, claimCodeId);
     }
 
-    private static OwnerShopDashboard BuildDashboard(System.Data.IDbConnection connection, ShopRow shop)
+    public void UpsertPoiTranslation(Guid poiId, string languageCode, string name, string description)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        // Gọi lại hàm private tĩnh đã có sẵn ở dưới
+        UpsertPoiTranslation(connection, poiId, languageCode, name, description);
+    }
+
+    public async Task<OwnerShopDashboard?> UpdatePoiContentAsync(string username, UpdateOwnerPoiContentRequest request)
+    {
+        var result = UpdatePoiContent(username, request);
+        return await Task.FromResult(result);
+    }
+
+    private static OwnerShopDashboard BuildDashboard(System.Data.IDbConnection connection, ShopRow shop)    
     {
         var dashboard = new OwnerShopDashboard
         {
