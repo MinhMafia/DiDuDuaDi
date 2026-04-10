@@ -11,5 +11,5 @@ public interface IOwnerRepository
     MenuItemSummary? UpdateMenuItem(string username, long menuItemId, UpsertMenuItemRequest request);
     bool DeleteMenuItem(string username, long menuItemId);
     ClaimCodeSummary? CreateClaimCode(string username, CreateClaimCodeRequest request);
-    void UpsertPoiTranslation(Guid poiId, string languageCode, string name, string description);
+    void UpsertPoiTranslation(Guid poiId, string languageCode, string name, string description, string audioUrl);
 }

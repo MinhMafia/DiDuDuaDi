@@ -115,9 +115,6 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
                 request.Category
             });
 
-        UpsertPoiTranslation(connection, poiId.Value, "vi", request.NameVi, request.DescriptionVi);
-        UpsertPoiTranslation(connection, poiId.Value, "en", request.NameEn, request.DescriptionEn);
-
         var refreshedShop = GetShopRowById(connection, shop.ShopId);
         return refreshedShop is null ? null : BuildDashboard(connection, refreshedShop);
     }
@@ -265,12 +262,10 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
         return GetClaimCode(connection, shop.ShopId, claimCodeId);
     }
 
-    public void UpsertPoiTranslation(Guid poiId, string languageCode, string name, string description)
+    public void UpsertPoiTranslation(Guid poiId, string languageCode, string name, string description, string audioUrl)
     {
         using var connection = connectionFactory.CreateConnection();
-        // Gọi lại hàm private tĩnh đã có sẵn ở dưới
-        UpsertPoiTranslation(connection, poiId, languageCode, name, description);
-    }
+        UpsertPoiTranslation(connection, poiId, languageCode, name, description, audioUrl);    }
 
     public async Task<OwnerShopDashboard?> UpdatePoiContentAsync(string username, UpdateOwnerPoiContentRequest request)
     {
@@ -366,7 +361,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
         Guid poiId,
         string languageCode,
         string name,
-        string description)
+        string description,
+        string audioUrl)
     {
         var exists = connection.ExecuteScalar<int>(
             """
@@ -385,7 +381,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
                 SET
                     name = @Name,
                     description = @Description,
-                    short_description = LEFT(@Description, 300)
+                    short_description = LEFT(@Description, 300),
+                    audio_url = COALESCE(@AudioUrl, audio_url)
                 WHERE poi_id = @PoiId
                   AND language_code = @LanguageCode;
                 """,
@@ -394,7 +391,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
                     PoiId = poiId,
                     LanguageCode = languageCode,
                     Name = name,
-                    Description = description
+                    Description = description,
+                    AudioUrl = audioUrl
                 });
 
             return;
@@ -416,7 +414,7 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
                 @Name,
                 LEFT(@Description, 300),
                 @Description,
-                NULL
+                @AudioUrl
             );
             """,
             new
@@ -424,7 +422,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
                 PoiId = poiId,
                 LanguageCode = languageCode,
                 Name = name,
-                Description = description
+                Description = description,
+                AudioUrl = audioUrl
             });
     }
 

@@ -38,6 +38,7 @@ builder.Services.AddScoped<IOwnerRepository, MySqlOwnerRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, MySqlAnalyticsRepository>();
 builder.Services.AddScoped<IAdminRepository, MySqlAdminRepository>();
 builder.Services.AddScoped<ITranslationService, GoogleFreeTranslationService>();
+builder.Services.AddHttpClient<ITextToSpeechService, GoogleFreeTextToSpeechService>();
 
 builder.Services.AddCors(options =>
 {
@@ -74,6 +75,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => Results.Ok(new { success = true, message = "DiDuDuaDi.API (.NET 10) is running" }));
+app.UseStaticFiles();
 app.MapControllers();
 
 app.Run();
