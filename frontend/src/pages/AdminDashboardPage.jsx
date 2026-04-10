@@ -1,8 +1,25 @@
-import { useState } from "react";
+ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import Loading from "../components/common/Loading";
+import {
+  Card,
+  Button,
+  Input,
+  Typography,
+  Space,
+  Tag,
+  Spin,
+  Row,
+  Col,
+  Empty,
+  Table,
+  Modal,
+  Form,
+  Tabs,
+  message,
+} from "antd";
+
 import {
   getOwnerUpgradeRequests,
   getShopIntroReviews,
@@ -10,17 +27,106 @@ import {
   reviewShopIntro,
 } from "../services/adminService";
 
+import {
+  getTopShops,
+  getTopPois,
+  getPois,
+  createPoi,
+  updatePoi,
+  deletePoi,
+} from "../services/analyticsService";
+
+
+const { Title, Text } = Typography;
+const { TextArea } = Input;
+
 export default function AdminDashboardPage() {
   const { t } = useTranslation();
   const currentUser = useSelector((state) => state.app.currentUser);
   const queryClient = useQueryClient();
+
   const [ownerReviewNotes, setOwnerReviewNotes] = useState({});
   const [introReviewNotes, setIntroReviewNotes] = useState({});
 
+  // Stats states
+  const [statsPeriod, setStatsPeriod] = useState('30');
+  const [statsMetric, setStatsMetric] = useState('visits');
+
+  // POI manage
+  const [poiModalVisible, setPoiModalVisible] = useState(false);
+  const [editingPoi, setEditingPoi] = useState(null);
+  const [poiSearch, setPoiSearch] = useState('');
+
+  const periods = ['7', '30', '90'];
+  const metrics = ['visits', 'audio'];
+
+const shopsColumns = [
+  { 
+    title: 'Quán', 
+    dataIndex: 'name', 
+    render: (text) => <strong>{text}</strong> 
+  },
+  { 
+    title: 'Slug', 
+    dataIndex: 'slug' 
+  },
+  {
+    title: 'Vị trí',
+    render: (_, record) => {
+      const lat = Number(record?.lat);
+      const lng = Number(record?.lng);
+
+      if (isNaN(lat) || isNaN(lng)) return "N/A";
+
+      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    }
+  },
+  { 
+    title: 'Lượt', 
+    dataIndex: 'count',
+    sorter: (a, b) => a.count - b.count 
+  },
+  { 
+    title: 'Chỉ số', 
+    dataIndex: 'metric' 
+  },
+];
+
+const poisColumns = [
+  { 
+    title: 'Tên', 
+    dataIndex: 'name',
+    render: (name) => {
+      if (!name) return "Không có tên";
+      return name.vi || name.en || Object.values(name)[0];
+    }
+  },
+  { 
+    title: 'ID', 
+    dataIndex: 'id', 
+    render: (id) => id?.slice?.(-8) || "N/A"
+  },
+  {
+    title: 'Vị trí',
+    render: (_, record) => {
+      const lat = record?.lat;
+      const lng = record?.lng;
+
+      if (lat == null || lng == null) return "Không có tọa độ";
+
+      return `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`;
+    }
+  },
+  
+ 
+];
+
+  // ================= QUERY =================
   const pendingOwnerRequestsQuery = useQuery({
+
     queryKey: ["owner-upgrade-requests", "pending"],
     queryFn: () => getOwnerUpgradeRequests("pending"),
-    select: (response) => response.data ?? [],
+    select: (res) => res.data ?? [],
   });
 
   const reviewedOwnerRequestsQuery = useQuery({
@@ -30,7 +136,6 @@ export default function AdminDashboardPage() {
         getOwnerUpgradeRequests("approved"),
         getOwnerUpgradeRequests("rejected"),
       ]);
-
       return [...(approved.data ?? []), ...(rejected.data ?? [])];
     },
   });
@@ -38,7 +143,7 @@ export default function AdminDashboardPage() {
   const pendingIntroReviewsQuery = useQuery({
     queryKey: ["shop-intro-reviews", "pending"],
     queryFn: () => getShopIntroReviews("pending"),
-    select: (response) => response.data ?? [],
+    select: (res) => res.data ?? [],
   });
 
   const reviewedIntroReviewsQuery = useQuery({
@@ -48,434 +153,502 @@ export default function AdminDashboardPage() {
         getShopIntroReviews("approved"),
         getShopIntroReviews("rejected"),
       ]);
-
       return [...(approved.data ?? []), ...(rejected.data ?? [])];
     },
   });
 
+  // ================= MUTATION =================
   const ownerReviewMutation = useMutation({
     mutationFn: ({ requestId, action, reason }) =>
       reviewOwnerUpgradeRequest(requestId, action, reason),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["owner-upgrade-requests", "pending"] });
-      queryClient.invalidateQueries({ queryKey: ["owner-upgrade-requests", "reviewed"] });
+      queryClient.invalidateQueries({ queryKey: ["owner-upgrade-requests"] });
     },
   });
 
   const introReviewMutation = useMutation({
-    mutationFn: ({ shopId, action, reason }) => reviewShopIntro(shopId, action, reason),
+    mutationFn: ({ shopId, action, reason }) =>
+      reviewShopIntro(shopId, action, reason),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["shop-intro-reviews", "pending"] });
-      queryClient.invalidateQueries({ queryKey: ["shop-intro-reviews", "reviewed"] });
+      queryClient.invalidateQueries({ queryKey: ["shop-intro-reviews"] });
     },
   });
 
-  const pendingOwnerRequests = Array.isArray(pendingOwnerRequestsQuery.data)
-    ? pendingOwnerRequestsQuery.data
-    : [];
-  const reviewedOwnerRequests = Array.isArray(reviewedOwnerRequestsQuery.data)
-    ? reviewedOwnerRequestsQuery.data
-    : [];
-  const pendingIntroReviews = Array.isArray(pendingIntroReviewsQuery.data)
-    ? pendingIntroReviewsQuery.data
-    : [];
-  const reviewedIntroReviews = Array.isArray(reviewedIntroReviewsQuery.data)
-    ? reviewedIntroReviewsQuery.data
-    : [];
+  // Stats queries
+const topShopsQuery = useQuery({
+  queryKey: ['topShops', statsPeriod, statsMetric],
+  queryFn: () => getTopShops(parseInt(statsPeriod), 10, statsMetric),
+  enabled: !!(statsPeriod && statsMetric),
+select: (res) => {
+  console.log("RAW RES:", res);
 
+  if (Array.isArray(res)) return res; // 🔥 QUAN TRỌNG
+
+  if (Array.isArray(res?.data)) return res.data;
+
+  if (Array.isArray(res?.data?.items)) return res.data.items;
+
+  return [];
+}
+});
+const chartTopShops = (topShopsQuery.data || []).map(item => ({
+  name: item.name,
+  lượt: item.count || 0,
+}));
+const topPoisQuery = useQuery({
+  queryKey: ['topPois', statsPeriod, statsMetric],
+  queryFn: () => getTopPois(parseInt(statsPeriod), 10, statsMetric),
+  enabled: !!(statsPeriod && statsMetric),
+  select: (res) => {
+    console.log("TOP POIS:", res);
+
+    return Array.isArray(res?.data)
+      ? res.data
+      : Array.isArray(res?.data?.items)
+      ? res.data.items
+      : [];
+  },
+});
+
+const poisQuery = useQuery({
+  queryKey: ['pois'],
+  queryFn: () => getPois(),
+  select: (res) => {
+    const data = res.data ?? [];
+
+    return data.map(p => ({
+      ...p,
+      lat: p.location?.lat,
+      lng: p.location?.lng,
+      displayName:
+        p.name?.vi ||
+        p.name?.en ||
+        Object.values(p.name || {})[0],
+    }));
+  },
+});
+
+  const poiCreateMutation = useMutation({
+    mutationFn: createPoi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pois'] });
+      message.success('Tạo POI thành công');
+    },
+  });
+
+const poiUpdateMutation = useMutation({
+  mutationFn: ({ id, data }) => updatePoi(id, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['pois'] });
+    message.success('Cập nhật POI thành công');
+  },
+});
+
+  const poiDeleteMutation = useMutation({
+    mutationFn: deletePoi,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pois'] });
+      message.success('Xóa POI thành công');
+    },
+  });
+
+
+  // ================= RENDER =================
   return (
-    <section style={pageStyle}>
-      <article style={cardStyle}>
-        <h1 style={{ marginTop: 0 }}>{t("admin.title")}</h1>
-        <p style={{ color: "#475569" }}>{t("admin.subtitle")}</p>
-        <strong>{currentUser?.displayName}</strong>
-      </article>
+    <Space direction="vertical" size={20} style={{ width: "100%" }}>
+      
+      {/* HEADER */}
+      <Card style={{ borderRadius: 16 }}>
+        <Space direction="vertical">
+          <Title level={3}>{t("admin.title")}</Title>
+          <Text type="secondary">{t("admin.subtitle")}</Text>
+          <Tag color="blue">{currentUser?.displayName}</Tag>
+        </Space>
+      </Card>
 
-      <article style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>{t("admin.ownerRequestsTitle")}</h2>
-        <p style={{ color: "#475569" }}>{t("admin.ownerRequestsSubtitle")}</p>
+      {/* OWNER REQUESTS */}
+      <Card
+        title={t("admin.ownerRequestsTitle")}
+        extra={<Tag color="orange">Pending</Tag>}
+        style={{ borderRadius: 16 }}
+      >
+        {pendingOwnerRequestsQuery.isLoading ? (
+          <Spin />
+        ) : pendingOwnerRequestsQuery.data.length === 0 ? (
+          <Empty description={t("admin.emptyPendingOwnerRequests")} />
+        ) : (
+          <Row gutter={[16, 16]}>
+            {pendingOwnerRequestsQuery.data.map((request) => (
+              <Col xs={24} md={12} lg={8} key={request.id}>
+                <Card style={{ borderRadius: 12 }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
+                    <Title level={5}>{request.shopName}</Title>
 
-        {pendingOwnerRequestsQuery.isLoading ? <Loading /> : null}
-        {pendingOwnerRequestsQuery.error ? (
-          <p style={{ color: "#b91c1c" }}>
-            {pendingOwnerRequestsQuery.error.message || t("admin.loadOwnerRequestsError")}
-          </p>
-        ) : null}
+                    <Text type="secondary">
+                      👤 {request.username} - {request.displayName}
+                    </Text>
 
-        {!pendingOwnerRequestsQuery.isLoading &&
-        !pendingOwnerRequestsQuery.error &&
-        pendingOwnerRequests.length === 0 ? (
-          <p style={{ color: "#475569" }}>{t("admin.emptyPendingOwnerRequests")}</p>
-        ) : null}
+                    <Text type="secondary">
+                      📍 {request.addressLine}
+                    </Text>
 
-        <div style={{ display: "grid", gap: 10 }}>
-          {pendingOwnerRequests.map((request) => (
-            <div key={request.id} style={itemCardStyle}>
-              <div style={itemHeadStyle}>
-                <div>
-                  <strong>{request.shopName}</strong>
-                  <p style={mutedTextStyle}>
-                    {t("admin.labels.user")}: {request.username} - {request.displayName}
-                  </p>
-                  <p style={mutedTextStyle}>
-                    {t("admin.labels.address")}: {request.addressLine}
-                  </p>
-                  {request.idCardImageUrl ? (
-                    <p style={compactTextStyle}>
-                      {t("admin.labels.idCard")}: {request.idCardImageUrl}
-                    </p>
-                  ) : null}
-                  {request.businessLicenseImageUrl ? (
-                    <p style={compactTextStyle}>
-                      {t("admin.labels.businessLicense")}: {request.businessLicenseImageUrl}
-                    </p>
-                  ) : null}
-                  {request.note ? (
-                    <p style={compactTextStyle}>
-                      {t("admin.labels.note")}: {request.note}
-                    </p>
-                  ) : null}
-                  {request.reviewNote ? (
-                    <p style={compactTextStyle}>
-                      {t("admin.labels.reviewNote")}: {request.reviewNote}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
+                    {request.note && <Text>📝 {request.note}</Text>}
 
-              <textarea
-                value={ownerReviewNotes[request.id] || ""}
-                onChange={(event) =>
-                  setOwnerReviewNotes((prev) => ({ ...prev, [request.id]: event.target.value }))
-                }
-                placeholder={t("admin.reviewNotePlaceholder")}
-                style={textareaStyle}
-              />
+                    <TextArea
+                      placeholder={t("admin.reviewNotePlaceholder")}
+                      autoSize={{ minRows: 2 }}
+                      value={ownerReviewNotes[request.id] || ""}
+                      onChange={(e) =>
+                        setOwnerReviewNotes((prev) => ({
+                          ...prev,
+                          [request.id]: e.target.value,
+                        }))
+                      }
+                    />
 
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  onClick={() =>
-                    ownerReviewMutation.mutate({
-                      requestId: request.id,
-                      action: "approve",
-                      reason: ownerReviewNotes[request.id] || null,
-                    })
-                  }
-                  disabled={ownerReviewMutation.isPending}
-                  style={approveButtonStyle}
-                >
-                  {ownerReviewMutation.isPending ? t("admin.processing") : t("admin.approve")}
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    ownerReviewMutation.mutate({
-                      requestId: request.id,
-                      action: "reject",
-                      reason: ownerReviewNotes[request.id] || null,
-                    })
-                  }
-                  disabled={ownerReviewMutation.isPending}
-                  style={rejectButtonStyle}
-                >
-                  {ownerReviewMutation.isPending ? t("admin.processing") : t("admin.reject")}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </article>
+                    <Space>
+                      <Button
+                        type="primary"
+                        loading={ownerReviewMutation.isPending}
+                        onClick={() =>
+                          ownerReviewMutation.mutate({
+                            requestId: request.id,
+                            action: "approve",
+                            reason: ownerReviewNotes[request.id],
+                          })
+                        }
+                      >
+                        Approve
+                      </Button>
 
-      <article style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>{t("admin.shopIntroTitle")}</h2>
-        <p style={{ color: "#475569" }}>{t("admin.shopIntroSubtitle")}</p>
+                      <Button
+                        danger
+                        loading={ownerReviewMutation.isPending}
+                        onClick={() =>
+                          ownerReviewMutation.mutate({
+                            requestId: request.id,
+                            action: "reject",
+                            reason: ownerReviewNotes[request.id],
+                          })
+                        }
+                      >
+                        Reject
+                      </Button>
+                    </Space>
+                  </Space>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
+      </Card>
 
-        {pendingIntroReviewsQuery.isLoading ? <Loading /> : null}
-        {pendingIntroReviewsQuery.error ? (
-          <p style={{ color: "#b91c1c" }}>
-            {pendingIntroReviewsQuery.error.message || t("admin.loadShopIntrosError")}
-          </p>
-        ) : null}
+      {/* SHOP INTRO */}
+      <Card
+        title={t("admin.shopIntroTitle")}
+        extra={<Tag color="purple">Review</Tag>}
+        style={{ borderRadius: 16 }}
+      >
+        {pendingIntroReviewsQuery.isLoading ? (
+          <Spin />
+        ) : pendingIntroReviewsQuery.data.length === 0 ? (
+          <Empty description={t("admin.emptyPendingShopIntros")} />
+        ) : (
+          <Row gutter={[16, 16]}>
+            {pendingIntroReviewsQuery.data.map((item) => (
+              <Col xs={24} md={12} lg={8} key={item.shopId}>
+                <Card style={{ borderRadius: 12 }}>
+                  <Space direction="vertical" style={{ width: "100%" }}>
+                    <Title level={5}>{item.shopName}</Title>
 
-        {!pendingIntroReviewsQuery.isLoading &&
-        !pendingIntroReviewsQuery.error &&
-        pendingIntroReviews.length === 0 ? (
-          <p style={{ color: "#475569" }}>{t("admin.emptyPendingShopIntros")}</p>
-        ) : null}
+                    <Text type="secondary">
+                      👤 {item.ownerDisplayName}
+                    </Text>
 
-        <div style={{ display: "grid", gap: 10 }}>
-          {pendingIntroReviews.map((item) => (
-            <div key={item.shopId} style={itemCardStyle}>
-              <strong>{item.shopName}</strong>
-              <p style={mutedTextStyle}>
-                {t("admin.labels.owner")}: {item.ownerDisplayName} ({item.ownerUsername})
-              </p>
-              <p style={mutedTextStyle}>
-                {t("admin.labels.address")}: {item.addressLine}
-              </p>
+                    <Text type="secondary">
+                      📍 {item.addressLine}
+                    </Text>
 
-              {item.approvedIntroduction ? (
-                <div style={infoBlockStyle}>
-                  <strong>{t("admin.labels.currentContent")}</strong>
-                  <p style={compactTextStyle}>{item.approvedIntroduction}</p>
-                </div>
-              ) : null}
+                    <Text>
+                      <b>Pending:</b> {item.pendingIntroduction}
+                    </Text>
 
-              <div style={pendingBlockStyle}>
-                <strong>{t("admin.labels.pendingContent")}</strong>
-                <p style={compactTextStyle}>
-                  {item.pendingIntroduction || t("admin.labels.noContent")}
-                </p>
-              </div>
+                    <TextArea
+                      placeholder="Review note..."
+                      autoSize={{ minRows: 2 }}
+                      value={introReviewNotes[item.shopId] || ""}
+                      onChange={(e) =>
+                        setIntroReviewNotes((prev) => ({
+                          ...prev,
+                          [item.shopId]: e.target.value,
+                        }))
+                      }
+                    />
 
-              {item.reviewNote ? (
-                <p style={compactTextStyle}>
-                  {t("admin.labels.latestReviewNote")}: {item.reviewNote}
-                </p>
-              ) : null}
+                    <Space>
+                      <Button
+                        type="primary"
+                        loading={introReviewMutation.isPending}
+                        onClick={() =>
+                          introReviewMutation.mutate({
+                            shopId: item.shopId,
+                            action: "approve",
+                            reason: introReviewNotes[item.shopId],
+                          })
+                        }
+                      >
+                        Approve
+                      </Button>
 
-              <textarea
-                value={introReviewNotes[item.shopId] || ""}
-                onChange={(event) =>
-                  setIntroReviewNotes((prev) => ({ ...prev, [item.shopId]: event.target.value }))
-                }
-                placeholder={t("admin.reviewNotePlaceholder")}
-                style={textareaStyle}
-              />
+                      <Button
+                        danger
+                        loading={introReviewMutation.isPending}
+                        onClick={() =>
+                          introReviewMutation.mutate({
+                            shopId: item.shopId,
+                            action: "reject",
+                            reason: introReviewNotes[item.shopId],
+                          })
+                        }
+                      >
+                        Reject
+                      </Button>
+                    </Space>
+                  </Space>
+                </Card>
+              </Col>
+            ))}
+          </Row>
+        )}
+      </Card>
 
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  style={approveButtonStyle}
-                  disabled={introReviewMutation.isPending}
-                  onClick={() =>
-                    introReviewMutation.mutate({
-                      shopId: item.shopId,
-                      action: "approve",
-                      reason: introReviewNotes[item.shopId] || null,
-                    })
-                  }
-                >
-                  {introReviewMutation.isPending
-                    ? t("admin.processing")
-                    : t("admin.approveContent")}
-                </button>
-                <button
-                  type="button"
-                  style={rejectButtonStyle}
-                  disabled={introReviewMutation.isPending}
-                  onClick={() =>
-                    introReviewMutation.mutate({
-                      shopId: item.shopId,
-                      action: "reject",
-                      reason: introReviewNotes[item.shopId] || null,
-                    })
-                  }
-                >
-                  {introReviewMutation.isPending ? t("admin.processing") : t("admin.reject")}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </article>
-
-      <article style={cardStyle}>
-        <h2 style={{ marginTop: 0 }}>{t("admin.reviewHistoryTitle")}</h2>
-        <p style={{ color: "#475569" }}>{t("admin.reviewHistorySubtitle")}</p>
-
-        <div style={historyGridStyle}>
-          <div style={historyColumnStyle}>
-            <h3 style={{ marginTop: 0 }}>{t("admin.ownerHistoryTitle")}</h3>
-            {reviewedOwnerRequestsQuery.isLoading ? <Loading /> : null}
-            {reviewedOwnerRequestsQuery.error ? (
-              <p style={{ color: "#b91c1c" }}>
-                {reviewedOwnerRequestsQuery.error.message || t("admin.loadHistoryError")}
-              </p>
-            ) : null}
-            {!reviewedOwnerRequestsQuery.isLoading &&
-            !reviewedOwnerRequestsQuery.error &&
-            reviewedOwnerRequests.length === 0 ? (
-              <p style={{ color: "#475569" }}>{t("admin.emptyOwnerHistory")}</p>
-            ) : null}
-            <div style={{ display: "grid", gap: 10 }}>
-              {reviewedOwnerRequests.map((request) => (
-                <div key={`history-owner-${request.id}`} style={itemCardStyle}>
-                  <div style={statusRowStyle}>
-                    <strong>{request.shopName}</strong>
-                    <span
-                      style={{
-                        ...statusBadgeStyle,
-                        ...(request.status === "approved" ? approvedBadgeStyle : rejectedBadgeStyle),
-                      }}
-                    >
-                      {translateReviewStatus(t, request.status)}
-                    </span>
-                  </div>
-                  <p style={mutedTextStyle}>
-                    {t("admin.labels.user")}: {request.username} - {request.displayName}
-                  </p>
-                  <p style={mutedTextStyle}>
-                    {t("admin.labels.address")}: {request.addressLine}
-                  </p>
-                  {request.reviewNote ? (
-                    <p style={compactTextStyle}>
-                      {t("admin.labels.reviewNote")}: {request.reviewNote}
-                    </p>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div style={historyColumnStyle}>
-            <h3 style={{ marginTop: 0 }}>{t("admin.shopIntroHistoryTitle")}</h3>
-            {reviewedIntroReviewsQuery.isLoading ? <Loading /> : null}
-            {reviewedIntroReviewsQuery.error ? (
-              <p style={{ color: "#b91c1c" }}>
-                {reviewedIntroReviewsQuery.error.message || t("admin.loadHistoryError")}
-              </p>
-            ) : null}
-            {!reviewedIntroReviewsQuery.isLoading &&
-            !reviewedIntroReviewsQuery.error &&
-            reviewedIntroReviews.length === 0 ? (
-              <p style={{ color: "#475569" }}>{t("admin.emptyShopIntroHistory")}</p>
-            ) : null}
-            <div style={{ display: "grid", gap: 10 }}>
-              {reviewedIntroReviews.map((item) => (
-                <div key={`history-intro-${item.shopId}`} style={itemCardStyle}>
-                  <div style={statusRowStyle}>
+      {/* HISTORY */}
+      <Card title={t("admin.reviewHistoryTitle")} style={{ borderRadius: 16 }}>
+        <Row gutter={16}>
+          <Col xs={24} md={12}>
+            <Title level={5}>Owner History</Title>
+            {reviewedOwnerRequestsQuery.isLoading ? (
+              <Spin />
+            ) : (
+              reviewedOwnerRequestsQuery.data.map((item) => (
+                <Card key={item.id} size="small" style={{ marginBottom: 8 }}>
+                  <Space direction="vertical">
                     <strong>{item.shopName}</strong>
-                    <span
-                      style={{
-                        ...statusBadgeStyle,
-                        ...(item.reviewStatus === "approved"
-                          ? approvedBadgeStyle
-                          : rejectedBadgeStyle),
-                      }}
+                    <Tag color={item.status === "approved" ? "green" : "red"}>
+                      {item.status}
+                    </Tag>
+                  </Space>
+                </Card>
+              ))
+            )}
+          </Col>
+
+          <Col xs={24} md={12}>
+            <Title level={5}>Intro History</Title>
+            {reviewedIntroReviewsQuery.isLoading ? (
+              <Spin />
+            ) : (
+              reviewedIntroReviewsQuery.data.map((item) => (
+                <Card key={item.shopId} size="small" style={{ marginBottom: 8 }}>
+                  <Space direction="vertical">
+                    <strong>{item.shopName}</strong>
+                    <Tag
+                      color={
+                        item.reviewStatus === "approved" ? "green" : "red"
+                      }
                     >
-                      {translateReviewStatus(t, item.reviewStatus)}
-                    </span>
-                  </div>
-                  <p style={mutedTextStyle}>
-                    {t("admin.labels.owner")}: {item.ownerDisplayName} ({item.ownerUsername})
-                  </p>
-                  <p style={mutedTextStyle}>
-                    {t("admin.labels.address")}: {item.addressLine}
-                  </p>
-                  {item.reviewNote ? (
-                    <p style={compactTextStyle}>
-                      {t("admin.labels.reviewNote")}: {item.reviewNote}
-                    </p>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </article>
-    </section>
+                      {item.reviewStatus}
+                    </Tag>
+                  </Space>
+                </Card>
+              ))
+            )}
+          </Col>
+        </Row>
+      </Card>
+      <Card title="📊 Thống kê quán & địa điểm" style={{ borderRadius: 16 }}>
+  <Space direction="vertical" style={{ width: "100%" }} size={16}>
+    
+    {/* FILTER */}
+    <Space>
+      <Text strong>Khoảng thời gian:</Text>
+      {periods.map((p) => (
+        <Button
+          key={p}
+          type={statsPeriod === p ? "primary" : "default"}
+          onClick={() => setStatsPeriod(p)}
+        >
+          {p} ngày
+        </Button>
+      ))}
+
+      <Text strong>Chỉ số:</Text>
+      {metrics.map((m) => (
+        <Button
+          key={m}
+          type={statsMetric === m ? "primary" : "default"}
+          onClick={() => setStatsMetric(m)}
+        >
+          {m}
+        </Button>
+      ))}
+    </Space>
+
+    {/* TABLES */}
+    <Row gutter={16}>
+      <Col xs={24} lg={12}>
+        <Card title="Top quán">
+       {topShopsQuery.isLoading ? (
+  <Spin />
+) : !topShopsQuery.data ? (
+  <Spin />
+) : topShopsQuery.data.length === 0 ? (
+  <Empty />
+) : (
+  <Table
+    rowKey="slug"
+    columns={shopsColumns}
+    dataSource={topShopsQuery.data}
+    pagination={false}
+  />
+)}
+        </Card>
+      </Col>
+
+      <Col xs={24} lg={12}>
+        <Card title="Top POI">
+          {topPoisQuery.isLoading ? (
+            <Spin />
+          ) : topPoisQuery.data?.length === 0 ? (
+            <Empty />
+          ) : (
+            <Table
+              rowKey="Id"
+              columns={poisColumns}
+              dataSource={Array.isArray(topPoisQuery.data) ? topPoisQuery.data : []}
+              pagination={false}
+            />
+          )}
+        </Card>
+      </Col>
+    </Row>
+  </Space>
+</Card>
+<Card title="📍 Quản lý POI" style={{ borderRadius: 16 }}>
+  <Space direction="vertical" style={{ width: "100%" }} size={16}>
+
+    {/* SEARCH + ADD */}
+    <Space style={{ width: "100%", justifyContent: "space-between" }}>
+      <Input
+        placeholder="Tìm POI..."
+        value={poiSearch}
+        onChange={(e) => setPoiSearch(e.target.value)}
+        style={{ width: 300 }}
+      />
+
+      <Button
+        type="primary"
+        onClick={() => {
+          setEditingPoi(null);
+          setPoiModalVisible(true);
+        }}
+      >
+        + Thêm POI
+      </Button>
+    </Space>
+
+    {/* TABLE */}
+    <Table
+      rowKey="Id"
+      loading={poisQuery.isLoading}
+      dataSource={Array.isArray(poisQuery.data)
+  ? poisQuery.data.filter((p) => {
+      const name = p?.Name ?? "";
+      return name.toLowerCase().includes(poiSearch.toLowerCase());
+    })
+  : []
+}
+      columns={[
+        ...poisColumns,
+        {
+          title: "Hành động",
+          render: (_, record) => (
+            <Space>
+              <Button
+                onClick={() => {
+                  setEditingPoi(record);
+                  setPoiModalVisible(true);
+                }}
+              >
+                Sửa
+              </Button>
+
+              <Button
+                danger
+                onClick={() =>
+  poiDeleteMutation.mutate(record.id || record.Id)
+}
+              >
+                Xóa
+              </Button>
+            </Space>
+          ),
+        },
+      ]}
+    />
+  </Space>
+</Card>
+<Modal
+  title={editingPoi ? "Cập nhật POI" : "Thêm POI"}
+  open={poiModalVisible}
+  onCancel={() => setPoiModalVisible(false)}
+  footer={null}
+>
+  <Form
+    layout="vertical"
+    initialValues={editingPoi || {}}
+onFinish={(values) => {
+const payload = {
+  name: {
+    vi: values.Name,
+    en: values.Name,
+  },
+  category: "food",
+
+  lat: Number(values.Latitude),   // 🔥 đổi lại
+  lng: Number(values.Longitude),  // 🔥 đổi lại
+
+  radius: 500,
+  imageUrl: null,
+};
+
+  if (editingPoi) {
+    poiUpdateMutation.mutate({
+      id: editingPoi.id || editingPoi.Id, // 🔥
+      data: payload,
+    });
+  } else {
+    poiCreateMutation.mutate(payload);
+  }
+}}
+  >
+    <Form.Item name="Name" label="Tên" rules={[{ required: true }]}>
+      <Input />
+    </Form.Item>
+
+    <Form.Item name="Latitude" label="Latitude" rules={[{ required: true }]}>
+      <Input />
+    </Form.Item>
+
+    <Form.Item name="Longitude" label="Longitude" rules={[{ required: true }]}>
+      <Input />
+    </Form.Item>
+
+    <Button type="primary" htmlType="submit" block>
+      Lưu
+    </Button>
+  </Form>
+</Modal>
+    </Space>
   );
 }
-
-function translateReviewStatus(t, status) {
-  if (status === "approved") return t("admin.status.approved");
-  if (status === "rejected") return t("admin.status.rejected");
-  if (status === "pending") return t("admin.status.pending");
-  return status;
-}
-
-const pageStyle = { display: "grid", gap: 16 };
-const cardStyle = {
-  background: "#fff",
-  border: "1px solid #e2e8f0",
-  borderRadius: 20,
-  padding: 20,
-};
-const itemCardStyle = {
-  border: "1px solid #e2e8f0",
-  borderRadius: 14,
-  padding: 14,
-  display: "grid",
-  gap: 8,
-};
-const itemHeadStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 10,
-};
-const mutedTextStyle = { margin: "4px 0", color: "#475569" };
-const compactTextStyle = { margin: "4px 0" };
-const approveButtonStyle = {
-  border: "none",
-  borderRadius: 10,
-  background: "#166534",
-  color: "#fff",
-  padding: "10px 12px",
-  fontWeight: 700,
-  cursor: "pointer",
-  height: "fit-content",
-};
-const rejectButtonStyle = {
-  border: "1px solid #fecaca",
-  borderRadius: 10,
-  background: "#fff1f2",
-  color: "#b91c1c",
-  padding: "10px 12px",
-  fontWeight: 700,
-  cursor: "pointer",
-  height: "fit-content",
-};
-const infoBlockStyle = {
-  border: "1px solid #dbeafe",
-  background: "#eff6ff",
-  borderRadius: 12,
-  padding: 12,
-};
-const pendingBlockStyle = {
-  border: "1px solid #fed7aa",
-  background: "#fff7ed",
-  borderRadius: 12,
-  padding: 12,
-};
-const historyGridStyle = {
-  display: "grid",
-  gap: 16,
-  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-};
-const historyColumnStyle = {
-  display: "grid",
-  gap: 10,
-  alignContent: "start",
-};
-const statusRowStyle = {
-  display: "flex",
-  justifyContent: "space-between",
-  gap: 10,
-  alignItems: "center",
-};
-const statusBadgeStyle = {
-  borderRadius: 999,
-  padding: "4px 10px",
-  fontSize: 12,
-  fontWeight: 700,
-  textTransform: "uppercase",
-};
-const approvedBadgeStyle = {
-  background: "#dcfce7",
-  color: "#166534",
-};
-const rejectedBadgeStyle = {
-  background: "#fee2e2",
-  color: "#b91c1c",
-};
-const textareaStyle = {
-  width: "100%",
-  minHeight: 84,
-  resize: "vertical",
-  border: "1px solid #cbd5e1",
-  borderRadius: 10,
-  padding: "10px 12px",
-  font: "inherit",
-};

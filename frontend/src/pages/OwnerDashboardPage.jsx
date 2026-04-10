@@ -69,7 +69,7 @@ export default function OwnerDashboardPage() {
 
   useEffect(() => {
     if (!dashboardQuery.data) return;
-
+console.log(dashboardQuery.data)
     setProfileForm({
       shopName: dashboardQuery.data.shopName || "",
       description: dashboardQuery.data.description || "",

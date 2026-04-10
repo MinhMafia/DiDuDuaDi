@@ -3,168 +3,138 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { createOwnerUpgradeRequest } from "../services/authService";
 
+import {
+  Card,
+  Form,
+  Input,
+  Button,
+  Typography,
+  Space,
+  Alert,
+} from "antd";
+
+const { Title, Text } = Typography;
+const { TextArea } = Input;
+
 export default function CollaborationPage() {
   const { t } = useTranslation();
   const currentUser = useSelector((state) => state.app.currentUser);
+
+  const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    shopName: "",
-    addressLine: "",
-    idCardImageUrl: "",
-    businessLicenseImageUrl: "",
-    note: "",
-  });
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function handleSubmit(values) {
     setError("");
     setMessage("");
 
     try {
       setSubmitting(true);
-      const response = await createOwnerUpgradeRequest(form);
+      const response = await createOwnerUpgradeRequest(values);
+
       setMessage(response.message || t("collaboration.success"));
-      setForm({
-        shopName: "",
-        addressLine: "",
-        idCardImageUrl: "",
-        businessLicenseImageUrl: "",
-        note: "",
-      });
-    } catch (requestError) {
-      setError(requestError.response?.data?.message || t("collaboration.error"));
+      form.resetFields();
+    } catch (err) {
+      setError(err.response?.data?.message || t("collaboration.error"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <section
-      style={{ display: "grid", gap: 16, maxWidth: 760, margin: "0 auto" }}
-    >
-      <article style={cardStyle}>
-        <h1 style={{ marginTop: 0 }}>{t("collaboration.title")}</h1>
-        <p style={{ color: "#475569" }}>{t("collaboration.subtitle")}</p>
-        {currentUser?.displayName ? (
-          <strong>
-            {t("collaboration.currentUser")}: {currentUser.displayName}
-          </strong>
-        ) : null}
-      </article>
+    <div style={{ maxWidth: 760, margin: "0 auto", padding: 16 }}>
+      <Space direction="vertical" size={16} style={{ width: "100%" }}>
+        
+        {/* HEADER */}
+        <Card style={{ borderRadius: 16 }}>
+          <Space direction="vertical">
+            <Title level={3} style={{ margin: 0 }}>
+              {t("collaboration.title")}
+            </Title>
 
-      <article style={cardStyle}>
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
-          <label style={labelStyle}>
-            {t("collaboration.fields.shopName")}
-            <input
-              required
-              value={form.shopName}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, shopName: event.target.value }))
-              }
-              style={inputStyle}
-            />
-          </label>
+            <Text type="secondary">
+              {t("collaboration.subtitle")}
+            </Text>
 
-          <label style={labelStyle}>
-            {t("collaboration.fields.address")}
-            <input
-              required
-              value={form.addressLine}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  addressLine: event.target.value,
-                }))
-              }
-              style={inputStyle}
-            />
-          </label>
+            {currentUser?.displayName && (
+              <Text strong>
+                {t("collaboration.currentUser")}: {currentUser.displayName}
+              </Text>
+            )}
+          </Space>
+        </Card>
 
-          <label style={labelStyle}>
-            {t("collaboration.fields.idCardImageUrl")}
-            <input
-              value={form.idCardImageUrl}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  idCardImageUrl: event.target.value,
-                }))
-              }
-              style={inputStyle}
-            />
-          </label>
+        {/* FORM */}
+        <Card style={{ borderRadius: 16 }}>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSubmit}
+          >
+            <Form.Item
+              label={t("collaboration.fields.shopName")}
+              name="shopName"
+              rules={[{ required: true, message: "Required" }]}
+            >
+              <Input placeholder="Nhập tên cửa hàng" />
+            </Form.Item>
 
-          <label style={labelStyle}>
-            {t("collaboration.fields.businessLicenseImageUrl")}
-            <input
-              value={form.businessLicenseImageUrl}
-              onChange={(event) =>
-                setForm((prev) => ({
-                  ...prev,
-                  businessLicenseImageUrl: event.target.value,
-                }))
-              }
-              style={inputStyle}
-            />
-          </label>
+            <Form.Item
+              label={t("collaboration.fields.address")}
+              name="addressLine"
+              rules={[{ required: true, message: "Required" }]}
+            >
+              <Input placeholder="Nhập địa chỉ" />
+            </Form.Item>
 
-          <label style={labelStyle}>
-            {t("collaboration.fields.note")}
-            <textarea
-              rows="3"
-              value={form.note}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, note: event.target.value }))
-              }
-              style={{ ...inputStyle, resize: "vertical", minHeight: 88 }}
-            />
-          </label>
+            <Form.Item
+              label={t("collaboration.fields.idCardImageUrl")}
+              name="idCardImageUrl"
+            >
+              <Input placeholder="Link ảnh CCCD" />
+            </Form.Item>
 
-          {message ? (
-            <p style={{ margin: 0, color: "#166534" }}>{message}</p>
-          ) : null}
-          {error ? (
-            <p style={{ margin: 0, color: "#b91c1c" }}>{error}</p>
-          ) : null}
+            <Form.Item
+              label={t("collaboration.fields.businessLicenseImageUrl")}
+              name="businessLicenseImageUrl"
+            >
+              <Input placeholder="Link giấy phép kinh doanh" />
+            </Form.Item>
 
-          <button type="submit" disabled={submitting} style={buttonStyle}>
-            {submitting ? t("collaboration.submitting") : t("collaboration.submit")}
-          </button>
-        </form>
-      </article>
-    </section>
+            <Form.Item
+              label={t("collaboration.fields.note")}
+              name="note"
+            >
+              <TextArea rows={4} placeholder="Ghi chú thêm..." />
+            </Form.Item>
+
+            {/* MESSAGE */}
+            {message && (
+              <Alert type="success" message={message} showIcon />
+            )}
+
+            {error && (
+              <Alert type="error" message={error} showIcon />
+            )}
+
+            {/* BUTTON */}
+            <Form.Item style={{ marginTop: 12 }}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={submitting}
+                block
+                size="large"
+              >
+                {submitting
+                  ? t("collaboration.submitting")
+                  : t("collaboration.submit")}
+              </Button>
+            </Form.Item>
+          </Form>
+        </Card>
+      </Space>
+    </div>
   );
 }
-
-const cardStyle = {
-  background: "#fff",
-  border: "1px solid #e2e8f0",
-  borderRadius: 18,
-  padding: 18,
-};
-
-const labelStyle = {
-  display: "grid",
-  gap: 6,
-  fontWeight: 600,
-};
-
-const inputStyle = {
-  border: "1px solid #cbd5e1",
-  borderRadius: 10,
-  padding: "10px 12px",
-  outline: "none",
-};
-
-const buttonStyle = {
-  border: "none",
-  borderRadius: 12,
-  background: "#0f766e",
-  color: "#fff",
-  padding: "12px 14px",
-  fontWeight: 700,
-  cursor: "pointer",
-};

@@ -1,9 +1,22 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
-import LanguageSwitcher from "../components/common/LanguageSwitcher";
-import { SUPPORTED_LANGUAGES } from "../i18n";
 import { setAutoPlayAudio } from "../store/slices/appSlice";
+import { SUPPORTED_LANGUAGES } from "../i18n";
+
+import {
+  Card,
+  Typography,
+  Space,
+  Switch,
+  Tag,
+  Divider,
+} from "antd";
+
+import { motion } from "framer-motion";
+import LanguageSwitcher from "../components/common/LanguageSwitcher";
+
+const { Title, Text } = Typography;
 
 export default function SettingsPage() {
   const dispatch = useDispatch();
@@ -12,7 +25,7 @@ export default function SettingsPage() {
   const [voices, setVoices] = useState([]);
 
   useEffect(() => {
-    if (!("speechSynthesis" in window)) return undefined;
+    if (!("speechSynthesis" in window)) return;
 
     const syncVoices = () => {
       setVoices(window.speechSynthesis.getVoices());
@@ -28,10 +41,11 @@ export default function SettingsPage() {
 
   const voiceSupport = SUPPORTED_LANGUAGES.map((language) => {
     const exactVoice = voices.find(
-      (voice) => voice.lang.toLowerCase() === language.speechLocale.toLowerCase(),
+      (v) => v.lang.toLowerCase() === language.speechLocale.toLowerCase()
     );
-    const fallbackVoice = voices.find((voice) =>
-      voice.lang.toLowerCase().startsWith(language.speechLocale.toLowerCase().slice(0, 2)),
+
+    const fallbackVoice = voices.find((v) =>
+      v.lang.toLowerCase().startsWith(language.speechLocale.slice(0, 2).toLowerCase())
     );
 
     return {
@@ -40,147 +54,140 @@ export default function SettingsPage() {
     };
   });
 
+  const MotionCard = motion(Card);
+
   return (
-    <section style={{ display: "grid", gap: 16 }}>
-      <article
-        style={{
-          background: "#fff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 20,
-          padding: 20,
-        }}
-      >
-        <h1 style={{ marginTop: 0 }}>{t("settings.title")}</h1>
-        <p style={{ color: "#475569", marginBottom: 0 }}>{t("settings.subtitle")}</p>
-      </article>
-
-      <article
-        style={{
-          background: "#fff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 20,
-          padding: 20,
-          display: "grid",
-          gap: 12,
-        }}
-      >
-        <strong>{t("settings.language")}</strong>
-        <LanguageSwitcher />
-      </article>
-
-      <article
-        style={{
-          background: "#fff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 20,
-          padding: 20,
-          display: "grid",
-          gap: 8,
-        }}
-      >
-        <strong>{t("settings.mapProviderTitle")}</strong>
-        <p style={{ color: "#475569", margin: 0 }}>
-          {t("settings.mapProviderDescription")}
-        </p>
-        <code style={{ background: "#f8fafc", padding: 12, borderRadius: 12 }}>
-          OpenStreetMap + Leaflet
-        </code>
-      </article>
-
-      <article
-        style={{
-          background: "#fff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 20,
-          padding: 20,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 16,
-        }}
-      >
-        <div>
-          <strong>{t("settings.autoPlayTitle")}</strong>
-          <p style={{ color: "#475569", marginBottom: 0 }}>
-            {t("settings.autoPlayDescription")}
-          </p>
-        </div>
-
-        <label
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            fontWeight: 600,
-          }}
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: 16 }}>
+      <Space direction="vertical" size={16} style={{ width: "100%" }}>
+        
+        {/* HEADER */}
+        <MotionCard
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ borderRadius: 16 }}
         >
-          <input
-            type="checkbox"
-            checked={autoPlayAudio}
-            onChange={(event) => dispatch(setAutoPlayAudio(event.target.checked))}
-          />
-          {autoPlayAudio ? t("settings.enabled") : t("settings.disabled")}
-        </label>
-      </article>
+          <Title level={3}>{t("settings.title")}</Title>
+          <Text type="secondary">{t("settings.subtitle")}</Text>
+        </MotionCard>
 
-      <article
-        style={{
-          background: "#fff",
-          border: "1px solid #e2e8f0",
-          borderRadius: 20,
-          padding: 20,
-          display: "grid",
-          gap: 12,
-        }}
-      >
-        <div>
-          <strong>{t("settings.voiceTitle")}</strong>
-          <p style={{ color: "#475569", marginBottom: 0 }}>
-            {t("settings.voiceDescription")}
-          </p>
-        </div>
+        {/* LANGUAGE */}
+        <MotionCard
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          style={{ borderRadius: 16 }}
+        >
+          <Space direction="vertical">
+            <Text strong>{t("settings.language")}</Text>
+            <LanguageSwitcher />
+          </Space>
+        </MotionCard>
 
-        <div style={{ display: "grid", gap: 10 }}>
-          {voiceSupport.map((language) => (
-            <div
-              key={language.code}
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: 16,
-                padding: 12,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: 12,
-                flexWrap: "wrap",
-              }}
-            >
-              <div>
-                <strong>{language.nativeLabel}</strong>
-                <div style={{ color: "#64748b", fontSize: 13 }}>
-                  {language.speechLocale}
-                </div>
-              </div>
+        {/* MAP PROVIDER */}
+        <MotionCard
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          style={{ borderRadius: 16 }}
+        >
+          <Text strong>{t("settings.mapProviderTitle")}</Text>
+          <br />
+          <Text type="secondary">
+            {t("settings.mapProviderDescription")}
+          </Text>
 
-              <div style={{ textAlign: "right" }}>
+          <Divider />
+
+          <Tag color="blue">OpenStreetMap</Tag>
+          <Tag color="green">Leaflet</Tag>
+        </MotionCard>
+
+        {/* AUTO PLAY */}
+        <MotionCard
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          style={{ borderRadius: 16 }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <div>
+              <Text strong>{t("settings.autoPlayTitle")}</Text>
+              <br />
+              <Text type="secondary">
+                {t("settings.autoPlayDescription")}
+              </Text>
+            </div>
+
+            <Switch
+              checked={autoPlayAudio}
+              onChange={(checked) => dispatch(setAutoPlayAudio(checked))}
+            />
+          </div>
+        </MotionCard>
+
+        {/* VOICE */}
+        <MotionCard
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          style={{ borderRadius: 16 }}
+        >
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <div>
+              <Text strong>{t("settings.voiceTitle")}</Text>
+              <br />
+              <Text type="secondary">
+                {t("settings.voiceDescription")}
+              </Text>
+            </div>
+
+            {voiceSupport.map((lang) => (
+              <Card
+                key={lang.code}
+                size="small"
+                style={{
+                  borderRadius: 12,
+                  transition: "all 0.2s",
+                }}
+                hoverable
+              >
                 <div
                   style={{
-                    color: language.availableVoice ? "#166534" : "#b91c1c",
-                    fontWeight: 700,
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
                   }}
                 >
-                  {language.availableVoice
-                    ? t("settings.voiceReady")
-                    : t("settings.voiceMissing")}
+                  <div>
+                    <Text strong>{lang.nativeLabel}</Text>
+                    <br />
+                    <Text type="secondary">{lang.speechLocale}</Text>
+                  </div>
+
+                  <div style={{ textAlign: "right" }}>
+                    {lang.availableVoice ? (
+                      <Tag color="green">{t("settings.voiceReady")}</Tag>
+                    ) : (
+                      <Tag color="red">{t("settings.voiceMissing")}</Tag>
+                    )}
+                    <br />
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {lang.availableVoice?.name ||
+                        t("settings.voiceFallback")}
+                    </Text>
+                  </div>
                 </div>
-                <div style={{ color: "#64748b", fontSize: 13 }}>
-                  {language.availableVoice?.name || t("settings.voiceFallback")}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </article>
-    </section>
+              </Card>
+            ))}
+          </Space>
+        </MotionCard>
+      </Space>
+    </div>
   );
 }

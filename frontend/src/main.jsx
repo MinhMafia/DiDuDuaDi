@@ -9,7 +9,7 @@ import { store } from "./store";
 import { queryClient } from "./services/queryClient";
 import "./i18n";
 import "./index.css";
-
+import "antd/dist/reset.css";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <Provider store={store}>

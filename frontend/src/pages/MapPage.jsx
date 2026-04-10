@@ -15,6 +15,25 @@ import {
   formatDistance,
   getLocalizedValue,
 } from "../utils/helpers";
+import {
+  Layout,
+  Card,
+  Row,
+  Col,
+  Slider,
+  Button,
+  Typography,
+  Tag,
+  List,
+  Space,
+  Empty,
+  Spin,
+} from "antd";
+import {
+  AimOutlined,
+  EnvironmentOutlined,
+  CompassOutlined,
+} from "@ant-design/icons";
 import "./MapPage.css";
 
 const DEFAULT_RADIUS = 500;
@@ -207,242 +226,275 @@ export default function MapPage() {
     }).catch(() => {});
   }
 
-  return (
-    <section className="map-page">
-      <div className="map-shell">
-        <header className="map-header-card">
-          <div>
-            <p className="eyebrow">{t("map.liveMap")}</p>
-            <h1>{t("map.title")}</h1>
-            <p className="supporting-text">{t("map.subtitle")}</p>
-          </div>
+ const { Title, Text } = Typography;
+const { Content } = Layout;
 
-          <div className="status-row">
-            <span className={`status-pill ${effectiveLocation ? "ok" : ""}`}>
+return (
+  <Layout style={{ minHeight: "100vh", background: "#f5f7fa" }}>
+    <Content style={{ padding: 16 }}>
+      
+      {/* HEADER */}
+      <Card
+        style={{ marginBottom: 16, borderRadius: 16 }}
+        bodyStyle={{ padding: 20 }}
+      >
+        <Space direction="vertical">
+          <Title level={3} style={{ margin: 0 }}>
+            {t("map.title")}
+          </Title>
+
+          <Text type="secondary">{t("map.subtitle")}</Text>
+
+          <Space>
+            <Tag color={effectiveLocation ? "green" : "orange"}>
               {demoLocation
                 ? t("map.demoMode")
                 : location
                   ? t("map.gpsOn")
                   : t("map.gpsWaiting")}
-            </span>
-            <span className="status-pill">
-              {t("map.poiCount", { count: visiblePois.length })}
-            </span>
-          </div>
-        </header>
+            </Tag>
 
-        <div className="map-content-grid">
-          <div className="map-stage-card">
-            <div className="map-toolbar">
-              <label className="radius-control">
-                <span>{t("map.searchRadius", { radius })}</span>
-                <input
-                  type="range"
-                  min="100"
-                  max="1200"
-                  step="50"
-                  value={radius}
-                  onChange={(event) => setRadius(Number(event.target.value))}
-                />
-              </label>
+            <Tag icon={<CompassOutlined />}>
+              {visiblePois.length} POIs
+            </Tag>
+          </Space>
+        </Space>
+      </Card>
 
-              <div className="map-toolbar-text">
-                {effectiveLocation ? (
-                  <span>
-                    {effectiveLocation.lat.toFixed(5)}, {effectiveLocation.lng.toFixed(5)}
-                  </span>
-                ) : (
-                  <span>{t("map.usingDefaultCenter")}</span>
-                )}
-              </div>
-
-              <div className="map-action-group">
-                <button
-                  type="button"
-                  className="map-action-button secondary"
-                  onClick={handleJumpToVinhKhanh}
-                >
+      <Row gutter={16}>
+        
+        {/* MAP */}
+        <Col xs={24} lg={16}>
+          <Card
+            style={{ borderRadius: 16 }}
+            bodyStyle={{ padding: 12 }}
+            title={
+              <Space>
+                <EnvironmentOutlined />
+                <span>Map</span>
+              </Space>
+            }
+            extra={
+              <Space>
+                <Button onClick={handleJumpToVinhKhanh}>
                   {t("map.jumpToVinhKhanh")}
-                </button>
-                <button
-                  type="button"
-                  className="map-action-button"
+                </Button>
+
+                <Button
+                  type="primary"
+                  icon={<AimOutlined />}
                   disabled={!location}
                   onClick={handleCenterOnUser}
                 >
                   {t("map.centerOnMe")}
-                </button>
+                </Button>
+              </Space>
+            }
+          >
+            <Space direction="vertical" style={{ width: "100%" }}>
+              
+              {/* SLIDER */}
+              <div>
+                <Text strong>
+                  {t("map.searchRadius", { radius })}
+                </Text>
+
+                <Slider
+                  min={100}
+                  max={1200}
+                  step={50}
+                  value={radius}
+                  onChange={setRadius}
+                />
               </div>
-            </div>
 
-            <div className="map-canvas">
-              {showSearchBtn && (
-                <button
-                  className="search-area-btn"
-                  onClick={handleSearchThisArea}
-                  type="button"
-                >
-                  Tìm quanh khu vực này
-                </button>
-              )}
-              <MapView
-                center={mapCenter}
-                pois={visiblePois}
-                selectedPoi={selectedPoi}
-                selectedPoiId={selectedPoi?.id}
-                selectedPoiDistanceLabel={
-                  selectedPoiDistance
-                    ? t("map.distanceFromYou", {
-                        distance: formatDistance(selectedPoiDistance),
-                      })
-                    : ""
-                }
-                userLocation={effectiveLocation}
-                userLocationLabel={demoLocation ? t("map.demoLocationLabel") : t("map.userLocationLabel")}
-                onSelectPoi={handleSelectPoi}
-                onMapMoveEnd={handleMapMoveEnd}
-                onMapLongPress={handleMapLongPress}
-              />
-            </div>
+              {/* MAP */}
+              <div
+                style={{
+                  height: "70vh",
+                  borderRadius: 12,
+                  overflow: "hidden",
+                }}
+              >
+                {showSearchBtn && (
+                  <Button
+                    type="primary"
+                    style={{
+                      position: "absolute",
+                      zIndex: 1000,
+                      left: "50%",
+                      transform: "translateX(-50%)",
+                      top: 10,
+                    }}
+                    onClick={handleSearchThisArea}
+                  >
+                    Tìm quanh khu vực này
+                  </Button>
+                )}
 
-            <div className="map-legend">
-              <span>
-                <strong>{t("map.legendYou")}</strong>
-              </span>
-              <span>
-                <strong>{t("map.legendPoi")}</strong>
-              </span>
-              <span>
-                <strong>{t("map.legendSelected")}</strong>
-              </span>
-            </div>
-          </div>
+                <MapView
+                  center={mapCenter}
+                  pois={visiblePois}
+                  selectedPoi={selectedPoi}
+                  selectedPoiId={selectedPoi?.id}
+                  selectedPoiDistanceLabel={
+                    selectedPoiDistance
+                      ? t("map.distanceFromYou", {
+                          distance: formatDistance(selectedPoiDistance),
+                        })
+                      : ""
+                  }
+                  userLocation={effectiveLocation}
+                  onSelectPoi={handleSelectPoi}
+                  onMapMoveEnd={handleMapMoveEnd}
+                  onMapLongPress={handleMapLongPress}
+                />
+              </div>
+            </Space>
+          </Card>
+        </Col>
 
-          <aside className="map-side-panel">
-            <article className="panel-card">
-              <h2>{t("map.nearbyTitle")}</h2>
-              {geoLoading ? <p className="supporting-text">{t("map.requestingLocation")}</p> : null}
-              {geoError ? <p className="error-text">{geoError}</p> : null}
-              {!geoError && effectiveLocation ? (
-                <p className="supporting-text">
-                  {t("map.locationReady", {
-                    lat: effectiveLocation.lat.toFixed(5),
-                    lng: effectiveLocation.lng.toFixed(5),
-                  })}
-                </p>
-              ) : null}
-              {demoLocation ? (
-                <p className="supporting-text">{t("map.demoHint")}</p>
-              ) : null}
-              {nearestPoi && nearestPoiDistance ? (
-                <p className="supporting-text">
-                  {t("map.nearestPoi", {
-                    name: nearestPoi.displayName,
-                    distance: formatDistance(nearestPoiDistance),
-                  })}
-                </p>
-              ) : null}
-              {isLoading ? <Loading /> : null}
-              {queryError ? (
-                <p className="error-text">
-                  {queryError.message || t("map.loadError")}
-                </p>
-              ) : null}
+        {/* SIDEBAR */}
+        <Col lg={8}>
+          <Space direction="vertical" style={{ width: "100%" }} size={16}>
+            
+            {/* POI LIST */}
+            <Card
+              title={t("map.nearbyTitle")}
+              style={{ borderRadius: 16 }}
+            >
+              {geoLoading && <Spin />}
 
-              {!isLoading && !queryError && visiblePois.length === 0 ? (
-                <p className="supporting-text">{t("map.emptyNearby")}</p>
-              ) : null}
+              {geoError && <Text type="danger">{geoError}</Text>}
 
-              <div className="poi-list">
-                {visiblePois.map((poi) => {
+             
+
+              <List
+                dataSource={visiblePois}
+                renderItem={(poi) => {
                   const distance = effectiveLocation
-                    ? calculateDistanceMeters(effectiveLocation, poi.location)
+                    ? calculateDistanceMeters(
+                        effectiveLocation,
+                        poi.location
+                      )
                     : null;
 
                   return (
-                    <button
-                      key={poi.id}
-                      type="button"
-                      className={`poi-card ${selectedPoi?.id === poi.id ? "active" : ""}`}
+                    <List.Item
                       onClick={() => handleSelectPoi(poi)}
+                      style={{
+                        cursor: "pointer",
+                        borderRadius: 10,
+                        padding: 10,
+                        background:
+                          selectedPoi?.id === poi.id
+                            ? "#e6f4ff"
+                            : "transparent",
+                      }}
                     >
-                      <div className="poi-card-head">
-                        <strong>{poi.displayName}</strong>
-                        <span className="poi-category">{poi.category}</span>
-                      </div>
-                      <p>{poi.displayDescription || t("map.noDescription")}</p>
-                      <div className="poi-meta">
-                        <span>
-                          {poi.location.lat.toFixed(4)}, {poi.location.lng.toFixed(4)}
-                        </span>
-                        {distance ? <span>{formatDistance(distance)}</span> : null}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </article>
+                      <List.Item.Meta
+                        title={
+                          <Space>
+                            <Text strong>{poi.displayName}</Text>
+                            <Tag>{poi.category}</Tag>
+                          </Space>
+                        }
+                        description={poi.displayDescription}
+                      />
 
-            <article className="panel-card">
-              <h2>{t("map.selectedPoi")}</h2>
+                      {distance && (
+                        <Tag icon={<EnvironmentOutlined />}>
+                          {formatDistance(distance)}
+                        </Tag>
+                      )}
+                    </List.Item>
+                  );
+                }}
+              />
+            </Card>
+
+            {/* SELECTED POI */}
+            <Card
+              title={t("map.selectedPoi")}
+              style={{ borderRadius: 16 }}
+            >
               {!selectedPoi ? (
-                <p className="supporting-text">{t("map.selectHint")}</p>
+                <Empty description={t("map.selectHint")} />
               ) : (
-                <div className="selected-poi">
-                  <strong>{selectedPoi.displayName}</strong>
-                  <span className="poi-category">{selectedPoi.category}</span>
-                  <p>{selectedPoi.displayDescription || t("map.noDescription")}</p>
-                  {selectedPoi.approvedIntroduction ? (
-                    <p className="selected-poi-intro">{selectedPoi.approvedIntroduction}</p>
-                  ) : null}
-                  {selectedPoi.shopAddress ? (
-                    <p className="selected-poi-address">{selectedPoi.shopAddress}</p>
-                  ) : null}
-                  {selectedPoiDistance ? (
-                    <p>{t("map.distanceFromYou", { distance: formatDistance(selectedPoiDistance) })}</p>
-                  ) : (
-                    <p>{t("map.tapPoiHint")}</p>
+                <Space direction="vertical" style={{ width: "100%" }}>
+                  
+                  <Title level={5}>
+                    {selectedPoi.displayName}
+                  </Title>
+
+                  <Tag color="blue">{selectedPoi.category}</Tag>
+
+                  <Text>
+                    {selectedPoi.displayDescription ||
+                      t("map.noDescription")}
+                  </Text>
+
+                  {selectedPoiDistance && (
+                    <Tag icon={<EnvironmentOutlined />} color="green">
+                      {formatDistance(selectedPoiDistance)}
+                    </Tag>
                   )}
-                  {selectedPoi.menuItems?.length ? (
-                    <div className="poi-menu-preview">
-                      <h3>{t("map.menuTitle")}</h3>
-                      <div className="poi-menu-list">
-                        {selectedPoi.menuItems.map((item) => (
-                          <article key={item.id} className="poi-menu-item">
-                            {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : null}
+
+                  {/* MENU */}
+                  {selectedPoi.menuItems?.length > 0 && (
+                    <List
+                      size="small"
+                      header={<b>{t("map.menuTitle")}</b>}
+                      dataSource={selectedPoi.menuItems}
+                      renderItem={(item) => (
+                        <List.Item>
+                          <Space>
+                            {item.imageUrl && (
+                              <img
+                                src={item.imageUrl}
+                                alt=""
+                                style={{
+                                  width: 50,
+                                  height: 50,
+                                  objectFit: "cover",
+                                  borderRadius: 8,
+                                }}
+                              />
+                            )}
                             <div>
-                              <strong>{item.name}</strong>
-                              <p>{item.description}</p>
-                              <span>{new Intl.NumberFormat("vi-VN", {
-                                style: "currency",
-                                currency: "VND",
-                                maximumFractionDigits: 0,
-                              }).format(item.price || 0)}</span>
+                              <Text strong>{item.name}</Text>
+                              <br />
+                              <Text type="secondary">
+                                {new Intl.NumberFormat("vi-VN", {
+                                  style: "currency",
+                                  currency: "VND",
+                                }).format(item.price || 0)}
+                              </Text>
                             </div>
-                          </article>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
+                          </Space>
+                        </List.Item>
+                      )}
+                    />
+                  )}
+
+                  {/* AUDIO */}
                   <SpeechGuidePlayer
                     audioUrl={selectedPoi.audioUrl}
                     onPlaybackStart={handleAudioPlaybackStart}
                     playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
                     speechLanguage={speechLanguage}
                     speechText={selectedPoi.displayDescription}
-                    title={`${selectedPoi.displayName}${
-                      selectedPoiPlaybackKey || shouldAutoNarrate
-                        ? ` (${t("audio.autoPlayReady")})`
-                        : ""
-                    }`}
-                    triggerAutoSpeak={Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate}
+                    triggerAutoSpeak={
+                      Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate
+                    }
                   />
-                </div>
+                </Space>
               )}
-            </article>
-          </aside>
-        </div>
-      </div>
-    </section>
-  );
+            </Card>
+          </Space>
+        </Col>
+      </Row>
+    </Content>
+  </Layout>
+);
 }
