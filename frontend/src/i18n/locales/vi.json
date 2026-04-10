@@ -78,7 +78,10 @@
     "menuTitle": "Món đang hiển thị tại quán",
     "selectHint": "Chọn một điểm trên bản đồ hoặc trong danh sách để xem nhanh.",
     "distanceFromYou": "Cách bạn khoảng {{distance}}",
-    "tapPoiHint": "Bật GPS để xem khoảng cách thực tế."
+    "tapPoiHint": "Bật GPS để xem khoảng cách thực tế.",
+    "routeLoading": "Đang tính lộ trình di chuyển...",
+    "routeError": "Không lấy được lộ trình lúc này.",
+    "routeSummary": "Lộ trình ước tính: {{distance}}, khoảng {{minutes}} phút lái xe."
   },
   "settings": {
     "title": "Cài đặt trải nghiệm",

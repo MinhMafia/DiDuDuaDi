@@ -79,7 +79,10 @@
     "menuTitle": "Current menu highlights",
     "selectHint": "Pick a marker on the map or a card in the list to inspect it.",
     "distanceFromYou": "About {{distance}} away from you",
-    "tapPoiHint": "Enable GPS to see the real distance."
+    "tapPoiHint": "Enable GPS to see the real distance.",
+    "routeLoading": "Calculating route...",
+    "routeError": "Unable to get route right now.",
+    "routeSummary": "Estimated route: {{distance}}, about {{minutes}} minutes by car."
   },
   "settings": {
     "title": "Experience settings",
