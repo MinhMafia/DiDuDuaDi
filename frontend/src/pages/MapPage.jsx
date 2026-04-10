@@ -19,10 +19,13 @@ import {
 import "./MapPage.css";
 
 const DEFAULT_RADIUS = 500;
+const DEFAULT_MAP_ZOOM = 16;
+const SEARCH_FOCUS_ZOOM = 18;
 
 export default function MapPage() {
   const { i18n, t } = useTranslation();
   const autoPlayAudio = useSelector((state) => state.app.autoPlayAudio);
+  const searchContainerRef = useRef(null);
   const autoFocusedPoiRef = useRef("");
   const trackedAudioRef = useRef("");
   const trackedPoiViewRef = useRef("");
@@ -30,7 +33,10 @@ export default function MapPage() {
   const [demoLocation, setDemoLocation] = useState(null);
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [selectedPoiPlaybackKey, setSelectedPoiPlaybackKey] = useState("");
+  const [poiSearchTerm, setPoiSearchTerm] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState(VINH_KHANH_CENTER);
+  const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM);
   const [viewCenter, setViewCenter] = useState(null);
   const { error: geoError, isLoading: geoLoading, location } = useGeolocation();
   const effectiveLocation = demoLocation ?? location;
@@ -67,6 +73,19 @@ export default function MapPage() {
     [i18n.language, rawVisiblePois],
   );
 
+  const normalizedSearchTerm = normalizeForSearch(poiSearchTerm.trim());
+  const poiSearchResults = useMemo(() => {
+    if (!normalizedSearchTerm) return [];
+
+    return visiblePois
+      .filter((poi) => {
+        const name = normalizeForSearch(poi.displayName);
+        const category = normalizeForSearch(poi.category);
+        return name.includes(normalizedSearchTerm) || category.includes(normalizedSearchTerm);
+      })
+      .slice(0, 8);
+  }, [normalizedSearchTerm, visiblePois]);
+
   useEffect(() => {
     if (!selectedPoi || visiblePois.some((poi) => poi.id === selectedPoi.id)) {
       return;
@@ -79,6 +98,19 @@ export default function MapPage() {
     if (!selectedPoi) return;
     setSelectedPoiPlaybackKey(`${selectedPoi.id}-${i18n.language}-${Date.now()}`);
   }, [i18n.language, selectedPoi]);
+
+  useEffect(() => {
+    if (!isSearchOpen) return undefined;
+
+    const handleClickOutside = (event) => {
+      if (!searchContainerRef.current?.contains(event.target)) {
+        setIsSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isSearchOpen]);
 
   useEffect(() => {
     if (!selectedPoi?.shopId) return;
@@ -155,7 +187,7 @@ export default function MapPage() {
     handleSelectPoi(nearestPoi);
   }, [autoPlayAudio, nearestPoi, nearestPoiDistance]);
 
-  function handleSelectPoi(poi) {
+  function handleSelectPoi(poi, options = {}) {
     if (!poi) {
       setSelectedPoi(null);
       setSelectedPoiPlaybackKey("");
@@ -166,6 +198,9 @@ export default function MapPage() {
     setSelectedPoiPlaybackKey(`${poi.id}-${Date.now()}`);
     if (poi?.location) {
       setMapCenter(poi.location);
+      if (options.zoomToPoi) {
+        setMapZoom(SEARCH_FOCUS_ZOOM);
+      }
     }
   }
 
@@ -175,6 +210,7 @@ export default function MapPage() {
     setSelectedPoi(null);
     setSelectedPoiPlaybackKey("");
     setMapCenter(location);
+    setMapZoom(DEFAULT_MAP_ZOOM);
   }
 
   function handleJumpToVinhKhanh() {
@@ -182,6 +218,7 @@ export default function MapPage() {
     setSelectedPoi(null);
     setSelectedPoiPlaybackKey("");
     setMapCenter(VINH_KHANH_CENTER);
+    setMapZoom(DEFAULT_MAP_ZOOM);
   }
 
   function handleMapMoveEnd(center) {
@@ -191,12 +228,24 @@ export default function MapPage() {
   function handleMapLongPress(latlng) {
     setDemoLocation({ lat: latlng.lat, lng: latlng.lng });
     setMapCenter({ lat: latlng.lat, lng: latlng.lng });
+    setMapZoom(DEFAULT_MAP_ZOOM);
   }
 
   function handleSearchThisArea() {
     if (viewCenter) {
       setDemoLocation({ lat: viewCenter.lat, lng: viewCenter.lng });
     }
+  }
+
+  function handleSelectSearchResult(poi) {
+    handleSelectPoi(poi, { zoomToPoi: true });
+    setPoiSearchTerm(poi.displayName || "");
+    setIsSearchOpen(false);
+  }
+
+  function handleClearSearch() {
+    setPoiSearchTerm("");
+    setIsSearchOpen(false);
   }
 
   const distanceToViewCenter = viewCenter && effectiveLocation 
@@ -263,6 +312,53 @@ export default function MapPage() {
                 />
               </label>
 
+              <div className="map-search" ref={searchContainerRef}>
+                <div className="map-search-input-wrap">
+                  <input
+                    type="text"
+                    className="map-search-input"
+                    value={poiSearchTerm}
+                    placeholder={t("map.searchPlaceholder")}
+                    onFocus={() => setIsSearchOpen(true)}
+                    onChange={(event) => {
+                      setPoiSearchTerm(event.target.value);
+                      setIsSearchOpen(true);
+                    }}
+                  />
+                  {poiSearchTerm ? (
+                    <button
+                      type="button"
+                      className="map-search-clear"
+                      onClick={handleClearSearch}
+                      aria-label={t("map.searchClear")}
+                      title={t("map.searchClear")}
+                    >
+                      ×
+                    </button>
+                  ) : null}
+                </div>
+
+                {isSearchOpen && normalizedSearchTerm ? (
+                  <div className="map-search-dropdown">
+                    {poiSearchResults.length ? (
+                      poiSearchResults.map((poi) => (
+                        <button
+                          type="button"
+                          key={poi.id}
+                          className="map-search-item"
+                          onClick={() => handleSelectSearchResult(poi)}
+                        >
+                          <strong>{poi.displayName}</strong>
+                          <span>{poi.category}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="map-search-empty">{t("map.searchNoResult")}</p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+
               <div className="map-toolbar-text">
                 {effectiveLocation ? (
                   <span>
@@ -304,6 +400,7 @@ export default function MapPage() {
               )}
               <MapView
                 center={mapCenter}
+                zoom={mapZoom}
                 pois={visiblePois}
                 selectedPoi={selectedPoi}
                 selectedPoiId={selectedPoi?.id}
@@ -463,11 +560,11 @@ export default function MapPage() {
                     speechLanguage={speechLanguage}
                     speechText={selectedPoi.displayDescription}
                     title={`${selectedPoi.displayName}${
-                      selectedPoiPlaybackKey || shouldAutoNarrate
+                      autoPlayAudio && (selectedPoiPlaybackKey || shouldAutoNarrate)
                         ? ` (${t("audio.autoPlayReady")})`
                         : ""
                     }`}
-                    triggerAutoSpeak={Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate}
+                    triggerAutoSpeak={autoPlayAudio && (Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate)}
                   />
                 </div>
               )}
@@ -477,4 +574,12 @@ export default function MapPage() {
       </div>
     </section>
   );
+}
+
+function normalizeForSearch(value) {
+  return (value || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }

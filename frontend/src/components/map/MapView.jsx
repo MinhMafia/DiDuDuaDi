@@ -23,6 +23,7 @@ const mapContainerStyle = {
 
 export default function MapView({
   center = VINH_KHANH_CENTER,
+  zoom = 16,
   pois = [],
   selectedPoiId,
   userLocation,
@@ -38,13 +39,13 @@ export default function MapView({
   return (
     <MapContainer
       center={center}
-      zoom={16}
+      zoom={zoom}
       maxZoom={22}
       zoomControl={false}
       style={mapContainerStyle}
       scrollWheelZoom
     >
-      <ChangeView center={center} />
+      <ChangeView center={center} zoom={zoom} />
       <MapEventHandler
         onMapClick={onMapClick}
         onMapMoveEnd={onMapMoveEnd}
@@ -130,12 +131,12 @@ export default function MapView({
   );
 }
 
-function ChangeView({ center }) {
+function ChangeView({ center, zoom }) {
   const map = useMap();
 
   useEffect(() => {
-    map.setView(center);
-  }, [center, map]);
+    map.setView(center, zoom);
+  }, [center, map, zoom]);
 
   return null;
 }
