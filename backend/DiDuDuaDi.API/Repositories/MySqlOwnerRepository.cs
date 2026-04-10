@@ -265,7 +265,9 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
     public void UpsertPoiTranslation(Guid poiId, string languageCode, string name, string description, string audioUrl)
     {
         using var connection = connectionFactory.CreateConnection();
-        UpsertPoiTranslation(connection, poiId, languageCode, name, description, audioUrl);    }
+        // Gọi lại hàm private tĩnh đã có sẵn ở dưới
+        UpsertPoiTranslation(connection, poiId, languageCode, name, description, audioUrl);
+    }
 
     public async Task<OwnerShopDashboard?> UpdatePoiContentAsync(string username, UpdateOwnerPoiContentRequest request)
     {
@@ -362,7 +364,7 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
         string languageCode,
         string name,
         string description,
-        string audioUrl)
+        string? audioUrl)
     {
         var exists = connection.ExecuteScalar<int>(
             """

@@ -28,7 +28,7 @@ namespace DiDuDuaDi.API.Services
 
             if (text.Length > 200)
             {
-            text = text.Substring(0, 197) + "...";
+                text = text.Substring(0, 197) + "...";
             }
 
             string ttsLangCode = languageCode.ToLower() == "zh" ? "zh-CN" : languageCode;

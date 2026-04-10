@@ -98,6 +98,7 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
                 request.DescriptionVi,
                 audioUrlVi
             );
+
             await Task.Delay(1000);
 
             string[] targetLanguages = new[] { "en", "zh", "ja", "ko", "fr", "th" };
@@ -115,6 +116,7 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
                     translatedDesc,
                     audioUrl
                 );
+
                 await Task.Delay(1000);
             }
         }
