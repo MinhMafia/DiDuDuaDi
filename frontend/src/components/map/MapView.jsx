@@ -1,9 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   CircleMarker,
   MapContainer,
+  Polyline,
   Popup,
   TileLayer,
+  Tooltip,
   useMap,
   useMapEvents,
   ZoomControl,
@@ -19,16 +21,17 @@ const mapContainerStyle = {
 export default function MapView({
   center = VINH_KHANH_CENTER,
   pois = [],
-  selectedPoi,
   selectedPoiId,
-  selectedPoiDistanceLabel,
   userLocation,
   userLocationLabel,
+  routePath = [],
   onSelectPoi,
   onMapClick,
   onMapMoveEnd,
   onMapLongPress,
 }) {
+  const [suppressedTooltipPoiId, setSuppressedTooltipPoiId] = useState(null);
+
   return (
     <MapContainer
       center={center}
@@ -38,8 +41,8 @@ export default function MapView({
       scrollWheelZoom
     >
       <ChangeView center={center} />
-      <MapEventHandler 
-        onMapClick={onMapClick} 
+      <MapEventHandler
+        onMapClick={onMapClick}
         onMapMoveEnd={onMapMoveEnd}
         onMapLongPress={onMapLongPress}
       />
@@ -64,14 +67,32 @@ export default function MapView({
         </CircleMarker>
       ) : null}
 
+      {routePath.length > 1 ? (
+        <Polyline
+          positions={routePath}
+          pathOptions={{
+            color: "#0ea5e9",
+            weight: 6,
+            opacity: 0.85,
+          }}
+        />
+      ) : null}
+
       {pois.map((poi) => {
         const isSelected = poi.id === selectedPoiId;
+        const shouldShowTooltip = suppressedTooltipPoiId !== poi.id;
 
         return (
           <CircleMarker
             key={poi.id}
             center={poi.location}
             eventHandlers={{
+              mousedown: () => setSuppressedTooltipPoiId(poi.id),
+              mouseout: () => {
+                if (suppressedTooltipPoiId === poi.id) {
+                  setSuppressedTooltipPoiId(null);
+                }
+              },
               click: () => onSelectPoi?.(poi),
             }}
             pathOptions={{
@@ -81,30 +102,18 @@ export default function MapView({
               weight: 2,
             }}
             radius={isSelected ? 12 : 9}
-          />
+          >
+            {shouldShowTooltip ? (
+              <Tooltip direction="top" offset={[0, -8]} className="poi-hover-tooltip">
+                <div className="poi-hover-tooltip-content">
+                  <strong title={poi.displayName}>{poi.displayName}</strong>
+                  <span className="poi-category">{poi.category}</span>
+                </div>
+              </Tooltip>
+            ) : null}
+          </CircleMarker>
         );
       })}
-
-      {selectedPoi ? (
-        <Popup
-          position={selectedPoi.location}
-          eventHandlers={{
-            remove: () => onSelectPoi?.(null),
-          }}
-        >
-          <div className="map-info-window">
-            <strong>{selectedPoi.displayName}</strong>
-            <span className="poi-category">{selectedPoi.category}</span>
-            <p>
-              {selectedPoi.displayDescription || "Chua co mo ta cho dia diem nay."}
-            </p>
-            {selectedPoiDistanceLabel ? <span>{selectedPoiDistanceLabel}</span> : null}
-            {!selectedPoiDistanceLabel && userLocation ? (
-              <span>{userLocationLabel}</span>
-            ) : null}
-          </div>
-        </Popup>
-      ) : null}
     </MapContainer>
   );
 }
@@ -129,7 +138,7 @@ function MapEventHandler({ onMapClick, onMapMoveEnd, onMapLongPress }) {
     },
     contextmenu(event) {
       onMapLongPress?.(event.latlng);
-    }
+    },
   });
 
   return null;

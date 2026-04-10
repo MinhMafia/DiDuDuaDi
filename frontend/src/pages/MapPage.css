@@ -371,6 +371,34 @@
   font-weight: 600;
 }
 
+.poi-hover-tooltip .leaflet-tooltip {
+  max-width: 200px;
+  padding: 8px 10px;
+}
+
+.poi-hover-tooltip-content {
+  display: grid;
+  gap: 6px;
+  min-width: 120px;
+  max-width: 180px;
+}
+
+.poi-hover-tooltip-content strong {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.poi-hover-tooltip-content .poi-category {
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
 @media (max-width: 960px) {
   .map-header-card,
   .map-content-grid {

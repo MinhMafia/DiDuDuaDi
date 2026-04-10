@@ -8,6 +8,7 @@ import Loading from "../components/common/Loading";
 import useGeolocation from "../hooks/useGeolocation";
 import { trackAudioPlay, trackPoiView } from "../services/analyticsService";
 import { getNearbyPois, getPois } from "../services/poiService";
+import { getDrivingRoute } from "../services/routeService";
 import { SUPPORTED_LANGUAGES } from "../i18n";
 import { VINH_KHANH_CENTER } from "../utils/constants";
 import {
@@ -122,6 +123,22 @@ export default function MapPage() {
   const nearestPoiDistance = nearestPoi && effectiveLocation
     ? calculateDistanceMeters(effectiveLocation, nearestPoi.location)
     : null;
+
+  const routeQuery = useQuery({
+    queryKey: [
+      "route",
+      effectiveLocation?.lat,
+      effectiveLocation?.lng,
+      selectedPoi?.id,
+      selectedPoi?.location?.lat,
+      selectedPoi?.location?.lng,
+    ],
+    queryFn: () => getDrivingRoute(effectiveLocation, selectedPoi.location),
+    enabled: Boolean(effectiveLocation && selectedPoi?.location),
+    staleTime: 60_000,
+  });
+
+  const routePath = routeQuery.data?.coordinates ?? [];
   const shouldAutoNarrate =
     autoPlayAudio && Boolean(selectedPoiDistance) && selectedPoiDistance <= 35;
 
@@ -299,6 +316,7 @@ export default function MapPage() {
                 }
                 userLocation={effectiveLocation}
                 userLocationLabel={demoLocation ? t("map.demoLocationLabel") : t("map.userLocationLabel")}
+                routePath={routePath}
                 onSelectPoi={handleSelectPoi}
                 onMapMoveEnd={handleMapMoveEnd}
                 onMapLongPress={handleMapLongPress}
@@ -403,6 +421,20 @@ export default function MapPage() {
                   ) : (
                     <p>{t("map.tapPoiHint")}</p>
                   )}
+                  {effectiveLocation && selectedPoi ? (
+                    routeQuery.isLoading ? (
+                      <p className="supporting-text">{t("map.routeLoading")}</p>
+                    ) : routeQuery.isError ? (
+                      <p className="error-text">{t("map.routeError")}</p>
+                    ) : routeQuery.data ? (
+                      <p className="supporting-text">
+                        {t("map.routeSummary", {
+                          distance: formatDistance(routeQuery.data.distanceMeters),
+                          minutes: Math.max(1, Math.round(routeQuery.data.durationSeconds / 60)),
+                        })}
+                      </p>
+                    ) : null
+                  ) : null}
                   {selectedPoi.menuItems?.length ? (
                     <div className="poi-menu-preview">
                       <h3>{t("map.menuTitle")}</h3>
