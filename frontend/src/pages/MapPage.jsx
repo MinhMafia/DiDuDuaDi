@@ -56,8 +56,8 @@ export default function MapPage() {
       rawVisiblePois.map((poi) => ({
         ...poi,
         audioUrl:
-          getLocalizedValue(poi.audioGuides, i18n.language) ||
           getLocalizedValue(poi.audioUrl, i18n.language) ||
+          getLocalizedValue(poi.audioGuides, i18n.language) ||
           poi.audioUrl ||
           "",
         displayDescription: getLocalizedValue(poi.description, i18n.language),

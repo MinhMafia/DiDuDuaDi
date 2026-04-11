@@ -96,15 +96,23 @@ export default function SpeechGuidePlayer({
   }, []);
 
   useEffect(() => {
-    if (!triggerAutoSpeak || !speechText) return;
+    if (!triggerAutoSpeak) return;
 
     const autoSpeakToken = `${playbackKey}:${speechLanguage}`;
     if (lastAutoSpeakRef.current === autoSpeakToken) return;
 
     lastAutoSpeakRef.current = autoSpeakToken;
-    startSpeech();
-  }, [onPlaybackStart, playbackKey, speechLanguage, speechText, triggerAutoSpeak, voices]);
 
+    if (audioUrl) {
+      const currentPlayer = playerRef.current;
+      if (currentPlayer && !currentPlayer.playing()) {
+        currentPlayer.play();
+      }
+    } 
+    else if (speechText) {
+      startSpeech();
+    }
+  }, [audioUrl, onPlaybackStart, playbackKey, speechLanguage, speechText, triggerAutoSpeak, voices]);
   function togglePlayback() {
     if (!audioUrl && speechText) {
       if (isPlaying) {

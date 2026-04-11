@@ -62,7 +62,7 @@ namespace DiDuDuaDi.API.Services
             await File.WriteAllBytesAsync(filePath, audioBytes);
 
             long timestamp = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            return $"wwwroot/audios/pois/{fileName}?v={timestamp}";
+            return $"/audios/pois/{fileName}?v={timestamp}";
         }
     }
 }

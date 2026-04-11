@@ -75,7 +75,13 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => Results.Ok(new { success = true, message = "DiDuDuaDi.API (.NET 10) is running" }));
-app.UseStaticFiles();
-app.MapControllers();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    }
+});app.MapControllers();
 
 app.Run();

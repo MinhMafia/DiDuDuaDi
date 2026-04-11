@@ -7,6 +7,7 @@ public class POI
     public string Category { get; set; } = "food";
     public GeoPoint Location { get; set; } = new(0, 0);
     public Dictionary<string, string> Description { get; set; } = [];
+    public Dictionary<string, string> AudioUrl { get; set; } = new Dictionary<string, string>();
     public Guid? ShopId { get; set; }
     public string? ShopName { get; set; }
     public string? ShopAddress { get; set; }

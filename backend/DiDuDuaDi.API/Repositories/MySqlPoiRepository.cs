@@ -134,7 +134,8 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
             COALESCE(s.approved_intro, s.description) AS ApprovedIntroduction,
             pt.language_code AS LanguageCode,
             pt.name AS Name,
-            pt.description AS Description
+            pt.description AS Description,
+            pt.audio_url AS AudioUrl
         FROM pois p
         LEFT JOIN shops s ON s.id = p.shop_id
         LEFT JOIN poi_translations pt ON pt.poi_id = p.id
@@ -177,6 +178,11 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
             {
                 poi.Name[row.LanguageCode] = row.Name ?? string.Empty;
                 poi.Description[row.LanguageCode] = row.Description ?? string.Empty;
+                if (!string.IsNullOrWhiteSpace(row.AudioUrl))
+                {
+                    poi.AudioUrl ??= new Dictionary<string, string>();
+                    poi.AudioUrl[row.LanguageCode] = row.AudioUrl;
+                }
             }
         }
 
@@ -250,6 +256,7 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
         public string? LanguageCode { get; init; }
         public string? Name { get; init; }
         public string? Description { get; init; }
+        public string? AudioUrl { get; init; }
     }
 
     private sealed class MenuItemRow
