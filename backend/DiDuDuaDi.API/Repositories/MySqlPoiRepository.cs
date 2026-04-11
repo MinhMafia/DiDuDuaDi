@@ -121,19 +121,21 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
 
     private static string GetBaseQuery() =>
         """
-        SELECT
-            p.id AS PoiId,
-            p.shop_id AS ShopId,
-            p.category AS Category,
-            p.latitude AS Latitude,
-            p.longitude AS Longitude,
-            p.trigger_radius_meters AS Radius,
-            p.hero_image_url AS ImageUrl,
-            s.name AS ShopName,
-            s.address_line AS ShopAddress,
-            COALESCE(s.approved_intro, s.description) AS ApprovedIntroduction,
-            pt.language_code AS LanguageCode,
-            pt.name AS Name,
+            SELECT
+                p.id AS PoiId,
+                p.shop_id AS ShopId,
+                p.category AS Category,
+                p.latitude AS Latitude,
+                p.longitude AS Longitude,
+                p.trigger_radius_meters AS Radius,
+                p.hero_image_url AS ImageUrl,
+                s.name AS ShopName,
+                s.address_line AS ShopAddress,
+                s.opening_hours AS OpeningHours,
+                s.phone AS Phone,
+                COALESCE(s.approved_intro, s.description) AS ApprovedIntroduction,
+                pt.language_code AS LanguageCode,
+                pt.name AS Name,
             pt.description AS Description
         FROM pois p
         LEFT JOIN shops s ON s.id = p.shop_id
@@ -158,6 +160,8 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
                     ShopId = row.ShopId,
                     ShopName = row.ShopName,
                     ShopAddress = row.ShopAddress,
+                    OpeningHours = row.OpeningHours,
+                    Phone = row.Phone,
                     ApprovedIntroduction = row.ApprovedIntroduction,
                     Category = row.Category,
                     Location = new GeoPoint((double)row.Latitude, (double)row.Longitude),
@@ -246,6 +250,8 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
         public string? ImageUrl { get; init; }
         public string? ShopName { get; init; }
         public string? ShopAddress { get; init; }
+        public string? OpeningHours { get; init; }
+        public string? Phone { get; init; }
         public string? ApprovedIntroduction { get; init; }
         public string? LanguageCode { get; init; }
         public string? Name { get; init; }

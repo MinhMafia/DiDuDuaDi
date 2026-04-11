@@ -205,9 +205,10 @@ export default function ChatButton() {
 function buildAssistantReply(message, pois, language) {
   const normalized = message.toLowerCase();
 
-  const matchedPoi = pois.find((poi) =>
-    poi.displayName.toLowerCase().includes(normalized) ||
-    normalized.includes(poi.displayName.toLowerCase()),
+  const matchedPoi = pois.find(
+    (poi) =>
+      poi.displayName.toLowerCase().includes(normalized) ||
+      normalized.includes(poi.displayName.toLowerCase()),
   );
 
   if (matchedPoi) {

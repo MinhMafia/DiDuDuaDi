@@ -25,6 +25,8 @@ public class MySqlDatabaseInitializer(
         EnsureOwnerReviewColumns(connection, databaseName);
         EnsureOwnerDemoSeed(connection);
         EnsureAdminDemoSeed(connection);
+        RefreshTouristDemoSeed(connection);
+        EnsureAdditionalTouristPois(connection);
     }
 
     private void EnsureAdminDemoSeed(System.Data.IDbConnection connection)
@@ -591,4 +593,500 @@ public class MySqlDatabaseInitializer(
               AND column_name = @columnName;
             """,
             new { databaseName, tableName, columnName }) > 0;
+
+    private void RefreshTouristDemoSeed(System.Data.IDbConnection connection)
+    {
+        logger.LogInformation("Refreshing tourist-facing demo POIs and menus");
+
+        connection.Execute(
+            """
+            UPDATE shops
+            SET
+                name = CASE id
+                    WHEN '44444444-4444-4444-4444-444444444441' THEN 'Oc Thao - Vinh Khanh'
+                    WHEN '44444444-4444-4444-4444-444444444442' THEN 'Banh Trang Nuong Win'
+                    WHEN '77777777-7777-7777-7777-777777777777' THEN 'Bo La Lot Chi Ba Demo'
+                    ELSE name
+                END,
+                description = CASE id
+                    WHEN '44444444-4444-4444-4444-444444444441' THEN 'Quan oc quen tren duong Vinh Khanh, dong khach tu chieu toi. Khong gian gian di, len mon nhanh va hop di nhom nho.'
+                    WHEN '44444444-4444-4444-4444-444444444442' THEN 'Diem an vat nho tren duong Vinh Khanh, phu hop ghe nhanh buoi xep. Banh trang nuong lam tai cho, de an va de mang di.'
+                    WHEN '77777777-7777-7777-7777-777777777777' THEN 'Quan demo danh cho luong chu quan, mo phong mot diem nuong binh dan tren pho am thuc.'
+                    ELSE description
+                END,
+                approved_intro = CASE id
+                    WHEN '44444444-4444-4444-4444-444444444441' THEN 'Oc Thao duoc biet den la mot diem hen binh dan o khu Vinh Khanh, thuong nhon nhip vao buoi toi. Khach hay goi nhieu mon oc xao, nuong va ngoi lai lai rai cung ban be.'
+                    WHEN '44444444-4444-4444-4444-444444444442' THEN 'Banh Trang Nuong Win co kieu quan an vat gon nhe, phu hop cho khach muon doi mon sau khi di mot vong pho oc. Mon nuong duoc lam tai cho nen mui thom va de an khi con nong.'
+                    WHEN '77777777-7777-7777-7777-777777777777' THEN 'Day la quan demo de ban thu tinh nang quan ly chu quan. Noi dung, menu va thong tin hien thi tren ban do deu co the sua truc tiep.'
+                    ELSE approved_intro
+                END,
+                address_line = CASE id
+                    WHEN '44444444-4444-4444-4444-444444444441' THEN '212 Vinh Khanh, Phuong 10, Quan 4, TP. Ho Chi Minh'
+                    WHEN '44444444-4444-4444-4444-444444444442' THEN '150/38 Vinh Khanh, Phuong 10, Quan 4, TP. Ho Chi Minh'
+                    WHEN '77777777-7777-7777-7777-777777777777' THEN '129 Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh'
+                    ELSE address_line
+                END,
+                opening_hours = CASE id
+                    WHEN '44444444-4444-4444-4444-444444444441' THEN '16:00 - 23:30'
+                    WHEN '44444444-4444-4444-4444-444444444442' THEN '15:00 - 22:30'
+                    WHEN '77777777-7777-7777-7777-777777777777' THEN '16:30 - 23:30'
+                    ELSE opening_hours
+                END,
+                phone = CASE id
+                    WHEN '44444444-4444-4444-4444-444444444441' THEN '0909 000 111'
+                    WHEN '44444444-4444-4444-4444-444444444442' THEN '0909 000 222'
+                    WHEN '77777777-7777-7777-7777-777777777777' THEN '0909 000 123'
+                    ELSE phone
+                END
+            WHERE id IN (
+                '44444444-4444-4444-4444-444444444441',
+                '44444444-4444-4444-4444-444444444442',
+                '77777777-7777-7777-7777-777777777777'
+            );
+            """);
+
+        connection.Execute(
+            """
+            UPDATE poi_translations
+            SET
+                name = CASE
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Oc Thao - Vinh Khanh'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'en' THEN 'Oc Thao - Vinh Khanh'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Banh Trang Nuong Win'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'en' THEN 'Banh Trang Nuong Win'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Oc Loan - Vinh Khanh'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'en' THEN 'Oc Loan - Vinh Khanh'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Tra Vien Quan - Vinh Khanh'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'en' THEN 'Tra Vien Quan - Vinh Khanh'
+                    ELSE name
+                END,
+                short_description = CASE
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Quan oc dong khach ve dem tren pho Vinh Khanh.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'en' THEN 'A busy seafood stop on Vinh Khanh street.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Quan banh trang nuong gon nhe, de ghe nhanh.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'en' THEN 'A compact grilled-rice-paper snack stop.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Diem oc quen cho nhom ban muon ngoi lai rai.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'en' THEN 'A familiar shellfish stop for a relaxed evening meal.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Quan nuoc va an vat nho de dung chan.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'en' THEN 'A light drinks and snack stop for a short break.'
+                    ELSE short_description
+                END,
+                description = CASE
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Oc Thao nam tren tuyen pho am thuc Vinh Khanh, thuong nhon nhip tu cuoi chieu den khuya. Quay bep mo, mon ra deu tay, hop cho khach muon thu kieu an toi binh dan cua khu Quan 4.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'en' THEN 'Oc Thao sits on Vinh Khanh food street and gets lively from late afternoon into the night. It suits visitors who want a casual District 4 seafood dinner with quick, hot dishes.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Banh Trang Nuong Win la diem an vat de ghe khi di quanh khu Vinh Khanh. Quan nho, len mon nhanh, hop voi khach muon thu banh trang nuong nhieu topping ma khong can ngoi lau.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'en' THEN 'Banh Trang Nuong Win is a quick snack stop near Vinh Khanh street. The shop is small and the food comes out fast, making it easy to try grilled rice paper without a long sit-down meal.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Oc Loan o so 129 Vinh Khanh la mot diem hen quen cua khu pho oc. Khach thuong ghe theo nhom nho, goi vai mon xao nuong va ngoi lai toi muon trong khong khi rat doi thuong cua Quan 4.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'en' THEN 'Oc Loan at 129 Vinh Khanh is a familiar name on the shellfish street. Small groups often stop here for a few grilled or stir-fried dishes and stay late in the relaxed District 4 atmosphere.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Tra Vien Quan la diem dung chan nhe o khu Vinh Khanh, hop de goi mot ly tra mat lanh hoac an vat nhanh truoc khi di tiep sang cac quan oc xung quanh.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'en' THEN 'Tra Vien Quan works as a light break stop around Vinh Khanh, suitable for a cold drink or a quick snack before moving on to the seafood places nearby.'
+                    ELSE description
+                END
+            WHERE poi_id IN (
+                '55555555-5555-5555-5555-555555555551',
+                '55555555-5555-5555-5555-555555555552',
+                '55555555-5555-5555-5555-555555555553',
+                '55555555-5555-5555-5555-555555555554'
+            )
+            AND language_code IN ('vi', 'en');
+            """);
+
+        RefreshMenuItem(
+            connection,
+            "44444444-4444-4444-4444-444444444441",
+            "Oc huong rang muoi",
+            "Oc huong rang muoi thom, vi dam va de goi theo nhom.",
+            99000m,
+            "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=900&q=80",
+            1,
+            oldNames: ["Oc huong xao toi"]);
+
+        RefreshMenuItem(
+            connection,
+            "44444444-4444-4444-4444-444444444441",
+            "Hau nuong pho mai",
+            "Hau nuong beo va thom, la mon hay duoc goi de an mo dau.",
+            89000m,
+            "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80",
+            2,
+            oldNames: ["Sot trung muoi"]);
+
+        RefreshMenuItem(
+            connection,
+            "44444444-4444-4444-4444-444444444442",
+            "Banh trang nuong thap cam",
+            "Banh trang nuong voi trung, hanh, xuc xich va sot meo beo.",
+            35000m,
+            "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=900&q=80",
+            1,
+            oldNames: ["Banh trang nuong trung pho mai"]);
+
+        RefreshMenuItem(
+            connection,
+            "44444444-4444-4444-4444-444444444442",
+            "Tra tac",
+            "Ly tra tac mat lanh, de uong cung mon nuong va an vat.",
+            18000m,
+            "https://images.unsplash.com/photo-1497534446932-c925b458314e?auto=format&fit=crop&w=900&q=80",
+            2,
+            oldNames: ["Tra tac mat ong"]);
+
+        RefreshMenuItem(
+            connection,
+            "77777777-7777-7777-7777-777777777777",
+            "Bo la lot phan dac biet",
+            "Bo la lot an kem rau song, do chua va nuoc cham nha lam.",
+            69000m,
+            "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=900&q=80",
+            1,
+            oldNames: ["Bo la lot phan dac biet", "Bò lá lốt phần đầy đủ"]);
+
+        RefreshMenuItem(
+            connection,
+            "77777777-7777-7777-7777-777777777777",
+            "Cha dum nuong",
+            "Mon nuong them de doi vi, phu hop cho nhom 2 den 3 nguoi.",
+            49000m,
+            "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80",
+            2,
+            oldNames: ["Cha dum nuong", "Chả đùm nướng"]);
+    }
+
+    private static void RefreshMenuItem(
+        System.Data.IDbConnection connection,
+        string shopId,
+        string name,
+        string description,
+        decimal price,
+        string imageUrl,
+        int displayOrder,
+        string[] oldNames)
+    {
+        var existingId = connection.ExecuteScalar<long?>(
+            """
+            SELECT id
+            FROM menu_items
+            WHERE shop_id = @shopId
+              AND (name = @name OR name IN @oldNames)
+            ORDER BY id ASC
+            LIMIT 1;
+            """,
+            new { shopId, name, oldNames });
+
+        if (existingId.HasValue)
+        {
+            connection.Execute(
+                """
+                UPDATE menu_items
+                SET
+                    name = @name,
+                    description = @description,
+                    price = @price,
+                    image_url = @imageUrl,
+                    is_available = 1,
+                    display_order = @displayOrder
+                WHERE id = @id;
+                """,
+                new
+                {
+                    id = existingId.Value,
+                    name,
+                    description,
+                    price,
+                    imageUrl,
+                    displayOrder
+                });
+
+            return;
+        }
+
+        connection.Execute(
+            """
+            INSERT INTO menu_items (
+                shop_id,
+                name,
+                description,
+                price,
+                image_url,
+                is_available,
+                display_order
+            )
+            VALUES (
+                @shopId,
+                @name,
+                @description,
+                @price,
+                @imageUrl,
+                1,
+                @displayOrder
+            );
+            """,
+            new { shopId, name, description, price, imageUrl, displayOrder });
+    }
+
+    private void EnsureAdditionalTouristPois(System.Data.IDbConnection connection)
+    {
+        EnsureTouristShop(
+            connection,
+            "44444444-4444-4444-4444-444444444443",
+            "Oc Vu - Vinh Khanh",
+            "oc-vu-vinh-khanh",
+            "Quan oc quen thuoc o dau duong Vinh Khanh, hop cho nhom ban muon an toi gon ma nhieu mon.",
+            "Oc Vu thuong dong vao buoi toi, thuc don co nhieu mon oc xao va nuong de chia nhau theo nhom. Khong gian binh dan va len mon kha nhanh.",
+            "37 Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh",
+            10.75894000m,
+            106.70272000m,
+            "15:00 - 22:00",
+            "0909 000 333",
+            "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80");
+
+        EnsureTouristShop(
+            connection,
+            "44444444-4444-4444-4444-444444444444",
+            "Oc Cuc - Vinh Khanh",
+            "oc-cuc-vinh-khanh",
+            "Quan oc nho, phu hop cho khach muon ghe nhanh va thu vai mon nuong quen thuoc cua pho Vinh Khanh.",
+            "Oc Cuc thuong duoc nhac den nhờ cac mon hau nuong, so diep mo hanh va ngheu hap. Quan nho nhung gon, hop cho buoi an toi khong qua cau ky.",
+            "128 Bis Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh",
+            10.75842000m,
+            106.70306000m,
+            "15:30 - 22:00",
+            "0909 000 444",
+            "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=900&q=80");
+
+        EnsurePoiWithTranslations(
+            connection,
+            "99999999-9999-9999-9999-999999999991",
+            "44444444-4444-4444-4444-444444444443",
+            "seafood",
+            10.75894000m,
+            106.70272000m,
+            "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80",
+            "Oc Vu - Vinh Khanh",
+            "Quan oc quen cho nhom ban muon ngoi an toi.",
+            "Quan oc co nhieu mon xao bo, xao rau muong va hai san nuong de goi chung. Neu muon thu khong khi pho oc Vinh Khanh theo kieu binh dan, day la diem dung kha de tiep can.",
+            "Oc Vu - Vinh Khanh",
+            "A familiar shellfish stop for small groups.",
+            "Oc Vu is a casual seafood stop where visitors often share stir-fried and grilled dishes. It gives a straightforward taste of the lively Vinh Khanh shellfish street.");
+
+        EnsurePoiWithTranslations(
+            connection,
+            "99999999-9999-9999-9999-999999999992",
+            "44444444-4444-4444-4444-444444444444",
+            "seafood",
+            10.75842000m,
+            106.70306000m,
+            "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=900&q=80",
+            "Oc Cuc - Vinh Khanh",
+            "Diem dung gon nhe de thu cac mon oc nuong quen thuoc.",
+            "Oc Cuc co menu gon hon nhung de chon mon, thuong hop voi khach muon ghe nhanh de an hau nuong, so diep mo hanh hay ngheu hap sa. Quan nam ngay tren tuyen pho am thuc nen rat tien khi di bo.",
+            "Oc Cuc - Vinh Khanh",
+            "A compact stop known for grilled shellfish.",
+            "Oc Cuc keeps a shorter, easy-to-order menu focused on grilled oysters, scallops with scallion oil, and lemongrass clams. It is convenient for a short stop while walking through the food street.");
+
+        EnsureMenuItem(
+            connection,
+            "44444444-4444-4444-4444-444444444443",
+            "Oc mong tay xao bo toi",
+            "Mon de chia nhau, vi bo toi ro va de an voi banh mi.",
+            79000m,
+            "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80",
+            1);
+
+        EnsureMenuItem(
+            connection,
+            "44444444-4444-4444-4444-444444444443",
+            "Tom nuong sate",
+            "Tom nuong thom, vi cay nhe, phu hop an cung nhom.",
+            89000m,
+            "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=900&q=80",
+            2);
+
+        EnsureMenuItem(
+            connection,
+            "44444444-4444-4444-4444-444444444444",
+            "Hau nuong pho mai",
+            "Hau nuong beo va nong, hay duoc goi de mo dau bua an.",
+            89000m,
+            "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=900&q=80",
+            1);
+
+        EnsureMenuItem(
+            connection,
+            "44444444-4444-4444-4444-444444444444",
+            "Ngheu hap sa",
+            "Mon nuoc nong, de an va hop khi di nhom nho.",
+            69000m,
+            "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=900&q=80",
+            2);
+    }
+
+    private static void EnsureTouristShop(
+        System.Data.IDbConnection connection,
+        string shopId,
+        string name,
+        string slug,
+        string description,
+        string approvedIntro,
+        string addressLine,
+        decimal latitude,
+        decimal longitude,
+        string openingHours,
+        string phone,
+        string imageUrl)
+    {
+        connection.Execute(
+            """
+            INSERT INTO shops (
+                id,
+                owner_account_id,
+                name,
+                slug,
+                description,
+                approved_intro,
+                pending_intro,
+                intro_review_status,
+                address_line,
+                latitude,
+                longitude,
+                opening_hours,
+                phone,
+                image_url,
+                is_active
+            )
+            VALUES (
+                @Id,
+                '22222222-2222-2222-2222-222222222222',
+                @Name,
+                @Slug,
+                @Description,
+                @ApprovedIntro,
+                NULL,
+                'approved',
+                @AddressLine,
+                @Latitude,
+                @Longitude,
+                @OpeningHours,
+                @Phone,
+                @ImageUrl,
+                1
+            )
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                description = VALUES(description),
+                approved_intro = VALUES(approved_intro),
+                address_line = VALUES(address_line),
+                latitude = VALUES(latitude),
+                longitude = VALUES(longitude),
+                opening_hours = VALUES(opening_hours),
+                phone = VALUES(phone),
+                image_url = VALUES(image_url),
+                is_active = VALUES(is_active);
+            """,
+            new
+            {
+                Id = shopId,
+                Name = name,
+                Slug = slug,
+                Description = description,
+                ApprovedIntro = approvedIntro,
+                AddressLine = addressLine,
+                Latitude = latitude,
+                Longitude = longitude,
+                OpeningHours = openingHours,
+                Phone = phone,
+                ImageUrl = imageUrl
+            });
+    }
+
+    private static void EnsurePoiWithTranslations(
+        System.Data.IDbConnection connection,
+        string poiId,
+        string shopId,
+        string category,
+        decimal latitude,
+        decimal longitude,
+        string imageUrl,
+        string nameVi,
+        string shortVi,
+        string descriptionVi,
+        string nameEn,
+        string shortEn,
+        string descriptionEn)
+    {
+        connection.Execute(
+            """
+            INSERT INTO pois (
+                id,
+                shop_id,
+                category,
+                latitude,
+                longitude,
+                trigger_radius_meters,
+                hero_image_url,
+                default_language_code,
+                is_featured,
+                is_active
+            )
+            VALUES (
+                @Id,
+                @ShopId,
+                @Category,
+                @Latitude,
+                @Longitude,
+                35,
+                @ImageUrl,
+                'vi',
+                1,
+                1
+            )
+            ON DUPLICATE KEY UPDATE
+                shop_id = VALUES(shop_id),
+                category = VALUES(category),
+                latitude = VALUES(latitude),
+                longitude = VALUES(longitude),
+                hero_image_url = VALUES(hero_image_url),
+                is_featured = VALUES(is_featured),
+                is_active = VALUES(is_active);
+            """,
+            new
+            {
+                Id = poiId,
+                ShopId = shopId,
+                Category = category,
+                Latitude = latitude,
+                Longitude = longitude,
+                ImageUrl = imageUrl
+            });
+
+        connection.Execute(
+            """
+            INSERT INTO poi_translations (
+                poi_id,
+                language_code,
+                name,
+                short_description,
+                description,
+                audio_url
+            )
+            VALUES
+                (@PoiId, 'vi', @NameVi, @ShortVi, @DescriptionVi, NULL),
+                (@PoiId, 'en', @NameEn, @ShortEn, @DescriptionEn, NULL)
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                short_description = VALUES(short_description),
+                description = VALUES(description),
+                audio_url = VALUES(audio_url);
+            """,
+            new
+            {
+                PoiId = poiId,
+                NameVi = nameVi,
+                ShortVi = shortVi,
+                DescriptionVi = descriptionVi,
+                NameEn = nameEn,
+                ShortEn = shortEn,
+                DescriptionEn = descriptionEn
+            });
+    }
 }

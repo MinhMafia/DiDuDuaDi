@@ -7,7 +7,6 @@ import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import OwnerDashboardPage from "./pages/OwnerDashboardPage";
 import RegisterPage from "./pages/RegisterPage";
-import SettingsPage from "./pages/SettingsPage";
 
 export default function App() {
   return (
@@ -31,14 +30,6 @@ export default function App() {
           element={
             <MainLayout>
               <MapPage />
-            </MainLayout>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <MainLayout>
-              <SettingsPage />
             </MainLayout>
           }
         />
