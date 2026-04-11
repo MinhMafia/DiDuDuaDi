@@ -37,6 +37,11 @@ export default function BottomNav() {
         </NavLink>
       ) : null}
       {currentUser?.role === "owner" ? (
+        <NavLink to="/map" style={linkStyle}>
+          {t("nav.map")}
+        </NavLink>
+      ) : null}
+      {currentUser?.role === "owner" ? (
         <NavLink to="/owner" style={linkStyle}>
           {t("nav.owner")}
         </NavLink>
@@ -46,9 +51,6 @@ export default function BottomNav() {
           {t("nav.admin")}
         </NavLink>
       ) : null}
-      <NavLink to="/settings" style={linkStyle}>
-        {t("nav.settings")}
-      </NavLink>
     </nav>
   );
 }

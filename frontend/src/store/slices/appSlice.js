@@ -2,6 +2,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const savedLanguage =
   typeof window !== "undefined" ? window.localStorage.getItem("didududadi.language") : null;
+const savedAutoPlayAudio =
+  typeof window !== "undefined" ? window.localStorage.getItem("didududadi.autoPlayAudio") : null;
 const savedSession =
   typeof window !== "undefined"
     ? JSON.parse(window.localStorage.getItem("didududadi.session") || "null")
@@ -10,7 +12,7 @@ const savedSession =
 const appSlice = createSlice({
   name: "app",
   initialState: {
-    autoPlayAudio: false,
+    autoPlayAudio: savedAutoPlayAudio === "true",
     currentUser: savedSession,
     isAuthenticated: Boolean(savedSession),
     language: savedLanguage || "vi",
@@ -21,6 +23,9 @@ const appSlice = createSlice({
     },
     setAutoPlayAudio(state, action) {
       state.autoPlayAudio = action.payload;
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("didududadi.autoPlayAudio", String(action.payload));
+      }
     },
     loginSuccess(state, action) {
       state.currentUser = action.payload;

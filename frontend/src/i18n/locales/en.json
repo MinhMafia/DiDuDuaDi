@@ -58,6 +58,9 @@
     "poiCount_one": "{{count}} place visible",
     "poiCount_other": "{{count}} places visible",
     "searchRadius": "Search radius around you: {{radius}}m",
+    "searchPlaceholder": "Search places or categories...",
+    "searchClear": "Clear search",
+    "searchNoResult": "No matching places found.",
     "centerOnMe": "Center on me",
     "jumpToVinhKhanh": "Jump to Vinh Khanh food street",
     "usingDefaultCenter": "Using the food street default center",
@@ -76,10 +79,22 @@
     "emptyNearby": "No places found in the current radius yet.",
     "noDescription": "No description for this place yet.",
     "selectedPoi": "Quick details",
+    "detailTitle": "Place details",
+    "viewDetail": "View full details",
+    "closeDetail": "Close",
+    "aboutShopTitle": "About this shop",
     "menuTitle": "Current menu highlights",
+    "emptyMenu": "This place does not have a visible menu for visitors yet.",
     "selectHint": "Pick a marker on the map or a card in the list to inspect it.",
     "distanceFromYou": "About {{distance}} away from you",
-    "tapPoiHint": "Enable GPS to see the real distance."
+    "tapPoiHint": "Enable GPS to see the real distance.",
+    "routeLoading": "Calculating route...",
+    "routeError": "Unable to get route right now.",
+    "routeSummary": "Estimated route: {{distance}}, about {{minutes}} minutes by car.",
+    "labels": {
+      "openingHours": "Opening hours",
+      "phone": "Phone"
+    }
   },
   "settings": {
     "title": "Experience settings",
@@ -183,6 +198,9 @@
     "menuSubtitle": "Available dishes here will be shown to visitors when they open your POI on the map.",
     "claimTitle": "Cash claim codes",
     "claimSubtitle": "Generate activation codes for customers who pay cash at the restaurant.",
+    "viewMap": "Open map view",
+    "summaryFallback": "Complete your shop information so tourists can see the full profile.",
+    "summaryUnavailable": "Not updated yet",
     "saveProfile": "Save shop profile",
     "saving": "Saving...",
     "addMenu": "Add item",
@@ -215,7 +233,29 @@
       "notSubmitted": "Not submitted"
     },
     "labels": {
-      "issuedAt": "Issued at"
+      "issuedAt": "Issued at",
+      "menuCount": "Menu items"
+    },
+    "empty": {
+      "menu": "No menu items yet. Add the first dish for your restaurant.",
+      "claims": "No recent claim codes have been created."
+    },
+    "sections": {
+      "overviewKicker": "Business overview",
+      "overview": "Shop overview",
+      "performanceKicker": "App performance",
+      "profileKicker": "Core shop profile",
+      "profileDescription": "Update the visible shop profile and the introduction draft that will be reviewed by admin.",
+      "mapKicker": "What tourists see on the map",
+      "menuKicker": "Menu editor",
+      "editMenu": "Edit menu item",
+      "menuListKicker": "Currently visible",
+      "menuList": "Current menu",
+      "menuListDescription": "These are the dishes tourists currently see when they open your POI.",
+      "claimKicker": "Cash payments",
+      "claimHistoryKicker": "Track issued codes",
+      "claimHistory": "Recent claim codes",
+      "claimHistoryDescription": "Quickly review recently issued codes when customers arrive at the restaurant."
     },
     "fields": {
       "shopName": "Shop name",
@@ -240,8 +280,7 @@
       "amount": "Amount",
       "expireAfterHours": "Expire after (hours)",
       "note": "Note"
-    }
-    ,
+    },
     "savePoi": "Save POI content"
   },
   "admin": {

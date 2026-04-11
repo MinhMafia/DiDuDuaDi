@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Howl } from "howler";
 import { useTranslation } from "react-i18next";
+import { playCloudTts, stopAllCloudTts, translateText } from "../../services/translateService";
 
 export default function SpeechGuidePlayer({
   audioUrl,
@@ -20,6 +21,9 @@ export default function SpeechGuidePlayer({
   const [progress, setProgress] = useState(0);
   const [isSpeechMode, setIsSpeechMode] = useState(false);
   const [voices, setVoices] = useState([]);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const speechSessionRef = useRef(0);
+  const cloudTtsPlayerRef = useRef(null);
 
   useEffect(() => {
     if (!audioUrl) {
@@ -96,6 +100,11 @@ export default function SpeechGuidePlayer({
   }, []);
 
   useEffect(() => {
+    stopSpeech();
+    return () => stopSpeech();
+  }, [playbackKey, speechLanguage]);
+
+  useEffect(() => {
     if (!triggerAutoSpeak || !speechText) return;
 
     const autoSpeakToken = `${playbackKey}:${speechLanguage}`;
@@ -107,7 +116,7 @@ export default function SpeechGuidePlayer({
 
   function togglePlayback() {
     if (!audioUrl && speechText) {
-      if (isPlaying) {
+      if (isPlaying || isTranslating) {
         stopSpeech();
         return;
       }
@@ -136,44 +145,153 @@ export default function SpeechGuidePlayer({
     setProgress(nextProgress);
   }
 
-  function startSpeech() {
-    if (!speechText || !("speechSynthesis" in window)) return;
+  async function startSpeech() {
+    if (!speechText) return;
 
-    window.speechSynthesis.cancel();
+    const canUseSpeechSynthesis = "speechSynthesis" in window;
 
-    const utterance = new SpeechSynthesisUtterance(speechText);
-    utterance.lang = speechLanguage;
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.onstart = () => {
-      setIsPlaying(true);
-      onPlaybackStart?.();
-    };
-    utterance.onend = () => setIsPlaying(false);
-    utterance.onerror = () => setIsPlaying(false);
-
+    if (canUseSpeechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    stopAllCloudTts();
+    if (cloudTtsPlayerRef.current) {
+      cloudTtsPlayerRef.current.cancel();
+      cloudTtsPlayerRef.current = null;
+    }
+    
+    // Prevent overlapping speech sessions
+    const sessionId = ++speechSessionRef.current;
     const normalizedLanguage = speechLanguage.toLowerCase();
-    const sameLocaleVoice = voices.find(
-      (voice) => voice.lang.toLowerCase() === normalizedLanguage,
-    );
-    const sameLanguageVoice = voices.find((voice) =>
-      voice.lang.toLowerCase().startsWith(normalizedLanguage.slice(0, 2)),
-    );
-    const matchingVoice = sameLocaleVoice || sameLanguageVoice;
+    const isVietnamese = normalizedLanguage.startsWith("vi");
 
-    if (matchingVoice) {
-      utterance.voice = matchingVoice;
+    setIsTranslating(true);
+    let finalSpeechText = speechText;
+    if (!isVietnamese) {
+      try {
+        finalSpeechText = await translateText(speechText, speechLanguage);
+      } catch (err) {
+        console.error("Translation fail in SpeechGuidePlayer:", err);
+      }
+    }
+    
+    // Exit if user stopped or triggered another session during translation
+    if (speechSessionRef.current !== sessionId) return;
+
+    setIsTranslating(false);
+
+    // Improved voice scoring
+    const getVoiceScore = (voice) => {
+        let score = 0;
+        const lang = voice.lang.toLowerCase();
+        
+        // Exact locale match gets highest priority
+        if (lang === normalizedLanguage) score += 100;
+        // General language match (e.g., 'vi' matching 'vi-VN')
+        else if (lang.startsWith(normalizedLanguage.slice(0, 2))) score += 50;
+        else return -1; // Not matching language at all
+        
+        const name = voice.name.toLowerCase();
+        if (name.includes("google") || name.includes("online") || name.includes("natural")) {
+            score += 20; // Premium online voices are much better
+        }
+        if (voice.localService === false) {
+            score += 10;
+        }
+        
+        return score;
+    };
+    
+    const matchingVoiceWithScore = [...voices]
+      .map(v => ({ voice: v, score: getVoiceScore(v) }))
+      .filter(v => v.score > 0)
+      .sort((a, b) => b.score - a.score)[0];
+
+    const speakWithBrowserTts = () => {
+      if (!canUseSpeechSynthesis) {
+        return false;
+      }
+
+      // For Vietnamese, only use browser TTS when we have a Vietnamese-capable voice.
+      if (isVietnamese && !matchingVoiceWithScore?.voice) {
+        return false;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(finalSpeechText);
+      utterance.lang = speechLanguage;
+      utterance.rate = 1;
+      utterance.pitch = 1;
+      utterance.onstart = () => {
+        setIsPlaying(true);
+        onPlaybackStart?.();
+      };
+      utterance.onend = () => setIsPlaying(false);
+      utterance.onerror = () => setIsPlaying(false);
+
+      if (matchingVoiceWithScore?.voice) {
+        utterance.voice = matchingVoiceWithScore.voice;
+      }
+
+      window.setTimeout(() => {
+        if (speechSessionRef.current === sessionId) {
+          window.speechSynthesis.speak(utterance);
+        }
+      }, 40);
+
+      return true;
+    };
+
+    if (!canUseSpeechSynthesis && !isVietnamese) {
+      cloudTtsPlayerRef.current = playCloudTts(finalSpeechText, speechLanguage, {
+        onPlay: () => {
+          setIsPlaying(true);
+          onPlaybackStart?.();
+        },
+        onEnd: () => {
+          cloudTtsPlayerRef.current = null;
+          setIsPlaying(false);
+        },
+        onError: () => {
+          cloudTtsPlayerRef.current = null;
+          setIsPlaying(false);
+        },
+      });
+      return;
     }
 
-    window.setTimeout(() => {
-      window.speechSynthesis.speak(utterance);
-    }, 40);
+    // Vietnamese playback is forced to cloud TTS for consistent quality across devices.
+    if (isVietnamese) {
+      cloudTtsPlayerRef.current = playCloudTts(finalSpeechText, speechLanguage, {
+          onPlay: () => { setIsPlaying(true); onPlaybackStart?.(); },
+          onEnd: () => {
+            cloudTtsPlayerRef.current = null;
+            setIsPlaying(false);
+          },
+          onError: () => {
+            cloudTtsPlayerRef.current = null;
+            // Avoid falling back to a wrong-language voice that reads Vietnamese text incorrectly.
+            if (!speakWithBrowserTts()) {
+              setIsPlaying(false);
+            }
+          },
+      });
+      return;
+    }
+
+    speakWithBrowserTts();
   }
 
   function stopSpeech() {
+    speechSessionRef.current++;
+    setIsTranslating(false);
+    setIsPlaying(false);
+
+    stopAllCloudTts();
+    if (cloudTtsPlayerRef.current) {
+      cloudTtsPlayerRef.current.cancel();
+      cloudTtsPlayerRef.current = null;
+    }
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
-    setIsPlaying(false);
   }
 
   const progressMax = duration || 1;
@@ -188,9 +306,13 @@ export default function SpeechGuidePlayer({
         <button
           type="button"
           onClick={togglePlayback}
-          disabled={!audioUrl && !speechText}
+          disabled={(!audioUrl && !speechText) || (isTranslating && !isPlaying)}
         >
-          {isPlaying ? (isSpeechMode ? t("audio.stop") : t("audio.pause")) : t("audio.play")}
+          {isTranslating
+            ? t("audio.translating", "Dịch...")
+            : isPlaying 
+              ? (isSpeechMode ? t("audio.stop") : t("audio.pause")) 
+              : t("audio.play")}
         </button>
       </div>
 
@@ -213,7 +335,9 @@ export default function SpeechGuidePlayer({
       ) : null}
 
       {!audioUrl && speechText ? (
-        <p className="supporting-text">{t("audio.ttsReady")}</p>
+        <p className="supporting-text">
+          {isTranslating ? t("audio.translatingHint", "Đang chuyển hoá âm thanh...") : t("audio.ttsReady")}
+        </p>
       ) : null}
 
       {!audioUrl && !speechText ? (

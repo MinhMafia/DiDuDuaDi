@@ -10,5 +10,10 @@ MySqlConnector.MySqlException (0x80004005): Unable to connect to any of the spec
    at MySqlConnector.MySqlConnection.Open() in /_/src/MySqlConnector/MySqlConnection.cs:line 522
    at Dapper.SqlMapper.ExecuteScalarImpl[T](IDbConnection cnn, CommandDefinition& command) in /_/Dapper/SqlMapper.cs:line 2993
    at Dapper.SqlMapper.ExecuteScalar[T](IDbConnection cnn, String sql, Object param, IDbTransaction transaction, Nullable`1 commandTimeout, Nullable`1 commandType) in /_/Dapper/SqlMapper.cs:line 568
+<<<<<<< HEAD
    at DiDuDuaDi.API.Data.MySqlDatabaseInitializer.EnsureSchema() in D:\workspace\DiDuDuaDi\backend\DiDuDuaDi.API\Data\MySqlDatabaseInitializer.cs:line 12
    at Program.<Main>$(String[] args) in D:\workspace\DiDuDuaDi\backend\DiDuDuaDi.API\Program.cs:line 58
+=======
+   at DiDuDuaDi.API.Data.MySqlDatabaseInitializer.EnsureSchema() in D:\Nam4_HK2\Seminar\DiDuDuaDi\backend\DiDuDuaDi.API\Data\MySqlDatabaseInitializer.cs:line 12
+   at Program.<Main>$(String[] args) in D:\Nam4_HK2\Seminar\DiDuDuaDi\backend\DiDuDuaDi.API\Program.cs:line 58
+>>>>>>> 950ceeaa31932b15611344a77015dd18135325a2

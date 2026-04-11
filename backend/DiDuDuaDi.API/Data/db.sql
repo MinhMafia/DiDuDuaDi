@@ -315,13 +315,13 @@ VALUES
     (
         '44444444-4444-4444-4444-444444444441',
         '22222222-2222-2222-2222-222222222222',
-        'Oc Co Thu Vinh Khanh',
+        'Oc Thao - Vinh Khanh',
         'oc-co-thu-vinh-khanh',
-        'Quan oc demo nam tren pho am thuc Vinh Khanh.',
-        'Quan oc Co Thu co phong cach binh dan, mon oc tuoi va khong khi nhon nhip phu hop de demo audio guide cho du khach.',
+        'Quan oc quen tren duong Vinh Khanh, dong khach tu chieu toi. Khong gian gian di, len mon nhanh va hop di nhom nho.',
+        'Oc Thao duoc biet den la mot diem hen binh dan o khu Vinh Khanh, thuong nhon nhip vao buoi toi. Khach hay goi nhieu mon oc xao, nuong va ngoi lai lai rai cung ban be.',
         NULL,
         'approved',
-        'Duong Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh',
+        '212 Vinh Khanh, Phuong 10, Quan 4, TP. Ho Chi Minh',
         10.75855600,
         106.70328400,
         '16:00 - 23:30',
@@ -332,13 +332,13 @@ VALUES
     (
         '44444444-4444-4444-4444-444444444442',
         '22222222-2222-2222-2222-222222222222',
-        'Banh Trang Nuong Co Hai',
+        'Banh Trang Nuong Win',
         'banh-trang-nuong-co-hai',
-        'Quan an vat demo phuc vu du khach tai Vinh Khanh.',
-        'Banh Trang Nuong Co Hai la diem dung chan an vat nho, de tiep can va phu hop de demo menu, claim code va thong ke luot ghe.',
+        'Diem an vat nho tren duong Vinh Khanh, phu hop ghe nhanh buoi xep. Banh trang nuong lam tai cho, de an va de mang di.',
+        'Banh Trang Nuong Win co kieu quan an vat gon nhe, phu hop cho khach muon doi mon sau khi di mot vong pho oc. Mon nuong duoc lam tai cho nen mui thom va de an khi con nong.',
         NULL,
         'approved',
-        'Duong Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh',
+        '150/38 Vinh Khanh, Phuong 10, Quan 4, TP. Ho Chi Minh',
         10.75899500,
         106.70362100,
         '15:00 - 22:30',
@@ -362,6 +362,40 @@ VALUES
         '0909000123',
         'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=900&q=80',
         1
+    ),
+    (
+        '44444444-4444-4444-4444-444444444443',
+        '22222222-2222-2222-2222-222222222222',
+        'Oc Vu - Vinh Khanh',
+        'oc-vu-vinh-khanh',
+        'Quan oc quen thuoc o dau duong Vinh Khanh, hop cho nhom ban muon an toi gon ma nhieu mon.',
+        'Oc Vu thuong dong vao buoi toi, thuc don co nhieu mon oc xao va nuong de chia nhau theo nhom. Khong gian binh dan va len mon kha nhanh.',
+        NULL,
+        'approved',
+        '37 Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh',
+        10.75894000,
+        106.70272000,
+        '15:00 - 22:00',
+        '0909 000 333',
+        'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
+        1
+    ),
+    (
+        '44444444-4444-4444-4444-444444444444',
+        '22222222-2222-2222-2222-222222222222',
+        'Oc Cuc - Vinh Khanh',
+        'oc-cuc-vinh-khanh',
+        'Quan oc nho, phu hop cho khach muon ghe nhanh va thu vai mon nuong quen thuoc cua pho Vinh Khanh.',
+        'Oc Cuc thuong duoc nhac den nho cac mon hau nuong, so diep mo hanh va ngheu hap. Quan nho nhung gon, hop cho buoi an toi khong qua cau ky.',
+        NULL,
+        'approved',
+        '128 Bis Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh',
+        10.75842000,
+        106.70306000,
+        '15:30 - 22:00',
+        '0909 000 444',
+        'https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=900&q=80',
+        1
     )
 ON DUPLICATE KEY UPDATE
     name = VALUES(name),
@@ -371,6 +405,15 @@ ON DUPLICATE KEY UPDATE
     intro_review_status = VALUES(intro_review_status),
     opening_hours = VALUES(opening_hours),
     is_active = VALUES(is_active);
+
+DELETE FROM menu_items
+WHERE shop_id IN (
+    '44444444-4444-4444-4444-444444444441',
+    '44444444-4444-4444-4444-444444444442',
+    '77777777-7777-7777-7777-777777777777',
+    '44444444-4444-4444-4444-444444444443',
+    '44444444-4444-4444-4444-444444444444'
+);
 
 INSERT INTO menu_items (
     shop_id,
@@ -384,8 +427,8 @@ INSERT INTO menu_items (
 VALUES
     (
         '44444444-4444-4444-4444-444444444441',
-        'Oc huong xao toi',
-        'Oc huong xao toi thom, vi dam va de an khi di nhom.',
+        'Oc huong rang muoi',
+        'Oc huong rang muoi thom, vi dam va de goi theo nhom.',
         89000,
         'https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=900&q=80',
         1,
@@ -393,8 +436,8 @@ VALUES
     ),
     (
         '44444444-4444-4444-4444-444444444441',
-        'Sot trung muoi',
-        'Dia hai san sot trung muoi dam vi, de gioi thieu mon dac trung cua quan.',
+        'Hau nuong pho mai',
+        'Hau nuong beo va thom, la mon hay duoc goi de an mo dau.',
         99000,
         'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
         1,
@@ -402,8 +445,8 @@ VALUES
     ),
     (
         '44444444-4444-4444-4444-444444444442',
-        'Banh trang nuong trung pho mai',
-        'Phien ban an vat gion, beo va de thu cho du khach.',
+        'Banh trang nuong thap cam',
+        'Banh trang nuong voi trung, hanh, xuc xich va sot meo beo.',
         35000,
         'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=900&q=80',
         1,
@@ -411,8 +454,8 @@ VALUES
     ),
     (
         '44444444-4444-4444-4444-444444444442',
-        'Tra tac mat ong',
-        'Do uong giai khat di kem mon nuong.',
+        'Tra tac',
+        'Ly tra tac mat lanh, de uong cung mon nuong va an vat.',
         18000,
         'https://images.unsplash.com/photo-1497534446932-c925b458314e?auto=format&fit=crop&w=900&q=80',
         1,
@@ -433,6 +476,42 @@ VALUES
         'Mon nuong them de chu quan thu tinh nang cap nhat menu.',
         49000,
         'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80',
+        1,
+        2
+    ),
+    (
+        '44444444-4444-4444-4444-444444444443',
+        'Oc mong tay xao bo toi',
+        'Mon de chia nhau, vi bo toi ro va de an voi banh mi.',
+        79000,
+        'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
+        1,
+        1
+    ),
+    (
+        '44444444-4444-4444-4444-444444444443',
+        'Tom nuong sate',
+        'Tom nuong thom, vi cay nhe, phu hop an cung nhom.',
+        89000,
+        'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=900&q=80',
+        1,
+        2
+    ),
+    (
+        '44444444-4444-4444-4444-444444444444',
+        'Hau nuong pho mai',
+        'Hau nuong beo va nong, hay duoc goi de mo dau bua an.',
+        89000,
+        'https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=900&q=80',
+        1,
+        1
+    ),
+    (
+        '44444444-4444-4444-4444-444444444444',
+        'Ngheu hap sa',
+        'Mon nuoc nong, de an va hop khi di nhom nho.',
+        69000,
+        'https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=900&q=80',
         1,
         2
     );
@@ -503,6 +582,28 @@ VALUES
         'vi',
         1,
         1
+    ),
+    (
+        '99999999-9999-9999-9999-999999999991',
+        '44444444-4444-4444-4444-444444444443',
+        'seafood',
+        10.75894000,
+        106.70272000,
+        35,
+        'vi',
+        1,
+        1
+    ),
+    (
+        '99999999-9999-9999-9999-999999999992',
+        '44444444-4444-4444-4444-444444444444',
+        'seafood',
+        10.75842000,
+        106.70306000,
+        35,
+        'vi',
+        1,
+        1
     )
 ON DUPLICATE KEY UPDATE
     category = VALUES(category),
@@ -524,65 +625,65 @@ VALUES
     (
         '55555555-5555-5555-5555-555555555551',
         'vi',
-        'Oc Co Thu Vinh Khanh',
-        'Quan oc dong khach ve dem.',
-        'Quan oc Co Thu la diem dung chan demo noi bat tai pho am thuc Vinh Khanh, phu hop de gioi thieu GPS, da ngon ngu va voice guide.',
+        'Oc Thao - Vinh Khanh',
+        'Quan oc dong khach ve dem tren pho Vinh Khanh.',
+        'Oc Thao nam tren tuyen pho am thuc Vinh Khanh, thuong nhon nhip tu cuoi chieu den khuya. Quay bep mo, mon ra deu tay, hop cho khach muon thu kieu an toi binh dan cua khu Quan 4.',
         NULL
     ),
     (
         '55555555-5555-5555-5555-555555555551',
         'en',
-        'Oc Co Thu Vinh Khanh',
-        'A busy late-night seafood stop.',
-        'Oc Co Thu is a demo seafood point of interest on Vinh Khanh Food Street, suitable for map, multilingual content, and voice-guide features.',
+        'Oc Thao - Vinh Khanh',
+        'A busy seafood stop on Vinh Khanh street.',
+        'Oc Thao sits on Vinh Khanh food street and gets lively from late afternoon into the night. It suits visitors who want a casual District 4 seafood dinner with quick, hot dishes.',
         NULL
     ),
     (
         '55555555-5555-5555-5555-555555555552',
         'vi',
-        'Banh Trang Nuong Co Hai',
-        'Mon an vat de thu khi dao pho.',
-        'Banh Trang Nuong Co Hai la diem an vat demo gan trung tam tuyen pho, thuong duoc dung de test tim POI gan day.',
+        'Banh Trang Nuong Win',
+        'Quan banh trang nuong gon nhe, de ghe nhanh.',
+        'Banh Trang Nuong Win la diem an vat de ghe khi di quanh khu Vinh Khanh. Quan nho, len mon nhanh, hop voi khach muon thu banh trang nuong nhieu topping ma khong can ngoi lau.',
         NULL
     ),
     (
         '55555555-5555-5555-5555-555555555552',
         'en',
-        'Banh Trang Nuong Co Hai',
-        'A quick street snack stop.',
-        'This demo street-food POI is useful for testing nearby search, map markers, and multilingual narration in the tourist app.',
+        'Banh Trang Nuong Win',
+        'A compact grilled-rice-paper snack stop.',
+        'Banh Trang Nuong Win is a quick snack stop near Vinh Khanh street. The shop is small and the food comes out fast, making it easy to try grilled rice paper without a long sit-down meal.',
         NULL
     ),
     (
         '55555555-5555-5555-5555-555555555553',
         'vi',
-        'Che Nha Lam Vinh Khanh',
-        'Quan che demo cho diem dung trang mieng.',
-        'Quan che demo phuc vu cho tinh nang goi y lo trinh an toi va am thanh tu dong khi den gan.',
+        'Oc Loan - Vinh Khanh',
+        'Diem oc quen cho nhom ban muon ngoi lai rai.',
+        'Oc Loan o so 129 Vinh Khanh la mot diem hen quen cua khu pho oc. Khach thuong ghe theo nhom nho, goi vai mon xao nuong va ngoi lai toi muon trong khong khi rat doi thuong cua Quan 4.',
         NULL
     ),
     (
         '55555555-5555-5555-5555-555555555553',
         'en',
-        'Che Nha Lam Vinh Khanh',
-        'A dessert stop for the route demo.',
-        'This dessert POI supports map browsing, route recommendations, and multilingual audio descriptions in the tourist experience.',
+        'Oc Loan - Vinh Khanh',
+        'A familiar shellfish stop for a relaxed evening meal.',
+        'Oc Loan at 129 Vinh Khanh is a familiar name on the shellfish street. Small groups often stop here for a few grilled or stir-fried dishes and stay late in the relaxed District 4 atmosphere.',
         NULL
     ),
     (
         '55555555-5555-5555-5555-555555555554',
         'vi',
-        'Bo La Lot Co Van',
-        'Mon nuong demo tren tuyen pho am thuc.',
-        'Bo la lot Co Van la diem demo phu hop de test marker, popup, va voice guide khi nguoi dung cham vao ban do.',
+        'Tra Vien Quan - Vinh Khanh',
+        'Quan nuoc va an vat nho de dung chan.',
+        'Tra Vien Quan la diem dung chan nhe o khu Vinh Khanh, hop de goi mot ly tra mat lanh hoac an vat nhanh truoc khi di tiep sang cac quan oc xung quanh.',
         NULL
     ),
     (
         '55555555-5555-5555-5555-555555555554',
         'en',
-        'Bo La Lot Co Van',
-        'A grilled snack stop on the street.',
-        'This POI is included to demonstrate marker selection, popup details, and spoken descriptions on the map.',
+        'Tra Vien Quan - Vinh Khanh',
+        'A light drinks and snack stop for a short break.',
+        'Tra Vien Quan works as a light break stop around Vinh Khanh, suitable for a cold drink or a quick snack before moving on to the seafood places nearby.',
         NULL
     ),
     (
@@ -599,6 +700,38 @@ VALUES
         'Chi Ba Grilled Beef Demo',
         'A demo place for the owner flow.',
         'This POI is linked to the owner_demo account so you can test menu editing, map updates, and owner management immediately.',
+        NULL
+    ),
+    (
+        '99999999-9999-9999-9999-999999999991',
+        'vi',
+        'Oc Vu - Vinh Khanh',
+        'Quan oc quen cho nhom ban muon ngoi an toi.',
+        'Quan oc co nhieu mon xao bo, xao rau muong va hai san nuong de goi chung. Neu muon thu khong khi pho oc Vinh Khanh theo kieu binh dan, day la diem dung kha de tiep can.',
+        NULL
+    ),
+    (
+        '99999999-9999-9999-9999-999999999991',
+        'en',
+        'Oc Vu - Vinh Khanh',
+        'A familiar shellfish stop for small groups.',
+        'Oc Vu is a casual seafood stop where visitors often share stir-fried and grilled dishes. It gives a straightforward taste of the lively Vinh Khanh shellfish street.',
+        NULL
+    ),
+    (
+        '99999999-9999-9999-9999-999999999992',
+        'vi',
+        'Oc Cuc - Vinh Khanh',
+        'Diem dung gon nhe de thu cac mon oc nuong quen thuoc.',
+        'Oc Cuc co menu gon hon nhung de chon mon, thuong hop voi khach muon ghe nhanh de an hau nuong, so diep mo hanh hay ngheu hap sa. Quan nam ngay tren tuyen pho am thuc nen rat tien khi di bo.',
+        NULL
+    ),
+    (
+        '99999999-9999-9999-9999-999999999992',
+        'en',
+        'Oc Cuc - Vinh Khanh',
+        'A compact stop known for grilled shellfish.',
+        'Oc Cuc keeps a shorter, easy-to-order menu focused on grilled oysters, scallops with scallion oil, and lemongrass clams. It is convenient for a short stop while walking through the food street.',
         NULL
     )
 ON DUPLICATE KEY UPDATE
@@ -634,7 +767,20 @@ VALUES
         'Khach le buoi toi',
         DATE_SUB(NOW(), INTERVAL 1 DAY),
         DATE_ADD(NOW(), INTERVAL 1 DAY)
-    );
+    )
+ON DUPLICATE KEY UPDATE
+    shop_id = VALUES(shop_id),
+    amount = VALUES(amount),
+    status = VALUES(status),
+    note = VALUES(note),
+    issued_at = VALUES(issued_at),
+    expires_at = VALUES(expires_at);
+
+DELETE FROM shop_visit_events
+WHERE poi_id IN (
+    '55555555-5555-5555-5555-555555555551',
+    '55555555-5555-5555-5555-555555555552'
+);
 
 INSERT INTO shop_visit_events (
     shop_id,
@@ -647,6 +793,12 @@ VALUES
     ('44444444-4444-4444-4444-444444444441', '55555555-5555-5555-5555-555555555551', 'vi', 'map', DATE_SUB(NOW(), INTERVAL 4 HOUR)),
     ('44444444-4444-4444-4444-444444444441', '55555555-5555-5555-5555-555555555551', 'en', 'map', DATE_SUB(NOW(), INTERVAL 2 HOUR)),
     ('44444444-4444-4444-4444-444444444442', '55555555-5555-5555-5555-555555555552', 'vi', 'map', DATE_SUB(NOW(), INTERVAL 90 MINUTE));
+
+DELETE FROM audio_play_events
+WHERE poi_id IN (
+    '55555555-5555-5555-5555-555555555551',
+    '55555555-5555-5555-5555-555555555552'
+);
 
 INSERT INTO audio_play_events (
     shop_id,
