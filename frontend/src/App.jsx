@@ -8,10 +8,12 @@ import MapPage from "./pages/MapPage";
 import OwnerDashboardPage from "./pages/OwnerDashboardPage";
 import RegisterPage from "./pages/RegisterPage";
 import SettingsPage from "./pages/SettingsPage";
+import SystemBenchmark from "./pages/SystemBenchmark";
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/test" element ={<SystemBenchmark></SystemBenchmark>} ></Route>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 

@@ -91,14 +91,89 @@ const shopsColumns = [
     dataIndex: 'metric' 
   },
 ];
+// --- BỘ CỘT CHO TOP POI (THỐNG KÊ) ---
+const topPoisColumns = [
+  { 
+    title: 'Tên địa điểm', 
+    render: (_, record) => (
+      <strong>{record.name || record.Name || record.shopName || "N/A"}</strong>
+    )
+  },
+  { 
+    title: 'ID', 
+    render: (_, record) => <Tag>{(record.id || record.Id || "").slice(-8)}</Tag>
+  },
+  {
+    title: 'Vị trí',
+    render: (_, record) => {
+      const lat = record.lat ?? record.location?.lat;
+      const lng = record.lng ?? record.location?.lng;
+      return lat ? `${Number(lat).toFixed(3)}, ${Number(lng).toFixed(3)}` : "N/A";
+    }
+  },
+  { 
+    title: 'Lượt tương tác', 
+    dataIndex: 'count',
+    sorter: (a, b) => a.count - b.count,
+    render: (count) => <Tag color="orange" style={{ fontWeight: 'bold' }}>{count} lượt</Tag>
+  },
+  { 
+    title: 'Chỉ số', 
+    dataIndex: 'metric',
+    render: (m) => <Tag color="purple">{m}</Tag>
+  },
+];
 
+// --- BỘ CỘT CHO QUẢN LÝ POI (FULL THÔNG TIN) ---
+const managePoisColumns = [
+  { 
+    title: 'Tên', 
+    render: (_, record) => {
+      const nameObj = record.name || {};
+      return <strong>{nameObj.vi || nameObj.en || record.shopName || "N/A"}</strong>;
+    }
+  },
+  {
+    title: 'Danh mục',
+    dataIndex: 'category',
+    render: (cat) => <Tag color="blue">{cat || 'street_food'}</Tag>
+  },
+  {
+    title: 'Địa chỉ',
+    dataIndex: 'shopAddress',
+    ellipsis: true,
+    width: 200,
+  },
+  {
+    title: 'Thông số',
+    render: (_, record) => (
+      <Space direction="vertical" size={0}>
+        <small>📍 {record.lat}, {record.lng}</small>
+        <small>🎯 Bán kính: {record.radius}m</small>
+      </Space>
+    )
+  },
+  {
+    title: 'Menu',
+    dataIndex: 'menuItems',
+    render: (menu) => (
+      <Tag color={menu?.length > 0 ? "green" : "default"}>
+        {menu?.length || 0} món
+      </Tag>
+    )
+  }
+];
 const poisColumns = [
   { 
     title: 'Tên', 
     dataIndex: 'name',
-    render: (name) => {
+    render: (name, record) => {
+      // Ưu tiên hiển thị displayName (đã map ở useQuery) hoặc shopName
+      if (record.displayName) return <strong>{record.displayName}</strong>;
+      if (record.shopName) return <strong>{record.shopName}</strong>;
+      
       if (!name) return "Không có tên";
-      return name.vi || name.en || Object.values(name)[0];
+      return name.vi || name.en || Object.values(name)[0] || "Không có tên";
     }
   },
   { 
@@ -107,18 +182,38 @@ const poisColumns = [
     render: (id) => id?.slice?.(-8) || "N/A"
   },
   {
+    title: 'Danh mục',
+    dataIndex: 'category',
+    render: (category) => category ? <Tag color="blue">{category}</Tag> : "N/A"
+  },
+  {
+    title: 'Địa chỉ',
+    dataIndex: 'shopAddress',
+    render: (address) => address || "Chưa cập nhật",
+    ellipsis: true, // Thêm ellipsis để tránh địa chỉ quá dài làm vỡ bảng
+  },
+  {
     title: 'Vị trí',
     render: (_, record) => {
-      const lat = record?.lat;
-      const lng = record?.lng;
+      // Lấy từ biến đã map (lat/lng) hoặc lấy trực tiếp từ object location
+      const lat = record?.lat ?? record?.location?.lat;
+      const lng = record?.lng ?? record?.location?.lng;
 
       if (lat == null || lng == null) return "Không có tọa độ";
 
       return `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`;
     }
   },
-  
- 
+  {
+    title: 'Bán kính',
+    dataIndex: 'radius',
+    render: (radius) => radius ? `${radius}m` : "N/A"
+  },
+  {
+    title: 'Thực đơn',
+    dataIndex: 'menuItems',
+    render: (menuItems) => menuItems?.length ? <Tag color="green">{menuItems.length} món</Tag> : "Trống"
+  }
 ];
 
   // ================= QUERY =================
@@ -215,7 +310,7 @@ const poisQuery = useQuery({
   queryFn: () => getPois(),
   select: (res) => {
     const data = res.data ?? [];
-
+console.log(data)
     return data.map(p => ({
       ...p,
       lat: p.location?.lat,
@@ -522,12 +617,13 @@ const poiUpdateMutation = useMutation({
           ) : topPoisQuery.data?.length === 0 ? (
             <Empty />
           ) : (
-            <Table
-              rowKey="Id"
-              columns={poisColumns}
-              dataSource={Array.isArray(topPoisQuery.data) ? topPoisQuery.data : []}
-              pagination={false}
-            />
+          <Table
+  rowKey={(record) => record.id || record.Id}
+  columns={topPoisColumns} // <--- Dùng bộ cột thống kê
+  dataSource={Array.isArray(topPoisQuery.data) ? topPoisQuery.data : []}
+  pagination={false}
+  size="middle"
+/>
           )}
         </Card>
       </Col>
@@ -603,49 +699,106 @@ const poiUpdateMutation = useMutation({
   open={poiModalVisible}
   onCancel={() => setPoiModalVisible(false)}
   footer={null}
+  destroyOnClose // Reset form khi đóng modal
 >
   <Form
     layout="vertical"
-    initialValues={editingPoi || {}}
-onFinish={(values) => {
-const payload = {
-  name: {
-    vi: values.Name,
-    en: values.Name,
-  },
-  category: "food",
+    // 🔥 Map lại dữ liệu để khi nhấn "Sửa", form hiển thị đúng giá trị
+    initialValues={
+      editingPoi
+        ? {
+            ...editingPoi,
+            Name: editingPoi.name?.vi || editingPoi.name?.en || editingPoi.shopName || "",
+            description: editingPoi.description?.vi || editingPoi.description?.en || "",
+            shopAddress: editingPoi.shopAddress || "",
+            Latitude: editingPoi.lat ?? editingPoi.location?.lat ?? "",
+            Longitude: editingPoi.lng ?? editingPoi.location?.lng ?? "",
+          }
+        : {}
+    }
+    onFinish={(values) => {
+      // 🔥 Cấu trúc lại payload theo đúng object JSON của backend
+      const payload = {
+        name: {
+          vi: values.Name,
+          en: values.Name,
+        },
+        description: {
+          vi: values.description || "",
+          en: values.description || "",
+        },
+        shopAddress: values.shopAddress,
+        category: editingPoi?.category || "street_food", // Giữ nguyên category cũ nếu đang sửa
+        lat: Number(values.Latitude), 
+        lng: Number(values.Longitude),
+        radius: editingPoi?.radius || 35, // Giữ nguyên radius cũ hoặc default 35
+        imageUrl: editingPoi?.imageUrl || null,
+      };
 
-  lat: Number(values.Latitude),   // 🔥 đổi lại
-  lng: Number(values.Longitude),  // 🔥 đổi lại
-
-  radius: 500,
-  imageUrl: null,
-};
-
-  if (editingPoi) {
-    poiUpdateMutation.mutate({
-      id: editingPoi.id || editingPoi.Id, // 🔥
-      data: payload,
-    });
-  } else {
-    poiCreateMutation.mutate(payload);
-  }
-}}
+      if (editingPoi) {
+        poiUpdateMutation.mutate({
+          id: editingPoi.id || editingPoi.Id,
+          data: payload,
+        });
+      } else {
+        poiCreateMutation.mutate(payload);
+      }
+      
+      // Đóng modal sau khi submit (tuỳ chọn)
+      setPoiModalVisible(false); 
+    }}
   >
-    <Form.Item name="Name" label="Tên" rules={[{ required: true }]}>
-      <Input />
+    <Form.Item 
+      name="Name" 
+      label="Tên" 
+      rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
+    >
+      <Input placeholder="Nhập tên quán/địa điểm" />
     </Form.Item>
 
-    <Form.Item name="Latitude" label="Latitude" rules={[{ required: true }]}>
-      <Input />
+    <Form.Item 
+      name="shopAddress" 
+      label="Địa chỉ" 
+      rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
+    >
+      <Input placeholder="Nhập địa chỉ đầy đủ" />
     </Form.Item>
 
-    <Form.Item name="Longitude" label="Longitude" rules={[{ required: true }]}>
-      <Input />
+    <Form.Item 
+      name="description" 
+      label="Mô tả"
+    >
+      <Input.TextArea rows={3} placeholder="Nhập mô tả về địa điểm này..." />
     </Form.Item>
 
-    <Button type="primary" htmlType="submit" block>
-      Lưu
+    <Row gutter={16}>
+      <Col span={12}>
+        <Form.Item 
+          name="Latitude" 
+          label="Vĩ độ (Latitude)" 
+          rules={[{ required: true, message: 'Thiếu vĩ độ!' }]}
+        >
+          <Input placeholder="VD: 10.758995" />
+        </Form.Item>
+      </Col>
+      <Col span={12}>
+        <Form.Item 
+          name="Longitude" 
+          label="Kinh độ (Longitude)" 
+          rules={[{ required: true, message: 'Thiếu kinh độ!' }]}
+        >
+          <Input placeholder="VD: 106.703621" />
+        </Form.Item>
+      </Col>
+    </Row>
+
+    <Button 
+      type="primary" 
+      htmlType="submit" 
+      block 
+      loading={poiCreateMutation.isPending || poiUpdateMutation.isPending}
+    >
+      {editingPoi ? "Lưu cập nhật" : "Thêm POI"}
     </Button>
   </Form>
 </Modal>

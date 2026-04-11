@@ -35,6 +35,7 @@ import {
   CompassOutlined,
 } from "@ant-design/icons";
 import "./MapPage.css";
+import SystemBenchMark from "./SystemBenchmark";
 
 const DEFAULT_RADIUS = 500;
 
@@ -314,8 +315,10 @@ return (
                   height: "70vh",
                   borderRadius: 12,
                   overflow: "hidden",
+                  position:"relative"
                 }}
               >
+                <SystemBenchMark />
                 {showSearchBtn && (
                   <Button
                     type="primary"
