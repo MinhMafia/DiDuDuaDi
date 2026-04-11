@@ -20,6 +20,16 @@ export async function reviewOwnerUpgradeRequest(requestId, action, reason) {
   return response.data;
 }
 
+export async function confirmOwnerUpgradePayment(requestId) {
+  const response = await apiClient.post(`/auth/owner-upgrade-requests/${requestId}/confirm-payment`);
+  return response.data;
+}
+
+export async function cancelOwnerUpgradePayment(requestId) {
+  const response = await apiClient.post(`/auth/owner-upgrade-requests/${requestId}/cancel-payment`);
+  return response.data;
+}
+
 export async function getShopIntroReviews(status = "pending") {
   const response = await apiClient.get("/admin/shop-intros", {
     params: { status },
