@@ -10,6 +10,7 @@ import { trackAudioPlay, trackPoiView } from "../services/analyticsService";
 import { getNearbyPois, getPois } from "../services/poiService";
 import { SUPPORTED_LANGUAGES } from "../i18n";
 import { VINH_KHANH_CENTER } from "../utils/constants";
+import { getFoodTours } from "../services/adminService";
 import {
   calculateDistanceMeters,
   formatDistance,
@@ -53,7 +54,12 @@ export default function MapPage() {
   const [viewCenter, setViewCenter] = useState(null);
   const { error: geoError, isLoading: geoLoading, location } = useGeolocation();
   const effectiveLocation = demoLocation ?? location;
-
+const [selectedTour, setSelectedTour] = useState(null);
+const foodToursQuery = useQuery({
+  queryKey: ["foodTours"],
+  queryFn: getFoodTours,
+  select: (res) => res.data ?? res ?? [],
+});
   const allPoisQuery = useQuery({
     queryKey: ["pois"],
     queryFn: getPois,
@@ -494,6 +500,7 @@ return (
                 </Space>
               )}
             </Card>
+            
           </Space>
         </Col>
       </Row>
