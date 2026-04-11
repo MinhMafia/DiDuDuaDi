@@ -20,10 +20,13 @@ import {
 import "./MapPage.css";
 
 const DEFAULT_RADIUS = 500;
+const DEFAULT_MAP_ZOOM = 16;
+const SEARCH_FOCUS_ZOOM = 18;
 
 export default function MapPage() {
   const { i18n, t } = useTranslation();
   const autoPlayAudio = useSelector((state) => state.app.autoPlayAudio);
+  const searchContainerRef = useRef(null);
   const autoFocusedPoiRef = useRef("");
   const trackedAudioRef = useRef("");
   const trackedPoiViewRef = useRef("");
@@ -31,8 +34,10 @@ export default function MapPage() {
   const [demoLocation, setDemoLocation] = useState(null);
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [selectedPoiPlaybackKey, setSelectedPoiPlaybackKey] = useState("");
-  const [isPoiDetailOpen, setIsPoiDetailOpen] = useState(false);
+  const [poiSearchTerm, setPoiSearchTerm] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState(VINH_KHANH_CENTER);
+  const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM);
   const [viewCenter, setViewCenter] = useState(null);
   const { error: geoError, isLoading: geoLoading, location } = useGeolocation();
   const effectiveLocation = demoLocation ?? location;
@@ -44,8 +49,15 @@ export default function MapPage() {
   });
 
   const nearbyPoisQuery = useQuery({
-    queryKey: ["pois", "nearby", effectiveLocation?.lat, effectiveLocation?.lng, radius],
-    queryFn: () => getNearbyPois(effectiveLocation.lat, effectiveLocation.lng, radius),
+    queryKey: [
+      "pois",
+      "nearby",
+      effectiveLocation?.lat,
+      effectiveLocation?.lng,
+      radius,
+    ],
+    queryFn: () =>
+      getNearbyPois(effectiveLocation.lat, effectiveLocation.lng, radius),
     enabled: !!effectiveLocation,
     select: (response) => response.data ?? [],
   });
@@ -69,6 +81,22 @@ export default function MapPage() {
     [i18n.language, rawVisiblePois],
   );
 
+  const normalizedSearchTerm = normalizeForSearch(poiSearchTerm.trim());
+  const poiSearchResults = useMemo(() => {
+    if (!normalizedSearchTerm) return [];
+
+    return visiblePois
+      .filter((poi) => {
+        const name = normalizeForSearch(poi.displayName);
+        const category = normalizeForSearch(poi.category);
+        return (
+          name.includes(normalizedSearchTerm) ||
+          category.includes(normalizedSearchTerm)
+        );
+      })
+      .slice(0, 8);
+  }, [normalizedSearchTerm, visiblePois]);
+
   useEffect(() => {
     if (!selectedPoi || visiblePois.some((poi) => poi.id === selectedPoi.id)) {
       return;
@@ -80,8 +108,23 @@ export default function MapPage() {
 
   useEffect(() => {
     if (!selectedPoi) return;
-    setSelectedPoiPlaybackKey(`${selectedPoi.id}-${i18n.language}-${Date.now()}`);
+    setSelectedPoiPlaybackKey(
+      `${selectedPoi.id}-${i18n.language}-${Date.now()}`,
+    );
   }, [i18n.language, selectedPoi]);
+
+  useEffect(() => {
+    if (!isSearchOpen) return undefined;
+
+    const handleClickOutside = (event) => {
+      if (!searchContainerRef.current?.contains(event.target)) {
+        setIsSearchOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isSearchOpen]);
 
   useEffect(() => {
     if (!selectedPoi?.shopId) return;
@@ -123,9 +166,10 @@ export default function MapPage() {
   const queryError = allPoisQuery.error || nearbyPoisQuery.error;
 
   const nearestPoi = visiblePois[0] ?? null;
-  const nearestPoiDistance = nearestPoi && effectiveLocation
-    ? calculateDistanceMeters(effectiveLocation, nearestPoi.location)
-    : null;
+  const nearestPoiDistance =
+    nearestPoi && effectiveLocation
+      ? calculateDistanceMeters(effectiveLocation, nearestPoi.location)
+      : null;
 
   const routeQuery = useQuery({
     queryKey: [
@@ -146,7 +190,12 @@ export default function MapPage() {
     autoPlayAudio && Boolean(selectedPoiDistance) && selectedPoiDistance <= 35;
 
   useEffect(() => {
-    if (!autoPlayAudio || !nearestPoi || !nearestPoiDistance || nearestPoiDistance > 35) {
+    if (
+      !autoPlayAudio ||
+      !nearestPoi ||
+      !nearestPoiDistance ||
+      nearestPoiDistance > 35
+    ) {
       return;
     }
 
@@ -158,7 +207,7 @@ export default function MapPage() {
     handleSelectPoi(nearestPoi);
   }, [autoPlayAudio, nearestPoi, nearestPoiDistance]);
 
-  function handleSelectPoi(poi) {
+  function handleSelectPoi(poi, options = {}) {
     if (!poi) {
       setSelectedPoi(null);
       setSelectedPoiPlaybackKey("");
@@ -170,6 +219,9 @@ export default function MapPage() {
     setSelectedPoiPlaybackKey(`${poi.id}-${Date.now()}`);
     if (poi?.location) {
       setMapCenter(poi.location);
+      if (options.zoomToPoi) {
+        setMapZoom(SEARCH_FOCUS_ZOOM);
+      }
     }
   }
 
@@ -180,6 +232,7 @@ export default function MapPage() {
     setSelectedPoiPlaybackKey("");
     setIsPoiDetailOpen(false);
     setMapCenter(location);
+    setMapZoom(DEFAULT_MAP_ZOOM);
   }
 
   function handleJumpToVinhKhanh() {
@@ -188,6 +241,7 @@ export default function MapPage() {
     setSelectedPoiPlaybackKey("");
     setIsPoiDetailOpen(false);
     setMapCenter(VINH_KHANH_CENTER);
+    setMapZoom(DEFAULT_MAP_ZOOM);
   }
 
   function handleMapMoveEnd(center) {
@@ -197,6 +251,7 @@ export default function MapPage() {
   function handleMapLongPress(latlng) {
     setDemoLocation({ lat: latlng.lat, lng: latlng.lng });
     setMapCenter({ lat: latlng.lat, lng: latlng.lng });
+    setMapZoom(DEFAULT_MAP_ZOOM);
   }
 
   function handleSearchThisArea() {
@@ -205,14 +260,26 @@ export default function MapPage() {
     }
   }
 
-  const distanceToViewCenter = viewCenter && effectiveLocation 
-    ? calculateDistanceMeters(effectiveLocation, viewCenter) 
-    : 0;
+  function handleSelectSearchResult(poi) {
+    handleSelectPoi(poi, { zoomToPoi: true });
+    setPoiSearchTerm(poi.displayName || "");
+    setIsSearchOpen(false);
+  }
+
+  function handleClearSearch() {
+    setPoiSearchTerm("");
+    setIsSearchOpen(false);
+  }
+
+  const distanceToViewCenter =
+    viewCenter && effectiveLocation
+      ? calculateDistanceMeters(effectiveLocation, viewCenter)
+      : 0;
   const showSearchBtn = distanceToViewCenter > 50;
 
   const speechLanguage =
-    SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)?.speechLocale ||
-    "vi-VN";
+    SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)
+      ?.speechLocale || "vi-VN";
 
   function handleAudioPlaybackStart() {
     if (!selectedPoi?.shopId) return;
@@ -239,7 +306,10 @@ export default function MapPage() {
           : routeQuery.data
             ? t("map.routeSummary", {
                 distance: formatDistance(routeQuery.data.distanceMeters),
-                minutes: Math.max(1, Math.round(routeQuery.data.durationSeconds / 60)),
+                minutes: Math.max(
+                  1,
+                  Math.round(routeQuery.data.durationSeconds / 60),
+                ),
               })
             : ""
       : "";
@@ -283,10 +353,60 @@ export default function MapPage() {
                 />
               </label>
 
+              <div className="map-search" ref={searchContainerRef}>
+                <div className="map-search-input-wrap">
+                  <input
+                    type="text"
+                    className="map-search-input"
+                    value={poiSearchTerm}
+                    placeholder={t("map.searchPlaceholder")}
+                    onFocus={() => setIsSearchOpen(true)}
+                    onChange={(event) => {
+                      setPoiSearchTerm(event.target.value);
+                      setIsSearchOpen(true);
+                    }}
+                  />
+                  {poiSearchTerm ? (
+                    <button
+                      type="button"
+                      className="map-search-clear"
+                      onClick={handleClearSearch}
+                      aria-label={t("map.searchClear")}
+                      title={t("map.searchClear")}
+                    >
+                      ×
+                    </button>
+                  ) : null}
+                </div>
+
+                {isSearchOpen && normalizedSearchTerm ? (
+                  <div className="map-search-dropdown">
+                    {poiSearchResults.length ? (
+                      poiSearchResults.map((poi) => (
+                        <button
+                          type="button"
+                          key={poi.id}
+                          className="map-search-item"
+                          onClick={() => handleSelectSearchResult(poi)}
+                        >
+                          <strong>{poi.displayName}</strong>
+                          <span>{poi.category}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <p className="map-search-empty">
+                        {t("map.searchNoResult")}
+                      </p>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+
               <div className="map-toolbar-text">
                 {effectiveLocation ? (
                   <span>
-                    {effectiveLocation.lat.toFixed(5)}, {effectiveLocation.lng.toFixed(5)}
+                    {effectiveLocation.lat.toFixed(5)},{" "}
+                    {effectiveLocation.lng.toFixed(5)}
                   </span>
                 ) : (
                   <span>{t("map.usingDefaultCenter")}</span>
@@ -324,6 +444,7 @@ export default function MapPage() {
               )}
               <MapView
                 center={mapCenter}
+                zoom={mapZoom}
                 pois={visiblePois}
                 selectedPoi={selectedPoi}
                 selectedPoiId={selectedPoi?.id}
@@ -335,7 +456,11 @@ export default function MapPage() {
                     : ""
                 }
                 userLocation={effectiveLocation}
-                userLocationLabel={demoLocation ? t("map.demoLocationLabel") : t("map.userLocationLabel")}
+                userLocationLabel={
+                  demoLocation
+                    ? t("map.demoLocationLabel")
+                    : t("map.userLocationLabel")
+                }
                 routePath={routePath}
                 onSelectPoi={handleSelectPoi}
                 onMapMoveEnd={handleMapMoveEnd}
@@ -359,7 +484,9 @@ export default function MapPage() {
           <aside className="map-side-panel">
             <article className="panel-card">
               <h2>{t("map.nearbyTitle")}</h2>
-              {geoLoading ? <p className="supporting-text">{t("map.requestingLocation")}</p> : null}
+              {geoLoading ? (
+                <p className="supporting-text">{t("map.requestingLocation")}</p>
+              ) : null}
               {geoError ? <p className="error-text">{geoError}</p> : null}
               {!geoError && effectiveLocation ? (
                 <p className="supporting-text">
@@ -411,9 +538,12 @@ export default function MapPage() {
                       <p>{poi.displayDescription || t("map.noDescription")}</p>
                       <div className="poi-meta">
                         <span>
-                          {poi.location.lat.toFixed(4)}, {poi.location.lng.toFixed(4)}
+                          {poi.location.lat.toFixed(4)},{" "}
+                          {poi.location.lng.toFixed(4)}
                         </span>
-                        {distance ? <span>{formatDistance(distance)}</span> : null}
+                        {distance ? (
+                          <span>{formatDistance(distance)}</span>
+                        ) : null}
                       </div>
                     </button>
                   );
@@ -429,15 +559,25 @@ export default function MapPage() {
                 <div className="selected-poi">
                   <strong>{selectedPoi.displayName}</strong>
                   <span className="poi-category">{selectedPoi.category}</span>
-                  <p>{selectedPoi.displayDescription || t("map.noDescription")}</p>
+                  <p>
+                    {selectedPoi.displayDescription || t("map.noDescription")}
+                  </p>
                   {selectedPoi.approvedIntroduction ? (
-                    <p className="selected-poi-intro">{selectedPoi.approvedIntroduction}</p>
+                    <p className="selected-poi-intro">
+                      {selectedPoi.approvedIntroduction}
+                    </p>
                   ) : null}
                   {selectedPoi.shopAddress ? (
-                    <p className="selected-poi-address">{selectedPoi.shopAddress}</p>
+                    <p className="selected-poi-address">
+                      {selectedPoi.shopAddress}
+                    </p>
                   ) : null}
                   {selectedPoiDistance ? (
-                    <p>{t("map.distanceFromYou", { distance: formatDistance(selectedPoiDistance) })}</p>
+                    <p>
+                      {t("map.distanceFromYou", {
+                        distance: formatDistance(selectedPoiDistance),
+                      })}
+                    </p>
                   ) : (
                     <p>{t("map.tapPoiHint")}</p>
                   )}
@@ -449,8 +589,13 @@ export default function MapPage() {
                     ) : routeQuery.data ? (
                       <p className="supporting-text">
                         {t("map.routeSummary", {
-                          distance: formatDistance(routeQuery.data.distanceMeters),
-                          minutes: Math.max(1, Math.round(routeQuery.data.durationSeconds / 60)),
+                          distance: formatDistance(
+                            routeQuery.data.distanceMeters,
+                          ),
+                          minutes: Math.max(
+                            1,
+                            Math.round(routeQuery.data.durationSeconds / 60),
+                          ),
                         })}
                       </p>
                     ) : null
@@ -461,15 +606,19 @@ export default function MapPage() {
                       <div className="poi-menu-list">
                         {selectedPoi.menuItems.map((item) => (
                           <article key={item.id} className="poi-menu-item">
-                            {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : null}
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl} alt={item.name} />
+                            ) : null}
                             <div>
                               <strong>{item.name}</strong>
                               <p>{item.description}</p>
-                              <span>{new Intl.NumberFormat("vi-VN", {
-                                style: "currency",
-                                currency: "VND",
-                                maximumFractionDigits: 0,
-                              }).format(item.price || 0)}</span>
+                              <span>
+                                {new Intl.NumberFormat("vi-VN", {
+                                  style: "currency",
+                                  currency: "VND",
+                                  maximumFractionDigits: 0,
+                                }).format(item.price || 0)}
+                              </span>
                             </div>
                           </article>
                         ))}
@@ -490,11 +639,15 @@ export default function MapPage() {
                     speechLanguage={speechLanguage}
                     speechText={selectedPoi.displayDescription}
                     title={`${selectedPoi.displayName}${
-                      selectedPoiPlaybackKey || shouldAutoNarrate
+                      autoPlayAudio &&
+                      (selectedPoiPlaybackKey || shouldAutoNarrate)
                         ? ` (${t("audio.autoPlayReady")})`
                         : ""
                     }`}
-                    triggerAutoSpeak={Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate}
+                    triggerAutoSpeak={
+                      autoPlayAudio &&
+                      (Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate)
+                    }
                   />
                 </div>
               )}
@@ -507,7 +660,9 @@ export default function MapPage() {
           poi={selectedPoi}
           distanceLabel={
             selectedPoiDistance
-              ? t("map.distanceFromYou", { distance: formatDistance(selectedPoiDistance) })
+              ? t("map.distanceFromYou", {
+                  distance: formatDistance(selectedPoiDistance),
+                })
               : ""
           }
           routeSummary={detailRouteSummary}
@@ -517,11 +672,23 @@ export default function MapPage() {
           playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
           speechText={selectedPoi.displayDescription}
           titleSuffix={
-            selectedPoiPlaybackKey || shouldAutoNarrate ? t("audio.autoPlayReady") : ""
+            selectedPoiPlaybackKey || shouldAutoNarrate
+              ? t("audio.autoPlayReady")
+              : ""
           }
-          triggerAutoSpeak={Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate}
+          triggerAutoSpeak={
+            Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate
+          }
         />
       ) : null}
     </section>
   );
+}
+
+function normalizeForSearch(value) {
+  return (value || "")
+    .toString()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }

@@ -10,7 +10,10 @@ import {
   useMapEvents,
   ZoomControl,
 } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import "leaflet/dist/leaflet.css";
+import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
+import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
 import { VINH_KHANH_CENTER } from "../../utils/constants";
 
 const mapContainerStyle = {
@@ -20,6 +23,7 @@ const mapContainerStyle = {
 
 export default function MapView({
   center = VINH_KHANH_CENTER,
+  zoom = 16,
   pois = [],
   selectedPoiId,
   userLocation,
@@ -35,12 +39,13 @@ export default function MapView({
   return (
     <MapContainer
       center={center}
-      zoom={16}
+      zoom={zoom}
+      maxZoom={22}
       zoomControl={false}
       style={mapContainerStyle}
       scrollWheelZoom
     >
-      <ChangeView center={center} />
+      <ChangeView center={center} zoom={zoom} />
       <MapEventHandler
         onMapClick={onMapClick}
         onMapMoveEnd={onMapMoveEnd}
@@ -49,6 +54,7 @@ export default function MapView({
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        maxZoom={22}
       />
       <ZoomControl position="bottomright" />
 
@@ -78,52 +84,59 @@ export default function MapView({
         />
       ) : null}
 
-      {pois.map((poi) => {
-        const isSelected = poi.id === selectedPoiId;
-        const shouldShowTooltip = suppressedTooltipPoiId !== poi.id;
+      <MarkerClusterGroup
+        chunkedLoading
+        disableClusteringAtZoom={19}
+        spiderfyOnMaxZoom
+        showCoverageOnHover={false}
+      >
+        {pois.map((poi) => {
+          const isSelected = poi.id === selectedPoiId;
+          const shouldShowTooltip = suppressedTooltipPoiId !== poi.id;
 
-        return (
-          <CircleMarker
-            key={poi.id}
-            center={poi.location}
-            eventHandlers={{
-              mousedown: () => setSuppressedTooltipPoiId(poi.id),
-              mouseout: () => {
-                if (suppressedTooltipPoiId === poi.id) {
-                  setSuppressedTooltipPoiId(null);
-                }
-              },
-              click: () => onSelectPoi?.(poi),
-            }}
-            pathOptions={{
-              color: isSelected ? "#c2410c" : "#1d4ed8",
-              fillColor: isSelected ? "#ff6b35" : "#2563eb",
-              fillOpacity: 0.95,
-              weight: 2,
-            }}
-            radius={isSelected ? 12 : 9}
-          >
-            {shouldShowTooltip ? (
-              <Tooltip direction="top" offset={[0, -8]} className="poi-hover-tooltip">
-                <div className="poi-hover-tooltip-content">
-                  <strong title={poi.displayName}>{poi.displayName}</strong>
-                  <span className="poi-category">{poi.category}</span>
-                </div>
-              </Tooltip>
-            ) : null}
-          </CircleMarker>
-        );
-      })}
+          return (
+            <CircleMarker
+              key={poi.id}
+              center={poi.location}
+              eventHandlers={{
+                mousedown: () => setSuppressedTooltipPoiId(poi.id),
+                mouseout: () => {
+                  if (suppressedTooltipPoiId === poi.id) {
+                    setSuppressedTooltipPoiId(null);
+                  }
+                },
+                click: () => onSelectPoi?.(poi),
+              }}
+              pathOptions={{
+                color: isSelected ? "#c2410c" : "#1d4ed8",
+                fillColor: isSelected ? "#ff6b35" : "#2563eb",
+                fillOpacity: 0.95,
+                weight: 2,
+              }}
+              radius={isSelected ? 12 : 9}
+            >
+              {shouldShowTooltip ? (
+                <Tooltip direction="top" offset={[0, -8]} className="poi-hover-tooltip">
+                  <div className="poi-hover-tooltip-content">
+                    <strong title={poi.displayName}>{poi.displayName}</strong>
+                    <span className="poi-category">{poi.category}</span>
+                  </div>
+                </Tooltip>
+              ) : null}
+            </CircleMarker>
+          );
+        })}
+      </MarkerClusterGroup>
     </MapContainer>
   );
 }
 
-function ChangeView({ center }) {
+function ChangeView({ center, zoom }) {
   const map = useMap();
 
   useEffect(() => {
-    map.setView(center);
-  }, [center, map]);
+    map.setView(center, zoom);
+  }, [center, map, zoom]);
 
   return null;
 }
