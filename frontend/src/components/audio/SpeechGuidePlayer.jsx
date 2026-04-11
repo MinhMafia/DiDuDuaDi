@@ -205,6 +205,8 @@ export default function SpeechGuidePlayer({
       .map(v => ({ voice: v, score: getVoiceScore(v) }))
       .filter(v => v.score > 0)
       .sort((a, b) => b.score - a.score)[0];
+    const shouldPreferCloudTts =
+      isVietnamese || !matchingVoiceWithScore?.voice;
 
     const speakWithBrowserTts = () => {
       if (!canUseSpeechSynthesis) {
@@ -258,8 +260,8 @@ export default function SpeechGuidePlayer({
       return;
     }
 
-    // Vietnamese playback is forced to cloud TTS for consistent quality across devices.
-    if (isVietnamese) {
+    // Prefer cloud TTS when the browser does not have a matching voice for the selected language.
+    if (shouldPreferCloudTts) {
       cloudTtsPlayerRef.current = playCloudTts(finalSpeechText, speechLanguage, {
           onPlay: () => { setIsPlaying(true); onPlaybackStart?.(); },
           onEnd: () => {
@@ -268,7 +270,6 @@ export default function SpeechGuidePlayer({
           },
           onError: () => {
             cloudTtsPlayerRef.current = null;
-            // Avoid falling back to a wrong-language voice that reads Vietnamese text incorrectly.
             if (!speakWithBrowserTts()) {
               setIsPlaying(false);
             }
@@ -277,7 +278,22 @@ export default function SpeechGuidePlayer({
       return;
     }
 
-    speakWithBrowserTts();
+    if (!speakWithBrowserTts()) {
+      cloudTtsPlayerRef.current = playCloudTts(finalSpeechText, speechLanguage, {
+        onPlay: () => {
+          setIsPlaying(true);
+          onPlaybackStart?.();
+        },
+        onEnd: () => {
+          cloudTtsPlayerRef.current = null;
+          setIsPlaying(false);
+        },
+        onError: () => {
+          cloudTtsPlayerRef.current = null;
+          setIsPlaying(false);
+        },
+      });
+    }
   }
 
   function stopSpeech() {

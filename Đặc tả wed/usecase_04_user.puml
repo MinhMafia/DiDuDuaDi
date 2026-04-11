@@ -1,0 +1,81 @@
+@startuml
+skinparam usecaseFontSize 12
+skinparam usecaseFontName "Times New Roman"
+skinparam actorFontSize 13
+skinparam actorFontName "Times New Roman"
+skinparam backgroundColor White
+
+actor "User" as User
+
+rectangle "Trai nghiem User" {
+  usecase "UC01\nDang ky tai khoan" as UC01
+  usecase "UC01a\nNhap thong tin dang ky" as UC01a
+
+  usecase "UC02\nDang nhap" as UC02
+  usecase "UC02a\nNhap username password" as UC02a
+
+  usecase "UC03\nXem danh sach POI" as UC03
+
+  usecase "UC04\nXem chi tiet POI" as UC04
+
+  usecase "UC05\nTim kiem POI" as UC05
+  usecase "UC05a\nLoc theo category" as UC05a
+  usecase "UC05b\nTim theo ten POI" as UC05b
+
+  usecase "UC06\nHien thi POI tren ban do" as UC06
+  usecase "UC06a\nDieu chinh ban kinh tim kiem" as UC06a
+
+  usecase "UC07\nTim duong den POI" as UC07
+  usecase "UC07a\nXem lo trinh tren ban do" as UC07a
+
+  usecase "UC08\nNghe thuyet minh da ngon ngu" as UC08
+  usecase "UC08a\nChon ngon ngu thuyet minh" as UC08a
+  usecase "UC08b\nPhat dung audio" as UC08b
+
+  usecase "UC09\nAuto-play thuyet minh" as UC09
+  usecase "UC09a\nBat tat auto-play" as UC09a
+
+  usecase "UC10\nGui yeu cau nang cap Owner" as UC10
+  usecase "UC10a\nDien form nang cap Owner" as UC10a
+
+  usecase "UC11\nChat tro ly AI" as UC11
+  usecase "UC11a\nNhan tin voi chatbot" as UC11a
+}
+
+rectangle "Dich vu ben ngoai" {
+  usecase "OSRM\nRouting API" as OSRM
+  usecase "TTS\nWeb Speech API / Google Cloud TTS" as TTS
+  usecase "GPS\nGeolocation" as GPS
+}
+
+User --> UC01
+User --> UC02
+User --> UC03
+User --> UC04
+User --> UC05
+User --> UC06
+User --> UC07
+User --> UC08
+User --> UC09
+User --> UC10
+User --> UC11
+
+UC01 ..> UC01a : <<include>>
+UC02 ..> UC02a : <<include>>
+UC05 ..> UC05a : <<extend>>
+UC05 ..> UC05b : <<extend>>
+UC06 ..> UC06a : <<extend>>
+UC07 ..> UC07a : <<extend>>
+UC08 ..> UC08a : <<extend>>
+UC08 ..> UC08b : <<extend>>
+UC09 ..> UC09a : <<extend>>
+UC10 ..> UC10a : <<include>>
+UC11 ..> UC11a : <<include>>
+
+UC06 ..> GPS : <<include>>
+UC07 ..> OSRM : <<include>>
+UC08 ..> TTS : <<include>>
+UC09 ..> GPS : <<include>>
+UC09 ..> TTS : <<include>>
+
+@enduml

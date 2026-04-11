@@ -9,7 +9,7 @@ import fr from "./locales/fr.json";
 import th from "./locales/th.json";
 
 export const SUPPORTED_LANGUAGES = [
-  { code: "vi", label: "VI", nativeLabel: "Tiếng Việt", speechLocale: "vi-VN" },
+  { code: "vi", label: "Việt", nativeLabel: "Tiếng Việt", speechLocale: "vi-VN" },
   { code: "en", label: "EN", nativeLabel: "English", speechLocale: "en-US" },
   { code: "zh", label: "中文", nativeLabel: "中文", speechLocale: "zh-CN" },
   { code: "ja", label: "日本語", nativeLabel: "日本語", speechLocale: "ja-JP" },

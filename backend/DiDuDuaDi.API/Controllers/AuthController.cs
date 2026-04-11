@@ -104,6 +104,20 @@ public class AuthController(IAuthRepository authRepository, ITokenService tokenS
         return Ok(new ApiResponse<IReadOnlyList<OwnerUpgradeRequestSummary>>(requests));
     }
 
+    [HttpGet("my-owner-upgrade-request")]
+    [Authorize(Roles = "user")]
+    public ActionResult<ApiResponse<OwnerUpgradeRequestSummary?>> GetMyOwnerUpgradeRequest()
+    {
+        var username = User.FindFirstValue(ClaimTypes.Name);
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return BadRequest(new ApiResponse<OwnerUpgradeRequestSummary?>(null, false, "Username is required"));
+        }
+
+        var request = authRepository.GetLatestOwnerUpgradeRequest(username);
+        return Ok(new ApiResponse<OwnerUpgradeRequestSummary?>(request, true));
+    }
+
     [HttpPost("owner-upgrade-requests/{requestId:long}/approve")]
     [Authorize(Roles = "admin")]
     public ActionResult<ApiResponse<OwnerUpgradeRequestSummary>> ApproveOwnerUpgradeRequest(long requestId)
@@ -120,7 +134,7 @@ public class AuthController(IAuthRepository authRepository, ITokenService tokenS
             return NotFound(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Request not found, already reviewed, or admin invalid"));
         }
 
-        return Ok(new ApiResponse<OwnerUpgradeRequestSummary>(approved, true, "Owner role approved successfully"));
+        return Ok(new ApiResponse<OwnerUpgradeRequestSummary>(approved, true, "Payment QR generated successfully"));
     }
 
     [HttpPost("owner-upgrade-requests/{requestId:long}/review")]
@@ -145,5 +159,43 @@ public class AuthController(IAuthRepository authRepository, ITokenService tokenS
         }
 
         return Ok(new ApiResponse<OwnerUpgradeRequestSummary>(reviewed, true, "Owner upgrade request reviewed successfully"));
+    }
+
+    [HttpPost("owner-upgrade-requests/{requestId:long}/confirm-payment")]
+    [Authorize(Roles = "admin")]
+    public ActionResult<ApiResponse<OwnerUpgradeRequestSummary>> ConfirmOwnerUpgradePayment(long requestId)
+    {
+        var adminUsername = User.FindFirstValue(ClaimTypes.Name);
+        if (string.IsNullOrWhiteSpace(adminUsername))
+        {
+            return BadRequest(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "adminUsername is required"));
+        }
+
+        var confirmed = authRepository.ConfirmOwnerUpgradePayment(requestId, adminUsername);
+        if (confirmed is null)
+        {
+            return NotFound(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Request not found, not waiting payment, or admin invalid"));
+        }
+
+        return Ok(new ApiResponse<OwnerUpgradeRequestSummary>(confirmed, true, "Owner role activated after payment"));
+    }
+
+    [HttpPost("owner-upgrade-requests/{requestId:long}/cancel-payment")]
+    [Authorize(Roles = "admin")]
+    public ActionResult<ApiResponse<OwnerUpgradeRequestSummary>> CancelOwnerUpgradePayment(long requestId)
+    {
+        var adminUsername = User.FindFirstValue(ClaimTypes.Name);
+        if (string.IsNullOrWhiteSpace(adminUsername))
+        {
+            return BadRequest(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "adminUsername is required"));
+        }
+
+        var canceled = authRepository.CancelOwnerUpgradePayment(requestId, adminUsername);
+        if (canceled is null)
+        {
+            return NotFound(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Request not found, not waiting payment, or admin invalid"));
+        }
+
+        return Ok(new ApiResponse<OwnerUpgradeRequestSummary>(canceled, true, "Payment QR canceled successfully"));
     }
 }

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hinh 2 - Usecase Admin</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Times New Roman", Times, serif;
+        background: #fff;
+        color: #000;
+        padding: 30px 40px;
+      }
+      h1 {
+        text-align: center;
+        font-size: 22pt;
+        font-weight: bold;
+        margin-bottom: 8pt;
+        text-transform: uppercase;
+      }
+      .desc {
+        text-align: center;
+        font-size: 14pt;
+        margin-bottom: 20pt;
+        font-style: italic;
+      }
+      .mermaid {
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hinh 2: So do Usecase chi tiet Admin</h1>
+    <p class="desc">
+      So do usecase chi tiet cua Admin voi 4 usecase chinh va cac usecase con
+    </p>
+
+    <div class="mermaid">
+      graph TD subgraph QuanLyAdmin["Quan ly Admin"] UC17["UC17: Duyet yeu cau
+      nang cap Owner"] UC17a["UC17a: Xem danh sach yeu cau"] UC17b["UC17b: Phe
+      duyet yeu cau"] UC17c["UC17c: Tu choi yeu cau"] UC18["UC18: Kiem duyet noi
+      dung gioi thieu shop"] UC18a["UC18a: Xem danh sach shop can duy"]
+      UC18b["UC18b: Phe duyet noi dung"] UC18c["UC18c: Tu choi noi dung"]
+      UC19["UC19: Quan ly POI CRUD"] UC19a["UC19a: Tao POI moi"] UC19b["UC19b:
+      Cap nhat POI"] UC19c["UC19c: Xoa POI"] UC20["UC20: Xem analytics he
+      thong"] UC20a["UC20a: Thong ke luot truy cap"] UC20b["UC20b: Thong ke luot
+      phat audio"] end Admin["Admin"]:::actor Admin --> UC17 Admin --> UC18
+      Admin --> UC19 Admin --> UC20 UC17 -.->|"include"| UC17a UC17
+      -.->|"extend"| UC17b UC17 -.->|"extend"| UC17c UC18 -.->|"include"| UC18a
+      UC18 -.->|"extend"| UC18b UC18 -.->|"extend"| UC18c UC19 -.->|"extend"|
+      UC19a UC19 -.->|"extend"| UC19b UC19 -.->|"extend"| UC19c UC20
+      -.->|"extend"| UC20a UC20 -.->|"extend"| UC20b classDef actor
+      fill:#FFF9C4,stroke:#F57F17,stroke-width:3px,color:#000,font-size:18px;
+      classDef main
+      fill:#E8F5E9,stroke:#2E7D32,stroke-width:2.5px,color:#000,font-size:14px;
+      classDef sub
+      fill:#F1F8E9,stroke:#689F38,stroke-width:1.5px,color:#000,font-size:12px;
+      class Admin actor; class UC17,UC18,UC19,UC20 main; class
+      UC17a,UC17b,UC17c,UC18a,UC18b,UC18c,UC19a,UC19b,UC19c,UC20a,UC20b sub;
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        securityLevel: "loose",
+        flowchart: {
+          htmlLabels: true,
+          curve: "basis",
+          padding: 20,
+          nodeSpacing: 14,
+          rankSpacing: 30,
+        },
+      });
+    </script>
+  </body>
+</html>

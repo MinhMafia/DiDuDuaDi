@@ -1,0 +1,55 @@
+@startuml
+skinparam usecaseFontSize 12
+skinparam usecaseFontName "Times New Roman"
+skinparam actorFontSize 13
+skinparam actorFontName "Times New Roman"
+skinparam backgroundColor White
+
+actor "Owner" as Owner
+
+rectangle "Quan ly Owner" {
+  usecase "UC12\nQuan ly ho so cua hang" as UC12
+  usecase "UC12a\nCap nhat thong tin shop" as UC12a
+  usecase "UC12b\nGui noi dung gioi thieu cho duy" as UC12b
+
+  usecase "UC13\nQuan ly noi dung POI" as UC13
+  usecase "UC13a\nChinh sua ten mo ta POI" as UC13a
+
+  usecase "UC14\nQuan ly thuc don" as UC14
+  usecase "UC14a\nThem mon an moi" as UC14a
+  usecase "UC14b\nSua thong tin mon an" as UC14b
+  usecase "UC14c\nXoa mon an" as UC14c
+
+  usecase "UC15\nTao ma claim code" as UC15
+  usecase "UC15a\nSinh ma claim code" as UC15a
+  usecase "UC15b\nXem lich su ma da tao" as UC15b
+
+  usecase "UC16\nXem thong ke dashboard" as UC16
+  usecase "UC16a\nXem dashboard tong quan" as UC16a
+}
+
+rectangle "He thong tu dong" {
+  usecase "AutoTrans\nDich noi dung tu dong" as AutoTrans
+  usecase "Notify\nGui thong bao duy" as Notify
+}
+
+Owner --> UC12
+Owner --> UC13
+Owner --> UC14
+Owner --> UC15
+Owner --> UC16
+
+UC12 ..> UC12a : <<extend>>
+UC12 ..> UC12b : <<extend>>
+UC13 ..> UC13a : <<extend>>
+UC14 ..> UC14a : <<extend>>
+UC14 ..> UC14b : <<extend>>
+UC14 ..> UC14c : <<extend>>
+UC15 ..> UC15a : <<extend>>
+UC15 ..> UC15b : <<extend>>
+UC16 ..> UC16a : <<extend>>
+
+UC13a ..> AutoTrans : <<include>>
+UC12b ..> Notify : <<include>>
+
+@enduml

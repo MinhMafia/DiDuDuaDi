@@ -9,7 +9,10 @@ public interface IAuthRepository
     OwnerUpgradeRequestSummary? CreateOwnerUpgradeRequest(CreateOwnerUpgradeRequest request);
     string? GetRoleCodeByUsername(string username);
     bool HasPendingOwnerUpgradeRequest(string username);
+    OwnerUpgradeRequestSummary? GetLatestOwnerUpgradeRequest(string username);
     IReadOnlyList<OwnerUpgradeRequestSummary> GetOwnerUpgradeRequests(string? status);
     OwnerUpgradeRequestSummary? ApproveOwnerUpgradeRequest(long requestId, string adminUsername);
     OwnerUpgradeRequestSummary? ReviewOwnerUpgradeRequest(long requestId, string adminUsername, string action, string? reason);
+    OwnerUpgradeRequestSummary? CancelOwnerUpgradePayment(long requestId, string adminUsername);
+    OwnerUpgradeRequestSummary? ConfirmOwnerUpgradePayment(long requestId, string adminUsername);
 }

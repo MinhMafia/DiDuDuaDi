@@ -18,3 +18,8 @@ export async function createOwnerUpgradeRequest(payload) {
   const response = await apiClient.post("/auth/owner-upgrade-request", payload);
   return response.data;
 }
+
+export async function getMyOwnerUpgradeRequest() {
+  const response = await apiClient.get("/auth/my-owner-upgrade-request");
+  return response.data;
+}

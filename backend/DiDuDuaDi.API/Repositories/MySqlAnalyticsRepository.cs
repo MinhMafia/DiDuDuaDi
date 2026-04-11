@@ -1,5 +1,8 @@
 using Dapper;
+using System.Linq;
 using DiDuDuaDi.API.Data;
+using DiDuDuaDi.API.Models;
+
 
 namespace DiDuDuaDi.API.Repositories;
 
@@ -80,4 +83,86 @@ public class MySqlAnalyticsRepository(IDbConnectionFactory connectionFactory) : 
         public Guid PoiId { get; init; }
         public Guid? ShopId { get; init; }
     }
+
+    public IReadOnlyList<TopShopSummary> GetTopShops(int days = 30, int limit = 10, string metric = "visits")
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        var tableName = metric.ToLower() switch
+        {
+            "audio" => "audio_play_events",
+            _ => "shop_visit_events"
+        };
+        var metricName = metric.ToLower() switch
+        {
+            "audio" => "Audio Plays",
+            _ => "Visits"
+        };
+
+        const string query = """
+            SELECT 
+                s.name AS Name,
+                s.slug AS Slug,
+                s.latitude AS Latitude,
+                s.longitude AS Longitude,
+                COUNT(*) AS Count
+            FROM {0} e
+            JOIN shops s ON e.shop_id = s.id
+            WHERE e.created_at >= DATE_SUB(NOW(), INTERVAL @Days DAY)
+            GROUP BY e.shop_id
+            ORDER BY Count DESC
+            LIMIT @Limit
+            """;
+
+        var formattedQuery = string.Format(query, tableName);
+
+        var results = connection.Query<TopShopSummary>(formattedQuery, new { Days = days, Limit = limit })
+            .ToList();
+        foreach (var r in results) {
+            r.Metric = metricName;
+        }
+        return results.AsReadOnly();
+    }
+
+    public IReadOnlyList<TopPoiSummary> GetTopPois(int days = 30, int limit = 10, string metric = "visits")
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        var tableName = metric.ToLower() switch
+        {
+            "audio" => "audio_play_events",
+            _ => "shop_visit_events"
+        };
+        var metricName = metric.ToLower() switch
+        {
+            "audio" => "Audio Plays",
+            _ => "Visits"
+        };
+
+        const string query = """
+            SELECT 
+                COALESCE(pt.name, 'Unnamed POI') AS Name,
+                p.id AS Id,
+                p.latitude AS Latitude,
+                p.longitude AS Longitude,
+                COUNT(*) AS Count
+            FROM {0} e
+            JOIN pois p ON e.poi_id = p.id
+            LEFT JOIN poi_translations pt ON pt.poi_id = p.id AND pt.language_code = 'vi'
+            WHERE e.created_at >= DATE_SUB(NOW(), INTERVAL @Days DAY)
+            GROUP BY p.id
+            ORDER BY Count DESC
+            LIMIT @Limit
+            """;
+
+        var formattedQuery = string.Format(query, tableName);
+
+        var results = connection.Query<TopPoiSummary>(formattedQuery, new { Days = days, Limit = limit })
+            .ToList();
+        foreach (var r in results) {
+            r.Metric = metricName;
+        }
+        return results.AsReadOnly();
+    }
 }
+

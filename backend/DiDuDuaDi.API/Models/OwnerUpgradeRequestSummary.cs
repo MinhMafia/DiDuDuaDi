@@ -15,4 +15,11 @@ public class OwnerUpgradeRequestSummary
     public DateTime? ReviewedAt { get; set; }
     public string? ReviewedBy { get; set; }
     public string? ReviewNote { get; set; }
+    public decimal? UpgradeFeeAmount { get; set; }
+    public string? PaymentReferenceCode { get; set; }
+    public string? PaymentQrContent { get; set; }
+    public string? PaymentQrImageUrl { get; set; }
+    public DateTime? PaymentRequestedAt { get; set; }
+    public DateTime? PaymentConfirmedAt { get; set; }
+    public DateTime? ActivatedAt { get; set; }
 }

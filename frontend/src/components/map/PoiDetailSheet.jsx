@@ -3,10 +3,12 @@ import SpeechGuidePlayer from "../audio/SpeechGuidePlayer";
 
 export default function PoiDetailSheet({
   poi,
+  autoNarrateOnTouch = false,
   distanceLabel,
   routeSummary,
   speechLanguage,
   onClose,
+  onNarrateRequest,
   onPlaybackStart,
   playbackKey,
   speechText,
@@ -59,9 +61,19 @@ export default function PoiDetailSheet({
                 <strong>{t("map.labels.phone")}:</strong> {poi.phone}
               </p>
             ) : null}
-            <p>{poi.displayDescription || t("map.noDescription")}</p>
-            {poi.approvedIntroduction ? (
-              <p className="poi-detail-intro">{poi.approvedIntroduction}</p>
+            {autoNarrateOnTouch ? (
+              <button
+                type="button"
+                className="poi-description-trigger"
+                onClick={onNarrateRequest}
+              >
+                {poi.displayDescription || t("map.noDescription")}
+              </button>
+            ) : (
+              <p>{poi.displayDescription || t("map.noDescription")}</p>
+            )}
+            {poi.displayIntroduction ? (
+              <p className="poi-detail-intro">{poi.displayIntroduction}</p>
             ) : null}
             {routeSummary ? <p className="poi-detail-route">{routeSummary}</p> : null}
           </section>

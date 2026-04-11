@@ -1,0 +1,224 @@
+.collaboration-page {
+  display: grid;
+  gap: 16px;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.collaboration-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.collaboration-form {
+  display: grid;
+  gap: 12px;
+}
+
+.collaboration-label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.collaboration-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 12px 14px;
+  outline: none;
+  width: 100%;
+  min-height: 46px;
+  font: inherit;
+}
+
+.collaboration-input:focus {
+  border-color: #0f766e;
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+
+.collaboration-textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.collaboration-submit {
+  border: none;
+  border-radius: 14px;
+  background: #0f766e;
+  color: #fff;
+  padding: 13px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 48px;
+}
+
+.collaboration-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.collaboration-status-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.collaboration-status-badge {
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 800;
+  font-size: 13px;
+  max-width: 100%;
+}
+
+.collaboration-info-text {
+  margin: 0 0 14px;
+  color: #334155;
+}
+
+.collaboration-notice {
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px;
+  background: #f8fafc;
+}
+
+.collaboration-rejected {
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  padding: 16px;
+  background: #fff1f2;
+  margin-top: 14px;
+}
+
+.collaboration-payment-layout {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(260px, 320px);
+  align-items: start;
+}
+
+.collaboration-detail-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.collaboration-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.collaboration-detail-label {
+  color: #64748b;
+}
+
+.collaboration-detail-value {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.collaboration-qr-panel {
+  display: grid;
+  gap: 12px;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
+  padding: 16px;
+  background: #eff6ff;
+  justify-items: center;
+  align-content: start;
+}
+
+.collaboration-qr-title {
+  font-size: 16px;
+}
+
+.collaboration-qr-image {
+  width: 100%;
+  max-width: 260px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px;
+  border: 1px solid #bfdbfe;
+}
+
+.collaboration-qr-content {
+  margin-top: 16px;
+  display: grid;
+  gap: 8px;
+}
+
+.collaboration-code {
+  display: block;
+  white-space: pre-wrap;
+  padding: 12px;
+  border-radius: 12px;
+  background: #0f172a;
+  color: #f8fafc;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .collaboration-page {
+    gap: 12px;
+  }
+
+  .collaboration-card {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .collaboration-payment-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .collaboration-qr-panel {
+    order: -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .collaboration-card {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .collaboration-status-head {
+    margin-bottom: 12px;
+  }
+
+  .collaboration-status-badge {
+    width: 100%;
+    text-align: center;
+  }
+
+  .collaboration-notice,
+  .collaboration-rejected {
+    padding: 14px;
+  }
+
+  .collaboration-detail-row {
+    align-items: flex-start;
+  }
+
+  .collaboration-detail-value {
+    width: 100%;
+    text-align: left;
+  }
+
+  .collaboration-submit {
+    width: 100%;
+  }
+}

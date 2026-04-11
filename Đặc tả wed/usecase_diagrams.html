@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sơ đồ Usecase – DiDuDuaDi</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 14pt;
+  background: #fff;
+  color: #000;
+  padding: 20px;
+}
+h1 {
+  text-align: center;
+  font-size: 18pt;
+  font-weight: bold;
+  margin-bottom: 6pt;
+  text-transform: uppercase;
+}
+h2 {
+  font-size: 16pt;
+  font-weight: bold;
+  margin: 30pt 0 8pt 0;
+  border-bottom: 2px solid #333;
+  padding-bottom: 4pt;
+}
+.desc {
+  font-size: 13pt;
+  margin-bottom: 14pt;
+  text-align: justify;
+  text-indent: 1.27cm;
+}
+.diagram-wrap {
+  width: 1200px;
+  margin: 0 auto 40pt auto;
+  background: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+.mermaid {
+  display: flex;
+  justify-content: center;
+}
+</style>
+</head>
+<body>
+
+<h1>Sơ đồ Usecase – Hệ thống DiDuDuaDi</h1>
+
+<!-- ====== HÌNH 1: TỔNG QUÁT ====== -->
+<h2>Hình 1: Sơ đồ Usecase tổng quát</h2>
+<p class="desc">Thể hiện mối quan hệ giữa ba tác nhân (User, Owner, Admin) với các chức năng chính của hệ thống DiDuDuaDi.</p>
+<div class="diagram-wrap">
+<div class="mermaid">
+graph TB
+  subgraph "HỆ THỐNG DiDuDuaDi"
+    UC01["UC01<br/>Đăng ký<br/>tài khoản"]
+    UC02["UC02<br/>Đăng nhập"]
+    UC03["UC03<br/>Xem danh sách<br/>POI"]
+    UC04["UC04<br/>Xem chi tiết<br/>POI"]
+    UC05["UC05<br/>Tìm kiếm POI"]
+    UC06["UC06<br/>Hiển thị POI<br/>trên bản đồ"]
+    UC07["UC07<br/>Tìm đường<br/>đến POI"]
+    UC08["UC08<br/>Nghe thuyết minh<br/>đa ngôn ngữ"]
+    UC09["UC09<br/>Auto-play thuyết minh"]
+    UC10["UC10<br/>Gửi yêu cầu<br/>nâng cấp Owner"]
+    UC11["UC11<br/>Chat trợ lý AI"]
+    UC12["UC12<br/>Quản lý hồ sơ<br/>cửa hàng"]
+    UC13["UC13<br/>Quản lý nội dung<br/>POI"]
+    UC14["UC14<br/>Quản lý thực đơn"]
+    UC15["UC15<br/>Tạo mã<br/>claim code"]
+    UC16["UC16<br/>Xem thống kê<br/>dashboard"]
+    UC17["UC17<br/>Duyệt yêu cầu<br/>nâng cấp Owner"]
+    UC18["UC18<br/>Kiểm duyệt nội dung<br/>giới thiệu shop"]
+    UC19["UC19<br/>Quản lý POI<br/>(CRUD)"]
+    UC20["UC20<br/>Xem analytics<br/>hệ thống"]
+  end
+
+  U["👤 User"]:::user
+  O["👤 Owner"]:::owner
+  A["👤 Admin"]:::admin
+
+  U --> UC01
+  U --> UC02
+  U --> UC03
+  U --> UC04
+  U --> UC05
+  U --> UC06
+  U --> UC07
+  U --> UC08
+  U --> UC09
+  U --> UC10
+  U --> UC11
+
+  O --> UC02
+  O --> UC12
+  O --> UC13
+  O --> UC14
+  O --> UC15
+  O --> UC16
+
+  A --> UC02
+  A --> UC17
+  A --> UC18
+  A --> UC19
+  A --> UC20
+
+  UC04 -.->|include| UC08
+  UC06 -.->|include| UC07
+
+  classDef user fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#000;
+  classDef owner fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000;
+  classDef admin fill:#FFF3E0,stroke:#E65100,stroke-width:2px,color:#000;
+</div>
+</div>
+
+<!-- ====== HÌNH 2: ADMIN ====== -->
+<h2>Hình 2: Sơ đồ Usecase chi tiết Admin</h2>
+<p class="desc">Sơ đồ usecase chi tiết của Admin, bao gồm 4 usecase chính và các usecase con mở rộng cho từng chức năng quản trị.</p>
+<div class="diagram-wrap">
+<div class="mermaid">
+graph TB
+  subgraph "QUẢN LÝ ADMIN"
+    UC17["UC17<br/>Duyệt yêu cầu nâng cấp<br/>Owner"]
+    UC18["UC18<br/>Kiểm duyệt nội dung<br/>giới thiệu shop"]
+    UC19["UC19<br/>Quản lý POI (CRUD)"]
+    UC20["UC20<br/>Xem analytics<br/>hệ thống"]
+
+    UC17a["UC17a<br/>Xem danh sách<br/>yêu cầu"]
+    UC17b["UC17b<br/>Phê duyệt"]
+    UC17c["UC17c<br/>Từ chối"]
+
+    UC18a["UC18a<br/>Xem danh sách shop<br/>cần duyệt"]
+    UC18b["UC18b<br/>Phê duyệt intro"]
+    UC18c["UC18c<br/>Từ chối intro"]
+
+    UC19a["UC19a<br/>Tạo POI mới"]
+    UC19b["UC19b<br/>Cập nhật POI"]
+    UC19c["UC19c<br/>Xóa POI"]
+
+    UC20a["UC20a<br/>Thống kê<br/>lượt truy cập"]
+    UC20b["UC20b<br/>Thống kê<br/>lượt audio"]
+  end
+
+  A["👤 Admin"]:::admin
+
+  A --> UC17
+  A --> UC18
+  A --> UC19
+  A --> UC20
+
+  UC17 -.->|include| UC17a
+  UC17 -.->|extend| UC17b
+  UC17 -.->|extend| UC17c
+
+  UC18 -.->|include| UC18a
+  UC18 -.->|extend| UC18b
+  UC18 -.->|extend| UC18c
+
+  UC19 -.->|extend| UC19a
+  UC19 -.->|extend| UC19b
+  UC19 -.->|extend| UC19c
+
+  UC20 -.->|extend| UC20a
+  UC20 -.->|extend| UC20b
+
+  classDef admin fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000;
+</div>
+</div>
+
+<!-- ====== HÌNH 3: OWNER ====== -->
+<h2>Hình 3: Sơ đồ Usecase chi tiết Owner</h2>
+<p class="desc">Sơ đồ usecase chi tiết của Owner, bao gồm 5 usecase chính và các usecase con. Hệ thống tự động dịch nội dung và gửi thông báo.</p>
+<div class="diagram-wrap">
+<div class="mermaid">
+graph TB
+  subgraph "QUẢN LÝ OWNER"
+    UC12["UC12<br/>Quản lý hồ sơ<br/>cửa hàng"]
+    UC13["UC13<br/>Quản lý nội dung POI"]
+    UC14["UC14<br/>Quản lý thực đơn"]
+    UC15["UC15<br/>Tạo mã<br/>claim code"]
+    UC16["UC16<br/>Xem thống kê<br/>dashboard"]
+
+    UC12a["UC12a<br/>Cập nhật thông tin<br/>shop"]
+    UC12b["UC12b<br/>Gửi intro<br/>chờ duyệt"]
+    UC13a["UC13a<br/>Chỉnh sửa tên/mô tả<br/>POI (VI/EN)"]
+
+    UC14a["UC14a<br/>Thêm món mới"]
+    UC14b["UC14b<br/>Sửa món ăn"]
+    UC14c["UC14c<br/>Xóa món ăn"]
+
+    UC15a["UC15a<br/>Sinh mã code"]
+    UC15b["UC15b<br/>Xem lịch sử mã"]
+
+    UC16a["UC16a<br/>Dashboard<br/>tổng quan"]
+  end
+
+  subgraph "HỆ THỐNG TỰ ĐỘNG"
+    AutoTrans["AutoTrans<br/>Dịch tự động<br/>EN, ZH, JA, KO, FR, TH"]
+    Notify["Notify<br/>Gửi thông báo<br/>duyệt cho Owner"]
+  end
+
+  O["👤 Owner"]:::owner
+
+  O --> UC12
+  O --> UC13
+  O --> UC14
+  O --> UC15
+  O --> UC16
+
+  UC12 -.->|extend| UC12a
+  UC12 -.->|extend| UC12b
+  UC13 -.->|extend| UC13a
+  UC14 -.->|extend| UC14a
+  UC14 -.->|extend| UC14b
+  UC14 -.->|extend| UC14c
+  UC15 -.->|extend| UC15a
+  UC15 -.->|extend| UC15b
+  UC16 -.->|extend| UC16a
+
+  UC13a -.->|include| AutoTrans
+  UC12b -.->|include| Notify
+
+  classDef owner fill:#FFF3E0,stroke:#E65100,stroke-width:2px,color:#000;
+</div>
+</div>
+
+<!-- ====== HÌNH 4: USER ====== -->
+<h2>Hình 4: Sơ đồ Usecase chi tiết User</h2>
+<p class="desc">Sơ đồ usecase chi tiết của User, bao gồm 11 usecase chính, các usecase con và dịch vụ bên ngoài (GPS, OSRM, TTS).</p>
+<div class="diagram-wrap">
+<div class="mermaid">
+graph TB
+  subgraph "TRẢI NGHIỆM USER"
+    UC01["UC01<br/>Đăng ký<br/>tài khoản"]
+    UC02["UC02<br/>Đăng nhập"]
+    UC03["UC03<br/>Xem danh sách<br/>POI"]
+    UC04["UC04<br/>Xem chi tiết<br/>POI"]
+    UC05["UC05<br/>Tìm kiếm POI"]
+    UC06["UC06<br/>Hiển thị POI<br/>trên bản đồ"]
+    UC07["UC07<br/>Tìm đường<br/>đến POI"]
+    UC08["UC08<br/>Nghe thuyết minh<br/>đa ngôn ngữ"]
+    UC09["UC09<br/>Auto-play<br/>thuyết minh"]
+    UC10["UC10<br/>Gửi yêu cầu<br/>nâng cấp Owner"]
+    UC11["UC11<br/>Chat trợ lý AI"]
+
+    UC01a["UC01a<br/>Nhập thông tin<br/>đăng ký"]
+    UC02a["UC02a<br/>Nhập username/<br/>password"]
+    UC05a["UC05a<br/>Lọc theo<br/>category"]
+    UC05b["UC05b<br/>Tìm theo tên"]
+    UC06a["UC06a<br/>Điều chỉnh<br/>bán kính"]
+    UC07a["UC07a<br/>Xem lộ trình<br/>trên bản đồ"]
+    UC08a["UC08a<br/>Chọn ngôn ngữ<br/>thuyết minh"]
+    UC08b["UC08b<br/>Phát/dừng<br/>audio"]
+    UC09a["UC09a<br/>Bật/tắt<br/>auto-play"]
+    UC10a["UC10a<br/>Điền form<br/>nâng cấp"]
+    UC11a["UC11a<br/>Nhắn tin<br/>với chatbot"]
+  end
+
+  subgraph "DỊCH VỤ BÊN NGOÀI"
+    OSRM["OSRM<br/>Routing API"]
+    TTS["Web Speech API<br/>/ Google Cloud TTS"]
+    GPS["GPS<br/>Geolocation"]
+  end
+
+  U["👤 User"]:::user
+
+  U --> UC01
+  U --> UC02
+  U --> UC03
+  U --> UC04
+  U --> UC05
+  U --> UC06
+  U --> UC07
+  U --> UC08
+  U --> UC09
+  U --> UC10
+  U --> UC11
+
+  UC01 -.->|include| UC01a
+  UC02 -.->|include| UC02a
+  UC05 -.->|extend| UC05a
+  UC05 -.->|extend| UC05b
+  UC06 -.->|extend| UC06a
+  UC07 -.->|extend| UC07a
+  UC08 -.->|extend| UC08a
+  UC08 -.->|extend| UC08b
+  UC09 -.->|extend| UC09a
+  UC10 -.->|include| UC10a
+  UC11 -.->|include| UC11a
+
+  UC06 -.->|include| GPS
+  UC07 -.->|include| OSRM
+  UC08 -.->|include| TTS
+  UC09 -.->|include| GPS
+  UC09 -.->|include| TTS
+
+  classDef user fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000;
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'default',
+  securityLevel: 'loose',
+  flowchart: {
+    htmlLabels: true,
+    curve: 'basis',
+    padding: 15,
+    nodeSpacing: 50,
+    rankSpacing: 60
+  }
+});
+</script>
+
+</body>
+</html>
