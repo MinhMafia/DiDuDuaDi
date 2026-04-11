@@ -75,13 +75,23 @@
     "emptyNearby": "Chưa tìm thấy điểm nào trong bán kính hiện tại.",
     "noDescription": "Chưa có mô tả cho địa điểm này.",
     "selectedPoi": "Chi tiết nhanh",
+    "detailTitle": "Chi tiết địa điểm",
+    "viewDetail": "Xem chi tiết quán",
+    "closeDetail": "Đóng",
+    "aboutShopTitle": "Thông tin quán",
     "menuTitle": "Món đang hiển thị tại quán",
+    "emptyMenu": "Quán này chưa có menu hiển thị cho du khách.",
     "selectHint": "Chọn một điểm trên bản đồ hoặc trong danh sách để xem nhanh.",
     "distanceFromYou": "Cách bạn khoảng {{distance}}",
     "tapPoiHint": "Bật GPS để xem khoảng cách thực tế.",
     "routeLoading": "Đang tính lộ trình di chuyển...",
     "routeError": "Không lấy được lộ trình lúc này.",
     "routeSummary": "Lộ trình ước tính: {{distance}}, khoảng {{minutes}} phút lái xe."
+    ,
+    "labels": {
+      "openingHours": "Giờ mở cửa",
+      "phone": "Điện thoại"
+    }
   },
   "settings": {
     "title": "Cài đặt trải nghiệm",
@@ -185,6 +195,9 @@
     "menuSubtitle": "Những món đang bật sẽ hiện cho du khách khi họ mở POI của quán bạn.",
     "claimTitle": "Claim code tiền mặt",
     "claimSubtitle": "Tạo mã kích hoạt để xác nhận thanh toán tiền mặt tại quán.",
+    "viewMap": "Xem bản đồ quán",
+    "summaryFallback": "Cập nhật thông tin quán để hiển thị đầy đủ cho du khách.",
+    "summaryUnavailable": "Chưa cập nhật",
     "saveProfile": "Lưu thông tin quán",
     "saving": "Đang lưu...",
     "addMenu": "Thêm món",
@@ -216,8 +229,31 @@
       "pending": "Đang chờ duyệt",
       "notSubmitted": "Chưa gửi duyệt"
     },
+
     "labels": {
-      "issuedAt": "Tạo lúc"
+      "issuedAt": "Tạo lúc",
+      "menuCount": "Số món đang có"
+    },
+    "empty": {
+      "menu": "Chưa có món nào trong thực đơn. Hãy thêm món đầu tiên cho quán của bạn.",
+      "claims": "Chưa có claim code nào được tạo gần đây."
+    },
+    "sections": {
+      "overviewKicker": "Bức tranh tổng quan",
+      "overview": "Tổng quan quán",
+      "performanceKicker": "Hiệu suất trên app",
+      "profileKicker": "Thông tin cơ bản",
+      "profileDescription": "Cập nhật các dữ liệu nhận diện quán và phần giới thiệu gửi admin duyệt.",
+      "mapKicker": "Thông tin hiện ra trên bản đồ",
+      "menuKicker": "Soạn thực đơn",
+      "editMenu": "Chỉnh sửa món ăn",
+      "menuListKicker": "Danh sách đang hiển thị",
+      "menuList": "Menu hiện tại",
+      "menuListDescription": "Đây là những món khách du lịch đang nhìn thấy khi mở POI của quán.",
+      "claimKicker": "Thanh toán tiền mặt",
+      "claimHistoryKicker": "Theo dõi claim code",
+      "claimHistory": "Claim code gần đây",
+      "claimHistoryDescription": "Kiểm tra nhanh mã đã tạo để đối chiếu khi khách tới quán."
     },
     "fields": {
       "shopName": "Tên quán",
@@ -242,8 +278,7 @@
       "amount": "Số tiền",
       "expireAfterHours": "Hết hạn sau (giờ)",
       "note": "Ghi chú"
-    }
-    ,
+    },
     "savePoi": "Lưu nội dung POI"
   },
   "admin": {

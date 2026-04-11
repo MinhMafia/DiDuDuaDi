@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import SpeechGuidePlayer from "../components/audio/SpeechGuidePlayer";
+import PoiDetailSheet from "../components/map/PoiDetailSheet";
 import MapView from "../components/map/MapView";
 import Loading from "../components/common/Loading";
 import useGeolocation from "../hooks/useGeolocation";
@@ -30,6 +31,7 @@ export default function MapPage() {
   const [demoLocation, setDemoLocation] = useState(null);
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [selectedPoiPlaybackKey, setSelectedPoiPlaybackKey] = useState("");
+  const [isPoiDetailOpen, setIsPoiDetailOpen] = useState(false);
   const [mapCenter, setMapCenter] = useState(VINH_KHANH_CENTER);
   const [viewCenter, setViewCenter] = useState(null);
   const { error: geoError, isLoading: geoLoading, location } = useGeolocation();
@@ -73,6 +75,7 @@ export default function MapPage() {
     }
 
     setSelectedPoi(null);
+    setIsPoiDetailOpen(false);
   }, [selectedPoi, visiblePois]);
 
   useEffect(() => {
@@ -159,6 +162,7 @@ export default function MapPage() {
     if (!poi) {
       setSelectedPoi(null);
       setSelectedPoiPlaybackKey("");
+      setIsPoiDetailOpen(false);
       return;
     }
 
@@ -174,6 +178,7 @@ export default function MapPage() {
     setDemoLocation(null);
     setSelectedPoi(null);
     setSelectedPoiPlaybackKey("");
+    setIsPoiDetailOpen(false);
     setMapCenter(location);
   }
 
@@ -181,6 +186,7 @@ export default function MapPage() {
     setDemoLocation(VINH_KHANH_CENTER);
     setSelectedPoi(null);
     setSelectedPoiPlaybackKey("");
+    setIsPoiDetailOpen(false);
     setMapCenter(VINH_KHANH_CENTER);
   }
 
@@ -223,6 +229,20 @@ export default function MapPage() {
       source: selectedPoi.audioUrl ? "audio-file" : "tts",
     }).catch(() => {});
   }
+
+  const detailRouteSummary =
+    effectiveLocation && selectedPoi
+      ? routeQuery.isLoading
+        ? t("map.routeLoading")
+        : routeQuery.isError
+          ? t("map.routeError")
+          : routeQuery.data
+            ? t("map.routeSummary", {
+                distance: formatDistance(routeQuery.data.distanceMeters),
+                minutes: Math.max(1, Math.round(routeQuery.data.durationSeconds / 60)),
+              })
+            : ""
+      : "";
 
   return (
     <section className="map-page">
@@ -456,6 +476,13 @@ export default function MapPage() {
                       </div>
                     </div>
                   ) : null}
+                  <button
+                    type="button"
+                    className="map-detail-button"
+                    onClick={() => setIsPoiDetailOpen(true)}
+                  >
+                    {t("map.viewDetail")}
+                  </button>
                   <SpeechGuidePlayer
                     audioUrl={selectedPoi.audioUrl}
                     onPlaybackStart={handleAudioPlaybackStart}
@@ -475,6 +502,26 @@ export default function MapPage() {
           </aside>
         </div>
       </div>
+      {isPoiDetailOpen && selectedPoi ? (
+        <PoiDetailSheet
+          poi={selectedPoi}
+          distanceLabel={
+            selectedPoiDistance
+              ? t("map.distanceFromYou", { distance: formatDistance(selectedPoiDistance) })
+              : ""
+          }
+          routeSummary={detailRouteSummary}
+          speechLanguage={speechLanguage}
+          onClose={() => setIsPoiDetailOpen(false)}
+          onPlaybackStart={handleAudioPlaybackStart}
+          playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
+          speechText={selectedPoi.displayDescription}
+          titleSuffix={
+            selectedPoiPlaybackKey || shouldAutoNarrate ? t("audio.autoPlayReady") : ""
+          }
+          triggerAutoSpeak={Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate}
+        />
+      ) : null}
     </section>
   );
 }
