@@ -125,7 +125,16 @@ CREATE TABLE IF NOT EXISTS poi_translations (
         FOREIGN KEY (poi_id) REFERENCES pois (id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
+-- 1. Tạo bảng chính lưu thông tin lộ trình
+CREATE TABLE food_tours (
+    id VARCHAR(36) PRIMARY KEY,
+    title JSON NOT NULL,
+    description JSON NOT NULL,
+    category VARCHAR(100),
+    image_url TEXT,
+    steps JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE IF NOT EXISTS tours (
     id CHAR(36) NOT NULL,
     created_by_account_id CHAR(36) NULL,
@@ -224,7 +233,15 @@ CREATE TABLE IF NOT EXISTS audio_play_events (
         FOREIGN KEY (poi_id) REFERENCES pois (id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
+CREATE TABLE IF NOT EXISTS food_tours (
+    id CHAR(36) PRIMARY KEY,
+    title JSON NOT NULL,            -- Lưu { "vi": "...", "en": "..." }
+    description JSON NOT NULL,      -- Lưu { "vi": "...", "en": "..." }
+    category VARCHAR(50),
+    image_url VARCHAR(255),
+    steps JSON NOT NULL,            -- Lưu mảng [{ "PoiId": "...", "Order": 1 }]
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 CREATE TABLE IF NOT EXISTS chat_sessions (
     id CHAR(36) NOT NULL,
     account_id CHAR(36) NULL,
@@ -642,3 +659,5 @@ VALUES
     ('44444444-4444-4444-4444-444444444441', '55555555-5555-5555-5555-555555555551', 'vi', 'tts', DATE_SUB(NOW(), INTERVAL 70 MINUTE)),
     ('44444444-4444-4444-4444-444444444441', '55555555-5555-5555-5555-555555555551', 'en', 'tts', DATE_SUB(NOW(), INTERVAL 15 MINUTE)),
     ('44444444-4444-4444-4444-444444444442', '55555555-5555-5555-5555-555555555552', 'vi', 'tts', DATE_SUB(NOW(), INTERVAL 20 MINUTE));
+INSERT INTO food_tours (id, title_vi, title_en, category) 
+VALUES (UUID(), 'Tour Ăn Vặt Quận 1', 'D1 Street Food Tour', 'Street Food');

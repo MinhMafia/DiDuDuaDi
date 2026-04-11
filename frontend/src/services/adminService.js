@@ -104,3 +104,25 @@ export async function togglePoi(id) {
   const response = await apiClient.patch(`/admin/pois/${id}/toggle`);
   return response.data;
 }
+// ================= FOOD TOUR =================
+
+// 📥 GET ALL
+export const getFoodTours = () =>
+  apiClient.get("/admin/food-tours").then((res) => res.data);
+
+// 📥 GET BY ID
+export const getFoodTourById = (id) =>
+  apiClient.get(`/admin/food-tours/${id}`).then((res) => res.data);
+
+// ➕ CREATE
+export const createFoodTour = (data) =>
+  apiClient.post("/admin/food-tours", data).then((res) => res.data);
+
+// ✏️ UPDATE
+export const updateFoodTour = (id, data) =>
+  apiClient.put(`/admin/food-tours/${id}`, data).then((res) => res.data);
+
+// ❌ DELETE
+export const deleteFoodTour = (id) =>
+  apiClient.delete(`/admin/food-tours/${id}`).then((res) => res.data);
+

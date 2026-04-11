@@ -1,7 +1,7 @@
 using Dapper;
 using DiDuDuaDi.API.Data;
 using DiDuDuaDi.API.Models;
-
+using System.Text.Json;
 namespace DiDuDuaDi.API.Repositories;
 
 public class MySqlAdminRepository(IDbConnectionFactory connectionFactory) : IAdminRepository
@@ -94,4 +94,130 @@ public class MySqlAdminRepository(IDbConnectionFactory connectionFactory) : IAdm
 
         return GetShopIntroReviews(null).FirstOrDefault(item => item.ShopId == shopId);
     }
+/* Commented out FoodTour code to avoid table error */
+// ✅ CREATE
+public async Task CreateFoodTourAsync(FoodTour tour)
+{
+    using var connection = connectionFactory.CreateConnection();
+
+    var sql = """
+        INSERT INTO food_tours (id, title, description, category, image_url, steps)
+        VALUES (@Id, @Title, @Description, @Category, @ImageUrl, @Steps)
+    """;
+
+    await connection.ExecuteAsync(sql, new
+    {
+        Id = tour.Id.ToString(),
+        Title = JsonSerializer.Serialize(tour.Title),
+        Description = JsonSerializer.Serialize(tour.Description),
+        tour.Category,
+        tour.ImageUrl,
+        Steps = JsonSerializer.Serialize(tour.Steps)
+    });
+}
+public async Task<IReadOnlyList<FoodTour>> GetFoodToursAsync()
+{
+    using var connection = connectionFactory.CreateConnection();
+
+    var sql = "SELECT * FROM food_tours";
+
+    var data = await connection.QueryAsync<dynamic>(sql);
+
+    return data.Select(x =>
+    {
+        string stepsJson = "";
+
+        if (x.steps != null)
+        {
+            // 🔥 Fix byte[] -> string
+            if (x.steps is byte[] bytes)
+                stepsJson = System.Text.Encoding.UTF8.GetString(bytes);
+            else
+                stepsJson = x.steps.ToString();
+        }
+
+        return new FoodTour
+        {
+            Id = Guid.Parse(x.id.ToString()),
+            Title = JsonSerializer.Deserialize<LocalizedString>(x.title?.ToString() ?? "{}") 
+        ?? new LocalizedString(),
+            Description = JsonSerializer.Deserialize<LocalizedString>(x.description?.ToString() ?? "{}") 
+        ?? new LocalizedString(),
+            Category = x.category,
+            ImageUrl = x.image_url,
+           Steps = string.IsNullOrEmpty(stepsJson)
+    ? new List<FoodTourStep>()
+    : JsonSerializer.Deserialize<List<FoodTourStep>>(stepsJson)
+        ?? new List<FoodTourStep>()
+        };
+    }).ToList();
+}
+   public async Task DeleteFoodTourAsync(Guid id)
+{
+    using var connection = connectionFactory.CreateConnection();
+
+    await connection.ExecuteAsync(
+        "DELETE FROM food_tours WHERE id = @id",
+        new { id = id.ToString() }
+    );
+}
+ public async Task<FoodTour?> GetFoodTourByIdAsync(Guid id)
+{
+    using var connection = connectionFactory.CreateConnection();
+
+    var sql = "SELECT * FROM food_tours WHERE id = @id";
+
+    var x = await connection.QueryFirstOrDefaultAsync<dynamic>(sql, new { id });
+
+    if (x == null) return null;
+
+    string stepsJson = "";
+
+    if (x.steps != null)
+    {
+        if (x.steps is byte[] bytes)
+            stepsJson = System.Text.Encoding.UTF8.GetString(bytes);
+        else
+            stepsJson = x.steps.ToString();
+    }
+
+    return new FoodTour
+    {
+        Id = Guid.Parse(x.id.ToString()),
+        Title = JsonSerializer.Deserialize<LocalizedString>(x.title?.ToString() ?? "{}") 
+        ?? new LocalizedString(),
+        Description = JsonSerializer.Deserialize<LocalizedString>(x.description?.ToString() ?? "{}") 
+        ?? new LocalizedString(),
+        Category = x.category,
+        ImageUrl = x.image_url,
+       Steps = string.IsNullOrEmpty(stepsJson)
+    ? new List<FoodTourStep>()
+    : JsonSerializer.Deserialize<List<FoodTourStep>>(stepsJson)
+        ?? new List<FoodTourStep>()
+    };
+}
+public async Task UpdateFoodTourAsync(FoodTour tour)
+{
+    using var connection = connectionFactory.CreateConnection();
+
+    var sql = """
+        UPDATE food_tours
+        SET title = @Title,
+            description = @Description,
+            category = @Category,
+            image_url = @ImageUrl,
+            steps = @Steps
+        WHERE id = @Id
+    """;
+
+    await connection.ExecuteAsync(sql, new
+    {
+        Id = tour.Id.ToString(),
+        Title = JsonSerializer.Serialize(tour.Title),
+        Description = JsonSerializer.Serialize(tour.Description),
+        tour.Category,
+        tour.ImageUrl,
+        Steps = JsonSerializer.Serialize(tour.Steps)
+    });
+}
 }

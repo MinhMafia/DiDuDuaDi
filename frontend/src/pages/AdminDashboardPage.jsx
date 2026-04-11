@@ -25,7 +25,14 @@ import {
   getShopIntroReviews,
   reviewOwnerUpgradeRequest,
   reviewShopIntro,
+  getFoodTours,    // <--- PHẢI CÓ DÒNG NÀY
+  createFoodTour,
+  deleteFoodTour,
+  updateFoodTour
+  
 } from "../services/adminService";
+
+
 
 import {
   getTopShops,
@@ -34,6 +41,7 @@ import {
   createPoi,
   updatePoi,
   deletePoi,
+  
 } from "../services/analyticsService";
 
 
@@ -41,6 +49,47 @@ const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 export default function AdminDashboardPage() {
+  // Trong AdminDashboardPage component
+  const [editingTour, setEditingTour] = useState(null);
+const [editTourModalVisible, setEditTourModalVisible] = useState(false);
+const [tourModalVisible, setTourModalVisible] = useState(false);
+const [selectedPois, setSelectedPois] = useState([]); // Danh sách POI được chọn cho tour
+const foodTourDeleteMutation = useMutation({
+  mutationFn: deleteFoodTour,
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["foodTours"] });
+    message.success("Xóa tour thành công");
+  },
+});
+const foodToursQuery = useQuery({
+  queryKey: ["foodTours"],
+  queryFn: getFoodTours,
+  select: (res) => {
+    if (Array.isArray(res)) return res;
+    if (Array.isArray(res?.data)) return res.data;
+    return [];
+  },
+});
+const foodTourUpdateMutation = useMutation({
+  mutationFn: ({ id, data }) => updateFoodTour(id, data),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["foodTours"] });
+    message.success("Cập nhật tour thành công");
+    setEditTourModalVisible(false);
+    setSelectedPois([]);
+    setEditingTour(null);
+  },
+});
+
+const tourCreateMutation = useMutation({
+  mutationFn: createFoodTour,
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['foodTours'] });
+    message.success('Tạo tour thành công');
+    setTourModalVisible(false);
+    setSelectedPois([]);
+  },
+});
   const { t } = useTranslation();
   const currentUser = useSelector((state) => state.app.currentUser);
   const queryClient = useQueryClient();
@@ -59,7 +108,67 @@ export default function AdminDashboardPage() {
 
   const periods = ['7', '30', '90'];
   const metrics = ['visits', 'audio'];
+const tourColumns = [
+  {
+    title: "Tên lộ trình",
+    render: (_, record) =>
+      record.title?.vi || record.title?.en || "Chưa có tên",
+  },
+  {
+    title: "Danh mục",
+    dataIndex: "category",
+    render: (cat) => <Tag color="orange">{cat}</Tag>,
+  },
+  {
+    title: "Số điểm dừng",
+    render: (_, record) => (
+      <Tag color="blue">{record.steps?.length || 0} địa điểm</Tag>
+    ),
+  },
+  {
+    title: "Mô tả",
+    render: (_, record) =>
+      record.description?.vi || record.description?.en || "Không có mô tả",
+  },
+  {
+    title: "Thao tác",
+    render: (_, record) => (
+      <Space>
+        <Button
+  size="small"
+  onClick={() => {
+    
+    setEditingTour(record);
+    setEditTourModalVisible(true);
 
+    setSelectedPois(record.steps?.map(s => s.poiId) || []);
+  }}
+>
+  Sửa
+</Button>
+
+        <Button
+          size="small"
+          danger
+          onClick={() => {
+            Modal.confirm({
+              title: "Xóa food tour?",
+              content: record.title?.vi || "Không tên",
+              okText: "Xóa",
+              okType: "danger",
+              cancelText: "Hủy",
+              onOk: () => {
+                foodTourDeleteMutation.mutate(record.id);
+              },
+            });
+          }}
+        >
+          Xóa
+        </Button>
+      </Space>
+    ),
+  },
+];
 const shopsColumns = [
   { 
     title: 'Quán', 
@@ -275,7 +384,7 @@ const topShopsQuery = useQuery({
   queryFn: () => getTopShops(parseInt(statsPeriod), 10, statsMetric),
   enabled: !!(statsPeriod && statsMetric),
 select: (res) => {
-  console.log("RAW RES:", res);
+  
 
   if (Array.isArray(res)) return res; // 🔥 QUAN TRỌNG
 
@@ -295,7 +404,7 @@ const topPoisQuery = useQuery({
   queryFn: () => getTopPois(parseInt(statsPeriod), 10, statsMetric),
   enabled: !!(statsPeriod && statsMetric),
   select: (res) => {
-    console.log("TOP POIS:", res);
+ 
 
     return Array.isArray(res?.data)
       ? res.data
@@ -310,7 +419,7 @@ const poisQuery = useQuery({
   queryFn: () => getPois(),
   select: (res) => {
     const data = res.data ?? [];
-console.log(data)
+
     return data.map(p => ({
       ...p,
       lat: p.location?.lat,
@@ -694,6 +803,136 @@ const poiUpdateMutation = useMutation({
     />
   </Space>
 </Card>
+{/* SECTION QUẢN LÝ FOOD TOUR */}
+      <Card title="🚶 Quản lý Food Tour (Lộ trình)" style={{ borderRadius: 16, marginTop: 20 }}>
+        <Button 
+          type="primary" 
+          style={{ marginBottom: 16 }}
+          onClick={() => {
+            setTourModalVisible(true);
+            setSelectedPois([]); // Reset khi mở mới
+          }}
+        >
+          + Tạo lộ trình mới
+        </Button>
+        
+        <Table
+  rowKey="id"
+  dataSource={foodToursQuery.data}
+  loading={foodToursQuery.isLoading}
+  columns={tourColumns}
+  pagination={{ pageSize: 5 }}
+/>
+      </Card>
+<Modal
+        title="Tạo lộ trình du lịch mới"
+        open={tourModalVisible}
+        onCancel={() => setTourModalVisible(false)}
+        width={800}
+        footer={null}
+        destroyOnClose
+      >
+        <Form 
+          layout="vertical" 
+    onFinish={(values) => {
+  const payload = {
+    title: { 
+      vi: values.title, 
+      en: values.title 
+    },
+    description: { 
+      vi: values.desc || "", 
+      en: values.desc || "" 
+    },
+    // Đảm bảo không nhập sai chính tả, hoặc dùng Select thay vì Input
+    category: values.category?.trim(), 
+    steps: selectedPois.map((id, index) => ({
+      poiId: id,
+      order: index + 1
+    }))
+  };
+  
+  tourCreateMutation.mutate(payload);
+}}
+        >
+          <Form.Item name="title" label="Tên Tour" rules={[{ required: true, message: 'Vui lòng nhập tên tour' }]}>
+            <Input placeholder="VD: Japanese Food Tour" />
+          </Form.Item>
+
+          <Form.Item name="category" label="Chủ đề (Category)" rules={[{ required: true }]}>
+            <Input placeholder="VD: japanese, street_food..." />
+          </Form.Item>
+
+          <Form.Item name="desc" label="Mô tả ngắn">
+            <TextArea placeholder="Mô tả về lộ trình này..." />
+          </Form.Item>
+
+          <div style={{ marginBottom: 16 }}>
+            <Text strong>Chọn địa điểm (Nhấn theo thứ tự bạn muốn khách đi):</Text>
+            <div style={{ 
+              marginTop: 8, 
+              maxHeight: 350, 
+              overflowY: 'auto', 
+              border: '1px solid #f0f0f0', 
+              padding: 12,
+              borderRadius: 8 
+            }}>
+              {poisQuery.isLoading ? <Spin /> : poisQuery.data?.map(poi => {
+                const isSelected = selectedPois.includes(poi.id);
+                const orderIndex = selectedPois.indexOf(poi.id) + 1;
+                
+                return (
+                  <Card 
+                    key={poi.id} 
+                    size="small" 
+                    style={{ 
+                      marginBottom: 8, 
+                      borderColor: isSelected ? '#1890ff' : '#f0f0f0',
+                      backgroundColor: isSelected ? '#e6f7ff' : '#fff'
+                    }}
+                  >
+                    <Row justify="space-between" align="middle">
+                      <Col span={18}>
+                        <Text strong>{poi.displayName}</Text>
+                        <br />
+                        <small type="secondary">{poi.shopAddress}</small>
+                      </Col>
+                      <Col span={6} style={{ textAlign: 'right' }}>
+                        <Button 
+                          size="small"
+                          type={isSelected ? "primary" : "default"}
+                          shape="round"
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedPois(selectedPois.filter(id => id !== poi.id));
+                            } else {
+                              setSelectedPois([...selectedPois, poi.id]);
+                            }
+                          }}
+                        >
+                          {isSelected ? `Điểm thứ ${orderIndex}` : "Thêm vào"}
+                        </Button>
+                      </Col>
+                    </Row>
+                  </Card>
+                );
+              })}
+            </div>
+            {selectedPois.length === 0 && <Text type="danger"><small>* Vui lòng chọn ít nhất 1 địa điểm</small></Text>}
+          </div>
+
+          <Button 
+            type="primary" 
+            htmlType="submit" 
+            block 
+            size="large"
+            disabled={selectedPois.length === 0}
+            loading={tourCreateMutation.isPending}
+          >
+            Xác nhận tạo lộ trình
+          </Button>
+        </Form>
+      </Modal>
 <Modal
   title={editingPoi ? "Cập nhật POI" : "Thêm POI"}
   open={poiModalVisible}
@@ -799,6 +1038,127 @@ const poiUpdateMutation = useMutation({
       loading={poiCreateMutation.isPending || poiUpdateMutation.isPending}
     >
       {editingPoi ? "Lưu cập nhật" : "Thêm POI"}
+    </Button>
+  </Form>
+</Modal>
+<Modal
+  title="Cập nhật Food Tour"
+  open={editTourModalVisible}
+  onCancel={() => {
+    setEditTourModalVisible(false);
+    setEditingTour(null);
+    setSelectedPois([]);
+  }}
+  footer={null}
+  width={800}
+  destroyOnClose
+>
+  <Form
+    layout="vertical"
+    initialValues={{
+      title: editingTour?.title?.vi,
+      category: editingTour?.category,
+      desc: editingTour?.description?.vi,
+    }}
+    onFinish={(values) => {
+      const payload = {
+        title: {
+          vi: values.title,
+          en: values.title,
+        },
+        description: {
+          vi: values.desc || "",
+          en: values.desc || "",
+        },
+        category: values.category?.trim(),
+        steps: selectedPois.map((id, index) => ({
+          poiId: id,
+          order: index + 1,
+        })),
+      };
+
+      foodTourUpdateMutation.mutate({
+        id: editingTour.id,
+        data: payload,
+      });
+    }}
+  >
+    <Form.Item name="title" label="Tên Tour" rules={[{ required: true }]}>
+      <Input />
+    </Form.Item>
+
+    <Form.Item name="category" label="Chủ đề" rules={[{ required: true }]}>
+      <Input />
+    </Form.Item>
+
+    <Form.Item name="desc" label="Mô tả">
+      <Input.TextArea />
+    </Form.Item>
+
+    {/* ================= POI SELECT (GIỐNG CREATE MODAL) ================= */}
+    <div style={{ marginBottom: 16 }}>
+      <Text strong>Chọn địa điểm (theo thứ tự):</Text>
+
+      <div style={{
+        marginTop: 8,
+        maxHeight: 350,
+        overflowY: "auto",
+        border: "1px solid #f0f0f0",
+        padding: 12,
+        borderRadius: 8
+      }}>
+        {poisQuery.isLoading ? <Spin /> : poisQuery.data?.map(poi => {
+          const isSelected = selectedPois.includes(poi.id);
+          const orderIndex = selectedPois.indexOf(poi.id) + 1;
+
+          return (
+            <Card
+              key={poi.id}
+              size="small"
+              style={{
+                marginBottom: 8,
+                borderColor: isSelected ? "#1890ff" : "#f0f0f0",
+                backgroundColor: isSelected ? "#e6f7ff" : "#fff"
+              }}
+            >
+              <Row justify="space-between" align="middle">
+                <Col span={18}>
+                  <Text strong>{poi.displayName}</Text>
+                  <br />
+                  <small>{poi.shopAddress}</small>
+                </Col>
+
+                <Col span={6} style={{ textAlign: "right" }}>
+                  <Button
+                    size="small"
+                    type={isSelected ? "primary" : "default"}
+                    shape="round"
+                    onClick={() => {
+                      if (isSelected) {
+                        setSelectedPois(selectedPois.filter(id => id !== poi.id));
+                      } else {
+                        setSelectedPois([...selectedPois, poi.id]);
+                      }
+                    }}
+                  >
+                    {isSelected ? `#${orderIndex}` : "Thêm"}
+                  </Button>
+                </Col>
+              </Row>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+
+    <Button
+      type="primary"
+      htmlType="submit"
+      block
+      loading={foodTourUpdateMutation.isPending}
+      disabled={selectedPois.length === 0}
+    >
+      Cập nhật tour
     </Button>
   </Form>
 </Modal>

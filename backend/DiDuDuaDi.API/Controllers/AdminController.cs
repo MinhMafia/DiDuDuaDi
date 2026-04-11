@@ -40,4 +40,6 @@ public class AdminController(IAdminRepository adminRepository) : ControllerBase
 
         return Ok(new ApiResponse<AdminShopIntroReviewSummary>(reviewed, true, "Shop intro reviewed successfully"));
     }
+/* Commented FoodTour endpoints */
+
 }
