@@ -1,0 +1,50 @@
+@startuml sequence_23_owner_update_poi_content
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor Owner
+participant "Frontend" as FE
+participant "OwnerController" as Ctrl
+participant "TranslationService" as Trans
+participant "MySqlOwnerRepository" as Repo
+database "pois, poi_translations" as DB
+
+Owner -> FE: Truy cap Owner dashboard
+FE --> Owner: Hien thi form chinh sua POI
+
+Owner -> FE: Dien ten/mo ta VI va EN
+
+FE -> Ctrl: PUT /api/owner/poi-content\n{ category, nameVi, descriptionVi,\n nameEn, descriptionEn }
+note right
+  Authorization: Bearer owner_token
+end note
+
+Ctrl -> Ctrl: Validate token
+Ctrl -> Repo: GetDashboard(username)
+Repo -> DB: SELECT * FROM shops\nWHERE owner_account_id=?
+DB --> Repo: Shop + POI
+Repo --> Ctrl: Dashboard
+
+Ctrl -> Repo: UpdatePoiContentAsync(username, request)
+Repo -> DB: UPDATE pois SET category=?
+
+loop Voi moi ngon ngu (vi,en,zh,ja,ko,fr,th)
+  alt VI hoac EN
+    Repo -> DB: UPDATE poi_translations\nWHERE language_code=vi/en
+  else ZH, JA, KO, FR, TH
+    Ctrl -> Trans: Translate(nameVi, descVi, targetLang)
+    Trans -> Trans: Goi Google Translate API
+    Trans --> Ctrl: name, desc da dich
+    Ctrl -> Repo: UpsertPoiTranslation(poiId, lang, name, desc)
+    Repo -> DB: INSERT/UPDATE poi_translations
+  end
+end
+
+DB --> Repo: Thanh cong
+Repo --> Ctrl: Thanh cong
+Ctrl --> FE: 200 OK
+FE --> Owner: Thong bao thanh cong
+
+@enduml

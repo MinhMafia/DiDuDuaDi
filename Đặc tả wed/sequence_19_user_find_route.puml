@@ -1,0 +1,30 @@
+@startuml sequence_19_user_find_route
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor User
+participant "Frontend\n(MapView)" as FE
+participant "Browser\nGeolocation" as GPS
+participant "OSRM\nRouting API" as OSRM
+
+User -> FE: Nhan nut "Tim duong"\ntu chi tiet POI
+
+FE -> GPS: Lay vi tri hien tai
+GPS --> FE: Tra ve { lat, lng }
+
+FE -> FE: Lay toa do POI\ntu state hien tai
+
+FE -> OSRM: GET https://router.project-osrm.org\n/route/v1/driving/\n{lngUser},{latUser};{lngPOI},{latPOI}\n?overview=full&geometries=geojson
+OSRM -> OSRM: Tinh toan lo trinh\nngan nhat
+OSRM --> FE: Tra ve GeoJSON\n{ routes: [{ geometry,\n distance, duration }] }
+
+FE -> FE: Ve polyline lo trinh\nlen ban do Leaflet
+FE -> FE: Hien thi khoang cach\nva thoi gian du kien
+
+FE --> User: Hien thi lo trinh tren ban do
+
+User -> User: Di chuyen theo lo trinh
+
+@enduml

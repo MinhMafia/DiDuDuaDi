@@ -1,0 +1,49 @@
+@startuml sequence_18_user_discover_poi
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor User
+participant "Frontend\n(MapView)" as FE
+participant "Browser\nGeolocation" as GPS
+participant "POIsController\n(Backend)" as Ctrl
+participant "MySqlPoiRepository" as Repo
+database "MySQL\npois, pois_translations" as DB
+
+User -> FE: Mo trang ban do
+FE -> GPS: request Geolocation\n(enableHighAccuracy: true)
+GPS --> FE: Tra ve vi tri\n(latitude, longitude)
+
+FE -> Ctrl: GET /api/pois/nearby\n?lat={lat}&lng={lng}&radius=500
+
+Ctrl -> Repo: GetNearby(lat, lng, radius)
+Repo -> DB: SELECT pois.*,\n poi_translations.*\nFROM pois\nJOIN poi_translations\nON pois.id = poi_translations.poi_id\nWHERE tinh khoang cach\nHaversine < radius
+DB --> Repo: Danh sach POI gan nhat
+Repo --> Ctrl: List<POI>
+
+Ctrl --> FE: 200 OK\n{ pois: [...] }
+
+FE -> FE: Ve cac POI marker\nlen ban do Leaflet
+FE --> User: Hien thi ban do voi POIs
+
+User -> FE: Dieu chinh ban kinh\n(thanh truot radius)
+FE -> Ctrl: GET /api/pois/nearby\n?radius={moi}
+Ctrl -> Repo: GetNearby(moi)
+Repo -> DB: Truy van moi
+DB --> Repo: Ket qua moi
+Repo --> Ctrl: List<POI>
+Ctrl --> FE: 200 OK\n{ pois: [...] }
+FE -> FE: Cap nhat marker tren ban do
+FE --> User: Hien thi POI da loc
+
+User -> FE: Click vao POI marker
+FE -> Ctrl: GET /api/pois/{id}
+Ctrl -> Repo: GetById(id)
+Repo -> DB: SELECT * FROM pois\nJOIN poi_translations\nWHERE id = ?
+DB --> Repo: POI chi tiet
+Repo --> Ctrl: POI + translations
+Ctrl --> FE: 200 OK\n{ poi: {...} }
+FE --> User: Hien thi chi tiet POI
+
+@enduml

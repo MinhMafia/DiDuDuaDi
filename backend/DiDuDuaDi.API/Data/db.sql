@@ -230,6 +230,8 @@ CREATE TABLE IF NOT EXISTS owner_upgrade_requests (
     account_id CHAR(36) NOT NULL,
     shop_name VARCHAR(150) NOT NULL,
     address_line VARCHAR(255) NOT NULL,
+    latitude DECIMAL(10, 8) NULL,
+    longitude DECIMAL(11, 8) NULL,
     id_card_image_url VARCHAR(500) NULL,
     business_license_image_url VARCHAR(500) NULL,
     note VARCHAR(500) NULL,

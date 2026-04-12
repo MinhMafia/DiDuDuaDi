@@ -1,0 +1,43 @@
+@startuml sequence_17_user_login
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor User
+participant "Frontend\n(React)" as FE
+participant "AuthController\n(Backend)" as Ctrl
+participant "JwtTokenService" as JWT
+participant "MySqlAuthRepository" as Repo
+database "MySQL\naccounts" as DB
+
+User -> FE: Truy cap trang dang nhap
+FE --> User: Hien thi form dang nhap
+
+User -> FE: Nhap username, password
+FE -> Ctrl: POST /api/auth/login\n(username, password)
+Ctrl -> Ctrl: Validate request
+
+Ctrl -> Repo: ValidateCredentials(username, password)
+Repo -> DB: SELECT * FROM accounts\nWHERE username = ?
+DB --> Repo: Tra ve user (neu co)
+
+alt Khong tim thay hoac sai password
+  Repo --> Ctrl: Tra ve null
+  Ctrl --> FE: 401 Unauthorized\n"Sai thong tin"
+  FE --> User: Hien thi thong bao loi
+else Dang nhap thanh cong
+  Repo -> DB: UPDATE accounts\nSET last_login_at = NOW()\nWHERE id = ?
+  Repo --> Ctrl: Tra ve AuthUser\n(username, role, displayName)
+  
+  Ctrl -> JWT: GenerateToken(user)
+  JWT -> JWT: Tao JWT voi claims:\n sub, unique_name, name,\n role, display_name
+  JWT --> Ctrl: Tra ve JWT string
+  
+  Ctrl --> FE: 200 OK\n{ username, role,\n displayName, accessToken,\n expiresAt }
+  
+  FE -> FE: Luu session vao localStorage
+  FE --> User: Chuyen den trang theo role\n(user->/map, owner->/owner,\n admin->/admin)
+end
+
+@enduml

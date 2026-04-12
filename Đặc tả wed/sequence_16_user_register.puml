@@ -1,0 +1,38 @@
+@startuml sequence_16_user_register
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor User
+participant "Frontend\n(React)" as FE
+participant "AuthController\n(Backend)" as Ctrl
+participant "MySqlAuthRepository" as Repo
+database "MySQL\naccounts" as DB
+
+User -> FE: Truy cap trang dang ky
+FE --> User: Hien thi form dang ky
+
+User -> FE: Nhap username, password,\n display_name, email
+FE -> FE: Validate du lieu nhap
+
+FE -> Ctrl: POST /api/auth/register\n(username, password, displayName, email)
+Ctrl -> Ctrl: Validate request
+
+Ctrl -> Repo: Register(request)
+Repo -> Repo: Kiem tra username da ton tai?
+
+alt Username da ton tai
+  Repo --> Ctrl: Tra ve loi
+  Ctrl --> FE: 400 Bad Request\n"Username da ton tai"
+  FE --> User: Hien thi thong bao loi
+else Username hop le
+  Repo -> Repo: Ma hoa password (plaintext hien tai)
+  Repo -> DB: INSERT INTO accounts\n(username, password_hash,\n display_name, email,\n role_id=3)
+  DB --> Repo: Thanh cong
+  Repo --> Ctrl: Tra ve thanh cong
+  Ctrl --> FE: 200 OK\n" Dang ky thanh cong"
+  FE --> User: Chuyen den trang dang nhap
+end
+
+@enduml

@@ -70,6 +70,16 @@ public class AuthController(IAuthRepository authRepository, ITokenService tokenS
             return BadRequest(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Username, shop name and address are required"));
         }
 
+        if (!request.Latitude.HasValue || request.Latitude < -90 || request.Latitude > 90)
+        {
+            return BadRequest(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Latitude must be between -90 and 90"));
+        }
+
+        if (!request.Longitude.HasValue || request.Longitude < -180 || request.Longitude > 180)
+        {
+            return BadRequest(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Longitude must be between -180 and 180"));
+        }
+
         var normalizedRequest = request with { Username = username };
         var role = authRepository.GetRoleCodeByUsername(username);
         if (string.IsNullOrWhiteSpace(role))

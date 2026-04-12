@@ -15,6 +15,8 @@ export default function CollaborationPage() {
   const [form, setForm] = useState({
     shopName: "",
     addressLine: "",
+    latitude: "",
+    longitude: "",
     idCardImageUrl: "",
     businessLicenseImageUrl: "",
     note: "",
@@ -44,6 +46,8 @@ export default function CollaborationPage() {
       setForm({
         shopName: "",
         addressLine: "",
+        latitude: "",
+        longitude: "",
         idCardImageUrl: "",
         businessLicenseImageUrl: "",
         note: "",
@@ -145,6 +149,14 @@ export default function CollaborationPage() {
                     value={formatCurrency(latestRequest.upgradeFeeAmount)}
                   />
                   <DetailRow
+                    label={t("collaboration.fields.latitude")}
+                    value={formatCoordinate(latestRequest.latitude)}
+                  />
+                  <DetailRow
+                    label={t("collaboration.fields.longitude")}
+                    value={formatCoordinate(latestRequest.longitude)}
+                  />
+                  <DetailRow
                     label={t("collaboration.paymentReference", {
                       defaultValue: "Ma chuyen khoan",
                     })}
@@ -240,6 +252,42 @@ export default function CollaborationPage() {
                 className="collaboration-input"
               />
             </label>
+
+            <div className="collaboration-form-row">
+              <label className="collaboration-label">
+                {t("collaboration.fields.latitude")}
+                <input
+                  required
+                  type="number"
+                  step="any"
+                  value={form.latitude}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      latitude: event.target.value,
+                    }))
+                  }
+                  className="collaboration-input"
+                />
+              </label>
+
+              <label className="collaboration-label">
+                {t("collaboration.fields.longitude")}
+                <input
+                  required
+                  type="number"
+                  step="any"
+                  value={form.longitude}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      longitude: event.target.value,
+                    }))
+                  }
+                  className="collaboration-input"
+                />
+              </label>
+            </div>
 
             <label className="collaboration-label">
               {t("collaboration.fields.idCardImageUrl")}
@@ -338,4 +386,13 @@ function formatCurrency(amount) {
     currency: "VND",
     maximumFractionDigits: 0,
   }).format(amount || 0);
+}
+
+function formatCoordinate(value) {
+  if (value === null || value === undefined || value === "") {
+    return "-";
+  }
+
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toFixed(6) : String(value);
 }

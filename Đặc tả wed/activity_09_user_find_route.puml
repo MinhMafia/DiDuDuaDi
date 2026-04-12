@@ -1,0 +1,28 @@
+@startuml activity_09_user_find_route
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:User nhan nut "Tim duong" tu chi tiet POI;
+
+:He thong lay vi tri hien tai tu GPS;
+
+:He thong lay toa do POI tu database;
+
+:He thong goi API OSRM Routing
+voi diem di va diem den;
+
+if (API OSRM tra ve ket qua?) then (That bai)
+  :Hien thi thong bao loi;
+  stop
+else (Thanh cong)
+  :He thong ve polyline lo trinh tren ban do;
+  :Hien thi khoang cach va thoi gian du kien;
+  :User xem lo trinh va di chuyen;
+endif
+
+stop
+
+@enduml

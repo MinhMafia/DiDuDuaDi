@@ -1,0 +1,32 @@
+@startuml activity_07_user_discover_poi
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:User mo ung dung / trang ban do;
+
+:He thong yeu cau quyen truy cap GPS;
+
+if (User cap GPS?) then (Tu choi)
+  :Hien thi ban do voi vi tri mac dinh;
+else (Cap quyen)
+  :He thong lay vi tri hien tai tu GPS;
+endif
+
+:He thong truy van GetNearby POI (ban kinh tuy chon);
+
+:Ban do hien thi cac POI gan nhat;
+
+:User dieu chinh thanh truot radius;
+
+:He thong cap nhat danh sach POI theo ban kinh moi;
+
+:User chon mot POI tren ban do;
+
+:Chuyen den luong xem chi tiet POI;
+
+stop
+
+@enduml

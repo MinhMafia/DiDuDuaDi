@@ -1,0 +1,42 @@
+@startuml activity_10_auto_play_tts
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+repeat
+  :Ung dung dang chay;
+  
+  :He thong lien tuc theo doi vi tri User
+    qua watchPosition API;
+  
+  :He thong tinh khoang cach den cac POI
+    bang cong thuc Haversine;
+
+  if (User trong ban kinh ~35m cua POI?) then (Khong)
+    :Tiep tuc theo doi;
+    -[hidden]->
+  else (Co)
+    if (Tinh nang auto-play duoc bat?) then (Tat)
+      :Khong phat am thanh;
+      :Tiep tuc theo doi;
+      -[hidden]->
+    else (Bat)
+      :He thong xac dinh POI gan nhat;
+      :He thong lay ngon ngu hien tai dang chon;
+      :He thong lay noi dung thuyet minh
+        tu bang poi_translations;
+      :Phat audio qua TTS
+        (Web Speech API / Google Cloud);
+      :Ghi nhan su kien
+        vao bang audio_play_events;
+      -[hidden]->
+    endif
+  endif
+repeat while (Ung dung con chay) is (Co)
+
+-> No;
+stop
+
+@enduml

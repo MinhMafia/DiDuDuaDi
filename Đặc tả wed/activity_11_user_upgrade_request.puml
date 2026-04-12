@@ -1,0 +1,32 @@
+@startuml activity_11_user_upgrade_request
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:User truy cap trang Collaboration / Upgrade;
+
+:User dien thong tin:
+- Ten shop
+- Dia chi
+- URL hinh giay to ca nhan (tuy chon)
+- URL hinh giay phep kinh doanh (tuy chon)
+- Ghi chu (tuy chon);
+
+:He thong kiem tra User da co yeu cau pending?;
+
+if (Da co yeu cau pending?) then (Co)
+  :Hien thi thong bao "Da ton tai yeu cau";
+  stop
+else (Khong)
+  :He thong tao yeu cau moi
+    voi trang thai "pending";
+  :Luu vao bang owner_upgrade_requests;
+  :Hien thi thong bao thanh cong;
+  :Thong bao cho Admin co yeu cau moi;
+endif
+
+stop
+
+@enduml

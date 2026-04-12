@@ -1,0 +1,36 @@
+@startuml activity_13_admin_review_shop_intro
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:Owner cap nhat pending_intro cho shop;
+
+:He thong dat intro_review_status thanh "pending";
+
+:Admin truy cap danh sach shop intro can duy;
+
+:Admin chon mot shop de xem chi tiet;
+
+:Hien thi thong tin shop:
+- Ten shop, dia chi
+- Approved introduction (hien tai)
+- Pending introduction (moi);
+
+:Admin quyet dinh;
+
+if (Phe duyet?) then (Phe duyet)
+  :He thong copy pending_intro
+    vao approved_intro;
+  :Dat intro_review_status thanh "approved";
+  :Xoa review_note;
+else (Tu choi)
+  :Admin nhap ly do;
+  :Dat intro_review_status thanh "rejected";
+  :Luu ly do vao review_note;
+endif
+
+stop
+
+@enduml

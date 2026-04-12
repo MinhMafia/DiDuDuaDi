@@ -10,7 +10,7 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
     private const decimal OwnerUpgradeFeeAmount = 299000m;
     private const string PaymentBankCode = "VCB";
     private const string PaymentBankAccountNumber = "1012673499";
-    private const string PaymentAccountName = "DiDuDuaDi Seminar";
+    private const string PaymentAccountName = "Lê Thế Minh";
 
     public AuthUser? ValidateCredentials(string username, string password)
     {
@@ -136,6 +136,8 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
                 account_id,
                 shop_name,
                 address_line,
+                latitude,
+                longitude,
                 id_card_image_url,
                 business_license_image_url,
                 note,
@@ -146,6 +148,8 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
                 @AccountId,
                 @ShopName,
                 @AddressLine,
+                @Latitude,
+                @Longitude,
                 @IdCardImageUrl,
                 @BusinessLicenseImageUrl,
                 @Note,
@@ -158,6 +162,8 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
                 account.AccountId,
                 request.ShopName,
                 request.AddressLine,
+                request.Latitude,
+                request.Longitude,
                 request.IdCardImageUrl,
                 request.BusinessLicenseImageUrl,
                 request.Note
@@ -259,6 +265,8 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
                 our.account_id AS AccountId,
                 our.shop_name AS ShopName,
                 our.address_line AS AddressLine,
+                our.latitude AS Latitude,
+                our.longitude AS Longitude,
                 our.status AS Status,
                 a.display_name AS DisplayName
             FROM owner_upgrade_requests our
@@ -365,6 +373,8 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
                 our.account_id AS AccountId,
                 our.shop_name AS ShopName,
                 our.address_line AS AddressLine,
+                our.latitude AS Latitude,
+                our.longitude AS Longitude,
                 our.status AS Status,
                 a.display_name AS DisplayName
             FROM owner_upgrade_requests our
@@ -492,6 +502,8 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
             a.display_name AS DisplayName,
             our.shop_name AS ShopName,
             our.address_line AS AddressLine,
+            our.latitude AS Latitude,
+            our.longitude AS Longitude,
             our.id_card_image_url AS IdCardImageUrl,
             our.business_license_image_url AS BusinessLicenseImageUrl,
             our.note AS Note,
@@ -539,61 +551,201 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
             new { ownerRoleId, accountId = req.AccountId },
             tx);
 
-        var hasShop = connection.ExecuteScalar<int>(
-            "SELECT COUNT(*) FROM shops WHERE owner_account_id = @accountId;",
+        var latitude = req.Latitude ?? 10.75855600m;
+        var longitude = req.Longitude ?? 106.70328400m;
+        var shopId = connection.ExecuteScalar<Guid?>(
+            "SELECT id FROM shops WHERE owner_account_id = @accountId LIMIT 1;",
             new { accountId = req.AccountId },
             tx);
 
-        if (hasShop > 0)
+        if (!shopId.HasValue || shopId == Guid.Empty)
         {
+            var newShopId = Guid.NewGuid();
+            var slug = BuildSlug(req.ShopName);
+
+            connection.Execute(
+                """
+                INSERT INTO shops (
+                    id,
+                    owner_account_id,
+                    name,
+                    slug,
+                    description,
+                    approved_intro,
+                    pending_intro,
+                    intro_review_status,
+                    address_line,
+                    latitude,
+                    longitude,
+                    opening_hours,
+                    is_active
+                )
+                VALUES (
+                    @Id,
+                    @OwnerAccountId,
+                    @Name,
+                    @Slug,
+                    @Description,
+                    @ApprovedIntro,
+                    NULL,
+                    'approved',
+                    @AddressLine,
+                    @Latitude,
+                    @Longitude,
+                    '15:00 - 23:00',
+                    1
+                );
+                """,
+                new
+                {
+                    Id = newShopId,
+                    OwnerAccountId = req.AccountId,
+                    Name = req.ShopName,
+                    Slug = EnsureUniqueSlug(connection, tx, slug),
+                    Description = $"Quyen chu quan duoc phe duyet cho {req.ShopName}.",
+                    ApprovedIntro = $"{req.DisplayName} vua tro thanh chu quan trong he thong.",
+                    req.AddressLine,
+                    Latitude = latitude,
+                    Longitude = longitude
+                },
+                tx);
+
+            shopId = newShopId;
+        }
+        else
+        {
+            connection.Execute(
+                """
+                UPDATE shops
+                SET
+                    name = @Name,
+                    address_line = @AddressLine,
+                    latitude = @Latitude,
+                    longitude = @Longitude
+                WHERE id = @ShopId;
+                """,
+                new
+                {
+                    ShopId = shopId.Value,
+                    Name = req.ShopName,
+                    req.AddressLine,
+                    Latitude = latitude,
+                    Longitude = longitude
+                },
+                tx);
+        }
+
+        EnsurePrimaryPoiForShop(connection, tx, shopId.Value, req.ShopName, latitude, longitude);
+    }
+
+    private static void EnsurePrimaryPoiForShop(
+        System.Data.IDbConnection connection,
+        System.Data.IDbTransaction tx,
+        Guid shopId,
+        string shopName,
+        decimal latitude,
+        decimal longitude)
+    {
+        var existingPoiId = connection.ExecuteScalar<Guid?>(
+            "SELECT id FROM pois WHERE shop_id = @shopId ORDER BY created_at ASC LIMIT 1;",
+            new { shopId },
+            tx);
+
+        if (existingPoiId.HasValue && existingPoiId != Guid.Empty)
+        {
+            connection.Execute(
+                """
+                UPDATE pois
+                SET
+                    latitude = @Latitude,
+                    longitude = @Longitude
+                WHERE id = @PoiId;
+                """,
+                new
+                {
+                    PoiId = existingPoiId.Value,
+                    Latitude = latitude,
+                    Longitude = longitude
+                },
+                tx);
+            UpsertDefaultPoiTranslations(connection, tx, existingPoiId.Value, shopName);
             return;
         }
 
-        var shopId = Guid.NewGuid().ToString();
-        var slug = BuildSlug(req.ShopName);
-
+        var poiId = Guid.NewGuid();
         connection.Execute(
             """
-            INSERT INTO shops (
+            INSERT INTO pois (
                 id,
-                owner_account_id,
-                name,
-                slug,
-                description,
-                approved_intro,
-                pending_intro,
-                intro_review_status,
-                address_line,
+                shop_id,
+                category,
                 latitude,
                 longitude,
-                opening_hours,
+                trigger_radius_meters,
+                hero_image_url,
+                default_language_code,
+                is_featured,
                 is_active
             )
             VALUES (
                 @Id,
-                @OwnerAccountId,
-                @Name,
-                @Slug,
-                @Description,
-                @ApprovedIntro,
+                @ShopId,
+                'food',
+                @Latitude,
+                @Longitude,
+                35,
                 NULL,
-                'approved',
-                @AddressLine,
-                10.75855600,
-                106.70328400,
-                '15:00 - 23:00',
+                'vi',
+                0,
                 1
             );
             """,
             new
             {
-                Id = shopId,
-                OwnerAccountId = req.AccountId,
-                Name = req.ShopName,
-                Slug = EnsureUniqueSlug(connection, tx, slug),
-                Description = $"Quyen chu quan duoc phe duyet cho {req.ShopName}.",
-                ApprovedIntro = $"{req.DisplayName} vua tro thanh chu quan trong he thong.",
-                req.AddressLine
+                Id = poiId,
+                ShopId = shopId,
+                Latitude = latitude,
+                Longitude = longitude
+            },
+            tx);
+
+        UpsertDefaultPoiTranslations(connection, tx, poiId, shopName);
+    }
+
+    private static void UpsertDefaultPoiTranslations(
+        System.Data.IDbConnection connection,
+        System.Data.IDbTransaction tx,
+        Guid poiId,
+        string shopName)
+    {
+        connection.Execute(
+            """
+            INSERT INTO poi_translations (
+                poi_id,
+                language_code,
+                name,
+                short_description,
+                description,
+                audio_url
+            )
+            VALUES
+                (@PoiId, 'vi', @NameVi, @ShortVi, @DescriptionVi, NULL),
+                (@PoiId, 'en', @NameEn, @ShortEn, @DescriptionEn, NULL)
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                short_description = VALUES(short_description),
+                description = VALUES(description),
+                audio_url = VALUES(audio_url);
+            """,
+            new
+            {
+                PoiId = poiId,
+                NameVi = shopName,
+                ShortVi = $"POI mac dinh cua {shopName}.",
+                DescriptionVi = $"POI nay duoc tao tu dong khi kich hoat quyen chu quan cho {shopName}.",
+                NameEn = shopName,
+                ShortEn = $"Default POI for {shopName}.",
+                DescriptionEn = $"This POI was created automatically when the owner role was activated for {shopName}."
             },
             tx);
     }
@@ -644,6 +796,8 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
         public Guid AccountId { get; init; }
         public string ShopName { get; init; } = string.Empty;
         public string AddressLine { get; init; } = string.Empty;
+        public decimal? Latitude { get; init; }
+        public decimal? Longitude { get; init; }
         public string Status { get; init; } = string.Empty;
         public string DisplayName { get; init; } = string.Empty;
     }

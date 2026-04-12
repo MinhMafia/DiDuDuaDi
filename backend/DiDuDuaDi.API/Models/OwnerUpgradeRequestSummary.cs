@@ -7,6 +7,8 @@ public class OwnerUpgradeRequestSummary
     public string DisplayName { get; set; } = string.Empty;
     public string ShopName { get; set; } = string.Empty;
     public string AddressLine { get; set; } = string.Empty;
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
     public string? IdCardImageUrl { get; set; }
     public string? BusinessLicenseImageUrl { get; set; }
     public string? Note { get; set; }

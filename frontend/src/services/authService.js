@@ -15,7 +15,17 @@ export async function register(payload) {
 }
 
 export async function createOwnerUpgradeRequest(payload) {
-  const response = await apiClient.post("/auth/owner-upgrade-request", payload);
+  const response = await apiClient.post("/auth/owner-upgrade-request", {
+    ...payload,
+    latitude:
+      payload.latitude === "" || payload.latitude === null || payload.latitude === undefined
+        ? null
+        : Number(payload.latitude),
+    longitude:
+      payload.longitude === "" || payload.longitude === null || payload.longitude === undefined
+        ? null
+        : Number(payload.longitude),
+  });
   return response.data;
 }
 
