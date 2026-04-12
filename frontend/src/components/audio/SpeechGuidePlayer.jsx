@@ -111,29 +111,39 @@ export default function SpeechGuidePlayer({
     if (lastAutoSpeakRef.current === autoSpeakToken) return;
 
     lastAutoSpeakRef.current = autoSpeakToken;
-    startSpeech();
-  }, [onPlaybackStart, playbackKey, speechLanguage, speechText, triggerAutoSpeak, voices]);
+    
+    if (audioUrl=="") {
+      const currentPlayer = playerRef.current;
+      if (currentPlayer && !currentPlayer.playing()) {
+        currentPlayer.play();
+      }
+    } 
+    else if (speechText) {
+      startSpeech();
+    }
+    
+  }, [audioUrl, onPlaybackStart, playbackKey, speechLanguage, speechText, triggerAutoSpeak, voices]);
 
   function togglePlayback() {
-    if (!audioUrl && speechText) {
+    if (audioUrl) {
+      const currentPlayer = playerRef.current;
+      if (!currentPlayer) return;
+
+      if (currentPlayer.playing()) {
+        currentPlayer.pause();
+      } else {
+        currentPlayer.play();
+      }
+      return;
+    }
+
+    if (speechText) {
       if (isPlaying || isTranslating) {
         stopSpeech();
-        return;
+      } else {
+        startSpeech();
       }
-
-      startSpeech();
-      return;
     }
-
-    const currentPlayer = playerRef.current;
-    if (!currentPlayer) return;
-
-    if (currentPlayer.playing()) {
-      currentPlayer.pause();
-      return;
-    }
-
-    currentPlayer.play();
   }
 
   function handleSeek(event) {

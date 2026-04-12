@@ -107,7 +107,7 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
                 // Gọi API dịch thuật (Hàm này vẫn cần await vì nó gọi ra ngoài internet)
                 var (translatedName, translatedDesc) = await translationService.TranslatePoiContentAsync(request.NameVi, request.DescriptionVi, lang);
 
-                 string audioUrl = await textToSpeechService.GenerateAndSaveAudioAsync(translatedDesc, lang, poiId.Value.ToString());
+                string? audioUrl = await textToSpeechService.GenerateAndSaveAudioAsync(translatedDesc, lang, poiId.Value.ToString());
 
                 ownerRepository.UpsertPoiTranslation(
                     poiId.Value,

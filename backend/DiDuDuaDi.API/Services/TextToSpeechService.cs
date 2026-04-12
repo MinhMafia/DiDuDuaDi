@@ -3,6 +3,9 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
+using System.Collections.Generic;
+using System.Linq;
+using System;
 
 namespace DiDuDuaDi.API.Services
 {
@@ -26,27 +29,34 @@ namespace DiDuDuaDi.API.Services
         {
             if (string.IsNullOrWhiteSpace(text)) return null;
 
-            if (text.Length > 200)
-            {
-                text = text.Substring(0, 197) + "...";
-            }
-
             string ttsLangCode = languageCode.ToLower() == "zh" ? "zh-CN" : languageCode;
 
-            string encodedText = HttpUtility.UrlEncode(text);
-            string url = $"https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q={encodedText}&tl={ttsLangCode}";
+            var chunks = SplitText(text, 200);
+            var finalAudioBytes = new List<byte>();
 
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
 
-            var response = await _httpClient.GetAsync(url);
-            if (!response.IsSuccessStatusCode)
+            foreach (var chunk in chunks)
             {
-                Console.WriteLine($"[TTS ERROR] Không thể tạo Audio cho ngôn ngữ '{languageCode}'. Lỗi từ Google: {response.StatusCode}");
-                return null; 
+                string encodedText = HttpUtility.UrlEncode(chunk);
+                string url = $"https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q={encodedText}&tl={ttsLangCode}";
+
+                var response = await _httpClient.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine($"[TTS ERROR] Không thể tạo Audio cho đoạn: '{chunk}'. Lỗi: {response.StatusCode}");
+                    continue; 
+                }
+
+                byte[] chunkBytes = await response.Content.ReadAsByteArrayAsync();
+                
+                finalAudioBytes.AddRange(chunkBytes);
+                
+                await Task.Delay(100); 
             }
 
-            byte[] audioBytes = await response.Content.ReadAsByteArrayAsync();
+            if (finalAudioBytes.Count == 0) return null;
 
             string webRootPath = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             string uploadsFolder = Path.Combine(webRootPath, "audios", "pois");
@@ -59,10 +69,40 @@ namespace DiDuDuaDi.API.Services
             string fileName = $"{poiId}_{languageCode}.mp3";
             string filePath = Path.Combine(uploadsFolder, fileName);
 
-            await File.WriteAllBytesAsync(filePath, audioBytes);
+            await File.WriteAllBytesAsync(filePath, finalAudioBytes.ToArray());
 
-            long timestamp = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             return $"/audios/pois/{fileName}?v={timestamp}";
+        }
+
+        private List<string> SplitText(string text, int maxLength)
+        {
+            var chunks = new List<string>();
+            var words = text.Split(new[] { ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            var currentChunk = "";
+
+            foreach (var word in words)
+            {
+                if (currentChunk.Length + word.Length + 1 > maxLength)
+                {
+                    if (!string.IsNullOrEmpty(currentChunk))
+                    {
+                        chunks.Add(currentChunk.Trim());
+                    }
+                    currentChunk = word;
+                }
+                else
+                {
+                    currentChunk += (string.IsNullOrEmpty(currentChunk) ? "" : " ") + word;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(currentChunk))
+            {
+                chunks.Add(currentChunk.Trim());
+            }
+
+            return chunks;
         }
     }
 }

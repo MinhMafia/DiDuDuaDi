@@ -37,8 +37,8 @@ builder.Services.AddScoped<IAuthRepository, MySqlAuthRepository>();
 builder.Services.AddScoped<IOwnerRepository, MySqlOwnerRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, MySqlAnalyticsRepository>();
 builder.Services.AddScoped<IAdminRepository, MySqlAdminRepository>();
-builder.Services.AddScoped<ITranslationService, GoogleFreeTranslationService>();
-builder.Services.AddScoped<ITextToSpeechService, GoogleFreeTextToSpeechService>();
+builder.Services.AddHttpClient<ITranslationService, GoogleFreeTranslationService>();
+builder.Services.AddHttpClient<ITextToSpeechService, GoogleFreeTextToSpeechService>();
 
 builder.Services.AddCors(options =>
 {
@@ -75,7 +75,15 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.MapGet("/", () => Results.Ok(new { success = true, message = "DiDuDuaDi.API (.NET 10) is running" }));
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Cho phép mọi domain đọc file âm thanh
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+        ctx.Context.Response.Headers.Append("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    }
+});
 app.MapControllers();
 
 app.Run();
