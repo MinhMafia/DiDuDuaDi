@@ -11,7 +11,7 @@ namespace DiDuDuaDi.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "owner")]
-public class OwnerController(IOwnerRepository ownerRepository, ITranslationService translationService) : ControllerBase
+public class OwnerController(IOwnerRepository ownerRepository, ITranslationService translationService, ITextToSpeechService textToSpeechService) : ControllerBase
 {
     [HttpGet("dashboard")]
     public ActionResult<ApiResponse<OwnerShopDashboard>> GetDashboard()
@@ -89,6 +89,17 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
 
         if (poiId != null) // Đảm bảo POI tồn tại
         {
+            string? audioUrlVi = await textToSpeechService.GenerateAndSaveAudioAsync(request.DescriptionVi, "vi", poiId.Value.ToString());
+            
+            ownerRepository.UpsertPoiTranslation(
+                poiId.Value,
+                "vi", 
+                request.NameVi, 
+                request.DescriptionVi,
+                audioUrlVi
+            );
+            await Task.Delay(1000);
+
             string[] targetLanguages = new[] { "en", "zh", "ja", "ko", "fr", "th" };
 
             foreach (var lang in targetLanguages)
@@ -96,11 +107,14 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
                 // Gọi API dịch thuật (Hàm này vẫn cần await vì nó gọi ra ngoài internet)
                 var (translatedName, translatedDesc) = await translationService.TranslatePoiContentAsync(request.NameVi, request.DescriptionVi, lang);
 
+                 string audioUrl = await textToSpeechService.GenerateAndSaveAudioAsync(translatedDesc, lang, poiId.Value.ToString());
+
                 ownerRepository.UpsertPoiTranslation(
                     poiId.Value,
                     lang, 
                     translatedName, 
-                    translatedDesc
+                    translatedDesc,
+                    audioUrl
                 );
             }
         }
