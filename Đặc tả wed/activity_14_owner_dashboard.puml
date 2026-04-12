@@ -1,0 +1,55 @@
+@startuml activity_14_owner_dashboard
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:Owner dang nhap he thong;
+
+:Owner truy cap trang Owner dashboard;
+
+:He thong lay thong tin dashboard
+  voi username hien tai;
+
+:Hien thi cac thanh phan:
+- Shop profile (ten, dia chi, gio mo...)
+- POI chinh (ten, mo ta VI/EN)
+- Danh sach menu items
+- Cac claim codes gan day
+- Thong ke:
+  * Tong luot truy cap
+  * Tong luot phat audio
+  * So ma claim code da tao;
+
+:Owner chon thao tac;
+
+if (Cap nhat shop profile?) then (Co)
+  :Owner dien thong tin moi;
+  :He thong cap nhat bang shops;
+else if (Chinh sua noi dung POI?) then (Co)
+  :Owner dien ten/mo ta VI va EN;
+  :He thong tu dong dich sang
+    5 ngon ngu con lai (GTranslate);
+  :Cap nhat bang pois va poi_translations;
+else if (Quan ly menu items?) then (Co)
+  if (Them moi?) then (Co)
+    :Owner dien thong tin mon an;
+    :He thong them vao bang menu_items;
+  elseif (Sua?) then (Co)
+    :Owner cap nhat thong tin mon an;
+    :He thong cap nhat vao bang menu_items;
+  else (Xoa)
+    :He thong xoa mon an khoi bang menu_items;
+  endif
+else if (Tao claim code?) then (Co)
+  :Owner nhap so tien va thoi han;
+  :He thong sinh ma VK + 6 chu so ngau nhien;
+  :Luu vao bang cash_claim_codes;
+else if (Xem thong ke?) then (Co)
+  :Hien thi so lieu phan tich;
+endif
+
+stop
+
+@enduml

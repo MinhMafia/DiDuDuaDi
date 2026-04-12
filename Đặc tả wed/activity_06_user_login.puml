@@ -1,0 +1,31 @@
+@startuml activity_06_user_login
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:User truy cap trang dang nhap;
+
+:User nhap username;
+:User nhap password;
+
+:He thong truy van bang accounts;
+
+if (Tim thay tai khoan?) then (Khong)
+  :Hien thi thong bao sai thong tin;
+  stop
+else (Co)
+  if (Password dung?) then (Sai)
+    :Hien thi thong bao sai mat khau;
+    stop
+  else (Dung)
+    :Cap nhat last_login_at;
+    :Sinh JWT token (sub, username, role, display_name);
+    :Tra ve session cho client;
+    :Chuyen den trang chuc nang theo role;
+    stop
+  endif
+endif
+
+@enduml

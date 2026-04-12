@@ -6,11 +6,9 @@ import {
   Card,
   Input,
   Button,
-  Typography,
   Space,
   Alert,
-  Divider,
-  Tag,
+  Typography,
 } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 
@@ -18,14 +16,7 @@ import AuthShell from "../components/auth/AuthShell";
 import { login } from "../services/authService";
 import { loginSuccess } from "../store/slices/appSlice";
 
-const { Title, Text } = Typography;
-
-const demoAccounts = [
-  { username: "user", password: "123456", role: "user" },
-  { username: "owner_demo", password: "123456", role: "owner" },
-  { username: "owner", password: "123456", role: "owner" },
-  { username: "admin", password: "123456", role: "admin" },
-];
+const { Text } = Typography;
 
 export default function LoginPage() {
   const dispatch = useDispatch();
@@ -34,8 +25,8 @@ export default function LoginPage() {
   const { t } = useTranslation();
 
   const [form, setForm] = useState({
-    username: "user",
-    password: "123456",
+    username: "",
+    password: "",
   });
 
   const [error, setError] = useState("");
@@ -73,7 +64,7 @@ export default function LoginPage() {
 
   return (
     <AuthShell
-      badge="🚀 Smart Travel"
+      badge={t("auth.badge")}
       title={t("auth.loginTitle")}
       subtitle={t("auth.loginSubtitle")}
       footerText={t("auth.noAccount")}
@@ -82,44 +73,61 @@ export default function LoginPage() {
     >
       <Card
         style={{
-          borderRadius: 16,
-          boxShadow: "0 8px 30px rgba(0,0,0,0.08)",
+          borderRadius: 24,
+          border: "1px solid #e2e8f0",
+          boxShadow: "0 20px 48px rgba(15,23,42,0.08)",
+          background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
         }}
-        bodyStyle={{ padding: 24 }}
+        bodyStyle={{ padding: 28 }}
       >
-        <Space direction="vertical" size={16} style={{ width: "100%" }}>
-          
-          {/* SUCCESS */}
+        <Space direction="vertical" size={20} style={{ width: "100%" }}>
           {successMessage && (
             <Alert type="success" message={successMessage} showIcon />
           )}
 
-          {/* ERROR */}
           {error && <Alert type="error" message={error} showIcon />}
 
-          {/* FORM */}
           <form onSubmit={handleSubmit}>
-            <Space direction="vertical" style={{ width: "100%" }} size={12}>
-              
-              <Input
-                size="large"
-                prefix={<UserOutlined />}
-                placeholder={t("auth.username")}
-                value={form.username}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, username: e.target.value }))
-                }
-              />
+            <Space direction="vertical" style={{ width: "100%" }} size={14}>
+              <div>
+                <Text
+                  strong
+                  style={{ display: "block", marginBottom: 8, color: "#0f172a" }}
+                >
+                  {t("auth.username")}
+                </Text>
+                <Input
+                  size="large"
+                  prefix={<UserOutlined />}
+                  placeholder={t("auth.username")}
+                  value={form.username}
+                  autoComplete="username"
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, username: e.target.value }))
+                  }
+                  style={{ borderRadius: 14, height: 48 }}
+                />
+              </div>
 
-              <Input.Password
-                size="large"
-                prefix={<LockOutlined />}
-                placeholder={t("auth.password")}
-                value={form.password}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, password: e.target.value }))
-                }
-              />
+              <div>
+                <Text
+                  strong
+                  style={{ display: "block", marginBottom: 8, color: "#0f172a" }}
+                >
+                  {t("auth.password")}
+                </Text>
+                <Input.Password
+                  size="large"
+                  prefix={<LockOutlined />}
+                  placeholder={t("auth.password")}
+                  value={form.password}
+                  autoComplete="current-password"
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, password: e.target.value }))
+                  }
+                  style={{ borderRadius: 14, height: 48 }}
+                />
+              </div>
 
               <Button
                 type="primary"
@@ -128,49 +136,17 @@ export default function LoginPage() {
                 loading={loading}
                 block
                 style={{
-                  height: 44,
-                  borderRadius: 10,
-                  fontWeight: 600,
+                  height: 50,
+                  borderRadius: 14,
+                  fontWeight: 700,
+                  marginTop: 6,
+                  boxShadow: "0 12px 24px rgba(37, 99, 235, 0.24)",
                 }}
               >
                 {loading ? t("auth.loading") : t("auth.login")}
               </Button>
             </Space>
           </form>
-
-          <Divider>{t("auth.demoAccounts")}</Divider>
-
-          {/* DEMO ACCOUNTS */}
-          <Space wrap>
-            {demoAccounts.map((acc) => (
-              <Card
-                key={acc.username}
-                hoverable
-                size="small"
-                onClick={() =>
-                  setForm({
-                    username: acc.username,
-                    password: acc.password,
-                  })
-                }
-                style={{
-                  cursor: "pointer",
-                  borderRadius: 10,
-                  width: 140,
-                }}
-              >
-                <Space direction="vertical" size={4}>
-                  <Tag color="blue">
-                    {t(`auth.roles.${acc.role}`)}
-                  </Tag>
-                  <Text strong>{acc.username}</Text>
-                  <Text type="secondary" style={{ fontSize: 12 }}>
-                    {acc.password}
-                  </Text>
-                </Space>
-              </Card>
-            ))}
-          </Space>
         </Space>
       </Card>
     </AuthShell>

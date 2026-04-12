@@ -22,6 +22,7 @@ public class MySqlDatabaseInitializer(
         EnsureShopVisitEventsTable(connection, databaseName);
         EnsureAudioPlayEventsTable(connection, databaseName);
         EnsureOwnerUpgradeRequestsTable(connection, databaseName);
+        EnsureOwnerUpgradeLocationColumns(connection, databaseName);
         EnsureOwnerReviewColumns(connection, databaseName);
         EnsureOwnerUpgradePaymentColumns(connection, databaseName);
         EnsureOwnerDemoSeed(connection);
@@ -400,6 +401,28 @@ public class MySqlDatabaseInitializer(
             "ALTER TABLE owner_upgrade_requests ADD COLUMN review_note VARCHAR(500) NULL AFTER reviewed_at;");
     }
 
+    private void EnsureOwnerUpgradeLocationColumns(System.Data.IDbConnection connection, string databaseName)
+    {
+        if (!TableExists(connection, databaseName, "owner_upgrade_requests"))
+        {
+            return;
+        }
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "latitude",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN latitude DECIMAL(10, 8) NULL AFTER address_line;");
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "longitude",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN longitude DECIMAL(11, 8) NULL AFTER latitude;");
+    }
+
     private void EnsureOwnerUpgradePaymentColumns(System.Data.IDbConnection connection, string databaseName)
     {
         if (!TableExists(connection, databaseName, "owner_upgrade_requests"))
@@ -598,6 +621,8 @@ public class MySqlDatabaseInitializer(
                 account_id CHAR(36) NOT NULL,
                 shop_name VARCHAR(150) NOT NULL,
                 address_line VARCHAR(255) NOT NULL,
+                latitude DECIMAL(10, 8) NULL,
+                longitude DECIMAL(11, 8) NULL,
                 id_card_image_url VARCHAR(500) NULL,
                 business_license_image_url VARCHAR(500) NULL,
                 note VARCHAR(500) NULL,

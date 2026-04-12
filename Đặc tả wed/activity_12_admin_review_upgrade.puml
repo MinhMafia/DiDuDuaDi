@@ -1,0 +1,38 @@
+@startuml activity_12_admin_review_upgrade
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:Admin truy cap dashboard;
+
+:He thong lay danh sach yeu cau
+  co trang thai "pending";
+
+:Admin chon mot yeu cau de xem;
+
+:Hien thi chi tiet yeu cau:
+- Username, display_name
+- Ten shop, dia chi
+- Hinh giay to (neu co)
+- Ghi chu;
+
+:Admin quyet dinh;
+
+if (Phe duyet?) then (Phe duyet)
+  :He thong nang role cua user thanh "owner";
+  :He thong tao ban ghi shop moi
+    voi thong tin tu yeu cau;
+  :Cap nhat trang thai yeu cau thanh "approved";
+  :Thong bao cho User;
+else (Tu choi)
+  :Admin nhap ly do tu choi;
+  :Cap nhat trang thai yeu cau thanh "rejected";
+  :Luu ly do vao review_note;
+  :Thong bao cho User kem ly do;
+endif
+
+stop
+
+@enduml

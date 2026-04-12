@@ -1,0 +1,58 @@
+@startuml sequence_24_admin_review_shop_intro
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor Admin
+participant "Frontend" as FE
+participant "AdminController" as Ctrl
+participant "MySqlAdminRepository" as Repo
+database "shops" as DB
+
+Owner -> DB: UPDATE pending_intro=?,\n intro_review_status=pending
+
+Admin -> FE: Truy cap Admin dashboard
+FE --> Admin: Danh sach shop can duy
+
+Admin -> FE: Chon shop de xem
+FE -> Ctrl: GET /api/admin/shop-intros?status=pending
+note right
+  Authorization: Bearer admin_token
+end note
+
+Ctrl -> Ctrl: Validate token (role=admin)
+
+Ctrl -> Repo: GetShopIntroReviews("pending")
+Repo -> DB: SELECT shops.*, accounts.*\nWHERE intro_review_status=pending
+DB --> Repo: Danh sach shop
+Repo --> Ctrl: List<Summary>
+Ctrl --> FE: 200 OK
+FE --> Admin: Hien thi approved vs pending intro
+
+Admin -> FE: Nhan Phe duyet hoac Tu choi
+
+alt Phe duyet
+  FE -> Ctrl: POST /api/admin/shop-intros/{shopId}/review\n{ action: "approve" }
+  
+  Ctrl -> Repo: ReviewShopIntro(shopId, admin, "approve")
+  Repo -> DB: UPDATE approved_intro=pending_intro,\n intro_review_status=approved,\n pending_intro=NULL
+  DB --> Repo: OK
+  Repo --> Ctrl: Thanh cong
+  Ctrl --> FE: 200 OK
+  FE --> Admin: Thong bao thanh cong
+  
+else Tu choi
+  FE -> FE: Admin nhap ly do
+  
+  FE -> Ctrl: POST .../review\n{ action: "reject", reason: "..." }
+  
+  Ctrl -> Repo: ReviewShopIntro(shopId, admin, "reject", reason)
+  Repo -> DB: UPDATE intro_review_status=rejected,\n review_note=?
+  DB --> Repo: OK
+  Repo --> Ctrl: Thanh cong
+  Ctrl --> FE: 200 OK
+  FE --> Admin: Thong bao thanh cong
+end
+
+@enduml

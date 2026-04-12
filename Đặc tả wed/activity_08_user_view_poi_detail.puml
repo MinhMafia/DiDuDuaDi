@@ -1,0 +1,36 @@
+@startuml activity_08_user_view_poi_detail
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:User chon POI tu ban do hoac danh sach;
+
+:He thong truy van GetById lay thong tin POI;
+
+:Hien thi thong tin chi tiet POI:
+- Hinh anh
+- Ten shop, dia chi
+- Gio mo cua, so dien thoai
+- Phan gioi thieu da duyet
+- Danh sach mon an va gia ca;
+
+:User chon ngon ngu thuyet minh
+(VI, EN, ZH, JA, KO, FR, TH);
+
+:He thong lay noi dung theo ngon ngu tu bang poi_translations;
+
+if (User muon nghe thuyet minh?) then (Co)
+  :He thong phat audio qua Web Speech API hoac Google Cloud TTS;
+else (Khong)
+  :Hien thi van ban thuyet minh;
+endif
+
+:User co the xem hinh anh va thuc don;
+
+:User co the chon tim duong;
+
+stop
+
+@enduml

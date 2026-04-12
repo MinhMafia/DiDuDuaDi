@@ -1,0 +1,63 @@
+@startuml sequence_22_admin_review_upgrade
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor Admin
+participant "Frontend" as FE
+participant "AuthController" as Ctrl
+participant "MySqlAuthRepository" as Repo
+database "owner_upgrade_requests" as DB1
+database "accounts, shops" as DB2
+
+Admin -> FE: Truy cap Admin dashboard
+FE --> Admin: Danh sach yeu cau pending
+
+Admin -> FE: Chon yeu cau de xem
+FE -> Ctrl: GET /api/auth/owner-upgrade-requests?status=pending
+note right
+  Authorization: Bearer admin_token
+end note
+
+Ctrl -> Ctrl: Validate token (role=admin)
+
+Ctrl -> Repo: GetOwnerUpgradeRequests("pending")
+Repo -> DB1: SELECT * JOIN accounts\nWHERE status=pending
+DB1 --> Repo: Danh sach yeu cau
+Repo --> Ctrl: List<Summary>
+Ctrl --> FE: 200 OK
+FE --> Admin: Hien thi chi tiet yeu cau
+
+Admin -> FE: Nhan Phe duyet hoac Tu choi
+
+alt Phe duyet
+  FE -> Ctrl: POST /api/auth/owner-upgrade-requests/{id}/review\n{ action: "approve" }
+  
+  Ctrl -> Repo: ReviewOwnerUpgradeRequest(id, admin, "approve")
+  
+  Repo -> DB1: UPDATE status=approved,\n reviewed_by, reviewed_at
+  
+  Repo -> DB2: UPDATE accounts SET role_id=2 (owner)
+  Repo -> DB2: INSERT INTO shops\n(owner_account_id, name, address_line)
+  
+  DB1 --> Repo: OK
+  DB2 --> Repo: OK
+  Repo --> Ctrl: Thanh cong
+  Ctrl --> FE: 200 OK
+  FE --> Admin: Thong bao thanh cong
+  
+else Tu choi
+  FE -> FE: Admin nhap ly do
+  
+  FE -> Ctrl: POST .../review\n{ action: "reject", reason: "..." }
+  
+  Ctrl -> Repo: ReviewOwnerUpgradeRequest(id, admin, "reject", reason)
+  Repo -> DB1: UPDATE status=rejected,\n review_note=?
+  DB1 --> Repo: OK
+  Repo --> Ctrl: Thanh cong
+  Ctrl --> FE: 200 OK
+  FE --> Admin: Thong bao thanh cong
+end
+
+@enduml
