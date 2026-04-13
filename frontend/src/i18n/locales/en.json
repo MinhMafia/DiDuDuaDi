@@ -179,6 +179,8 @@
     "fields": {
       "shopName": "Shop name",
       "address": "Address in Vinh Khanh",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
       "idCardImageUrl": "ID card image URL",
       "businessLicenseImageUrl": "Business license image URL (optional)",
       "note": "Note"

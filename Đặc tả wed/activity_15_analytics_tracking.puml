@@ -1,0 +1,27 @@
+@startuml activity_15_analytics_tracking
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+if (User xem chi tiet POI?) then (Co)
+  :Frontend goi POST /analytics/poi-view
+    voi poiId, languageCode, source;
+  :He thong ghi nhan vao bang
+    shop_visit_events;
+  :Cap nhat thong ke cho Owner;
+elseif (User nghe thuyet minh?) then (Co)
+  :Frontend goi POST /analytics/audio-play
+    voi poiId, languageCode, source;
+  :He thong ghi nhan vao bang
+    audio_play_events;
+  :Cap nhat thong ke cho Owner;
+endif
+
+:Du lieu tong hop hien thi
+  tren Owner dashboard;
+
+stop
+
+@enduml

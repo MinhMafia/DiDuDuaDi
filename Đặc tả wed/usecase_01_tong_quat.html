@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hinh 1 - Usecase Tong quat</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Times New Roman", Times, serif;
+        background: #fff;
+        color: #000;
+        padding: 30px 40px;
+      }
+      h1 {
+        text-align: center;
+        font-size: 22pt;
+        font-weight: bold;
+        margin-bottom: 8pt;
+        text-transform: uppercase;
+      }
+      .desc {
+        text-align: center;
+        font-size: 14pt;
+        margin-bottom: 20pt;
+        font-style: italic;
+      }
+      .mermaid {
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hinh 1: So do Usecase tong quat</h1>
+    <p class="desc">
+      Moi quan he giua ba tac nhan (User, Owner, Admin) voi cac chuc nang chinh
+      cua he thong DiDuDuaDi
+    </p>
+
+    <div class="mermaid">
+      graph TD subgraph HeThong["He thong DiDuDuaDi"] UC01["UC01: Dang ky tai
+      khoan"] UC02["UC02: Dang nhap"] UC03["UC03: Xem danh sach POI"]
+      UC04["UC04: Xem chi tiet POI"] UC05["UC05: Tim kiem POI"] UC06["UC06: Hien
+      thi POI tren ban do"] UC07["UC07: Tim duong den POI"] UC08["UC08: Nghe
+      thuyet minh da ngon ngu"] UC09["UC09: Auto-play thuyet minh"] UC10["UC10:
+      Gui yeu cau nang cap Owner"] UC11["UC11: Chat tro ly AI"] UC12["UC12: Quan
+      ly ho so cua hang"] UC13["UC13: Quan ly noi dung POI"] UC14["UC14: Quan ly
+      thuc don"] UC15["UC15: Tao ma claim code"] UC16["UC16: Xem thong ke
+      dashboard"] UC17["UC17: Duyet yeu cau nang cap Owner"] UC18["UC18: Kiem
+      duyet noi dung gioi thieu shop"] UC19["UC19: Quan ly POI CRUD"]
+      UC20["UC20: Xem analytics he thong"] end User["User"]:::actor
+      Owner["Owner"]:::actor Admin["Admin"]:::actor User --> UC01 User --> UC02
+      User --> UC03 User --> UC04 User --> UC05 User --> UC06 User --> UC07 User
+      --> UC08 User --> UC09 User --> UC10 User --> UC11 Owner --> UC02 Owner
+      --> UC12 Owner --> UC13 Owner --> UC14 Owner --> UC15 Owner --> UC16 Admin
+      --> UC02 Admin --> UC17 Admin --> UC18 Admin --> UC19 Admin --> UC20 UC04
+      -.->|"include"| UC08 UC06 -.->|"include"| UC07 classDef actor
+      fill:#FFF9C4,stroke:#F57F17,stroke-width:3px,color:#000,font-size:18px;
+      classDef uc
+      fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#000,font-size:13px;
+      class User,Owner,Admin actor; class
+      UC01,UC02,UC03,UC04,UC05,UC06,UC07,UC08,UC09,UC10,UC11,UC12,UC13,UC14,UC15,UC16,UC17,UC18,UC19,UC20
+      uc;
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        securityLevel: "loose",
+        flowchart: {
+          htmlLabels: true,
+          curve: "basis",
+          padding: 15,
+          nodeSpacing: 12,
+          rankSpacing: 30,
+        },
+      });
+    </script>
+  </body>
+</html>

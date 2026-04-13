@@ -6,11 +6,41 @@
 const CACHE_KEY_PREFIX = "didududadi_trans_";
 let activeCloudTtsCancel = null;
 
+const GOOGLE_TTS_LANGUAGE_MAP = {
+  vi: "vi",
+  "vi-vn": "vi",
+  en: "en",
+  "en-us": "en",
+  zh: "zh-CN",
+  "zh-cn": "zh-CN",
+  "zh-tw": "zh-TW",
+  ja: "ja",
+  "ja-jp": "ja",
+  ko: "ko",
+  "ko-kr": "ko",
+  fr: "fr",
+  "fr-fr": "fr",
+  th: "th",
+  "th-th": "th",
+};
+
 export function stopAllCloudTts() {
   if (typeof activeCloudTtsCancel === "function") {
     activeCloudTtsCancel();
     activeCloudTtsCancel = null;
   }
+}
+
+function resolveGoogleTtsLanguage(langCode) {
+  if (!langCode) return "vi";
+
+  const normalizedCode = String(langCode).trim().toLowerCase();
+  if (GOOGLE_TTS_LANGUAGE_MAP[normalizedCode]) {
+    return GOOGLE_TTS_LANGUAGE_MAP[normalizedCode];
+  }
+
+  const shortCode = normalizedCode.split("-")[0];
+  return GOOGLE_TTS_LANGUAGE_MAP[shortCode] || shortCode;
 }
 
 /**
@@ -172,8 +202,8 @@ export function playCloudTts(text, langCode, callbacks) {
         return;
       }
 
-      const shortLang = langCode.split("-")[0];
-      const url = `/api/tts/google?lang=${encodeURIComponent(shortLang)}&text=${encodeURIComponent(chunk)}`;
+      const resolvedLang = resolveGoogleTtsLanguage(langCode);
+      const url = `/api/tts/google?lang=${encodeURIComponent(resolvedLang)}&text=${encodeURIComponent(chunk)}`;
 
       currentAudio = new Audio(url);
       spawnedAudios.push(currentAudio);

@@ -1,0 +1,46 @@
+@startuml sequence_21_user_upgrade_request
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor User
+participant "Frontend" as FE
+participant "AuthController" as Ctrl
+participant "MySqlAuthRepository" as Repo
+database "owner_upgrade_requests" as DB
+
+User -> FE: Truy cap trang Upgrade
+FE --> User: Hien thi form nang cap
+
+User -> FE: Dien thong tin shop,\n dia chi, giay to, ghi chu
+
+FE -> FE: Validate form
+
+FE -> Ctrl: POST /api/auth/owner-upgrade-request\n{ username, shopName, addressLine, ... }
+note right
+  Authorization: Bearer token
+end note
+
+Ctrl -> Ctrl: Validate token
+
+Ctrl -> Repo: HasPendingOwnerUpgradeRequest(username)
+Repo -> DB: SELECT COUNT(*) WHERE status=pending
+DB --> Repo: So luong (0 hoac 1)
+
+alt Da ton tai yeu cau pending
+  Repo --> Ctrl: True
+  Ctrl --> FE: 400 Bad Request
+  FE --> User: Thong bao loi
+else Chua co yeu cau pending
+  Repo --> Ctrl: False
+  
+  Ctrl -> Repo: CreateOwnerUpgradeRequest(request)
+  Repo -> DB: INSERT INTO owner_upgrade_requests\n(account_id, shop_name, address_line,\n id_card_image_url, note, status=pending)
+  DB --> Repo: Thanh cong
+  Repo --> Ctrl: Tra ve ID
+  Ctrl --> FE: 201 Created
+  FE --> User: Thong bao thanh cong
+end
+
+@enduml

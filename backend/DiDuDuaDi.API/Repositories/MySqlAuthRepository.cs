@@ -7,6 +7,11 @@ namespace DiDuDuaDi.API.Repositories;
 
 public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuthRepository
 {
+    private const decimal OwnerUpgradeFeeAmount = 299000m;
+    private const string PaymentBankCode = "VCB";
+    private const string PaymentBankAccountNumber = "1012673499";
+    private const string PaymentAccountName = "Lê Thế Minh";
+
     public AuthUser? ValidateCredentials(string username, string password)
     {
         using var connection = connectionFactory.CreateConnection();
@@ -116,7 +121,7 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
             SELECT COUNT(*)
             FROM owner_upgrade_requests
             WHERE account_id = @AccountId
-              AND status = 'pending';
+              AND status IN ('pending', 'payment_pending');
             """,
             new { account.AccountId });
 
@@ -131,6 +136,8 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
                 account_id,
                 shop_name,
                 address_line,
+                latitude,
+                longitude,
                 id_card_image_url,
                 business_license_image_url,
                 note,
@@ -141,6 +148,8 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
                 @AccountId,
                 @ShopName,
                 @AddressLine,
+                @Latitude,
+                @Longitude,
                 @IdCardImageUrl,
                 @BusinessLicenseImageUrl,
                 @Note,
@@ -153,6 +162,8 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
                 account.AccountId,
                 request.ShopName,
                 request.AddressLine,
+                request.Latitude,
+                request.Longitude,
                 request.IdCardImageUrl,
                 request.BusinessLicenseImageUrl,
                 request.Note
@@ -188,11 +199,20 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
             FROM owner_upgrade_requests our
             INNER JOIN accounts a ON a.id = our.account_id
             WHERE a.username = @username
-              AND our.status = 'pending';
+              AND our.status IN ('pending', 'payment_pending');
             """,
             new { username });
 
         return count > 0;
+    }
+
+    public OwnerUpgradeRequestSummary? GetLatestOwnerUpgradeRequest(string username)
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        return connection.QuerySingleOrDefault<OwnerUpgradeRequestSummary>(
+            BuildOwnerUpgradeRequestSelect("a.username = @username", singleResult: true),
+            new { username });
     }
 
     public IReadOnlyList<OwnerUpgradeRequestSummary> GetOwnerUpgradeRequests(string? status)
@@ -200,27 +220,7 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
         using var connection = connectionFactory.CreateConnection();
 
         return connection.Query<OwnerUpgradeRequestSummary>(
-            """
-            SELECT
-                our.id AS Id,
-                a.username AS Username,
-                a.display_name AS DisplayName,
-                our.shop_name AS ShopName,
-                our.address_line AS AddressLine,
-                our.id_card_image_url AS IdCardImageUrl,
-                our.business_license_image_url AS BusinessLicenseImageUrl,
-                our.note AS Note,
-                our.status AS Status,
-                our.submitted_at AS SubmittedAt,
-                our.reviewed_at AS ReviewedAt,
-                reviewer.username AS ReviewedBy,
-                our.review_note AS ReviewNote
-            FROM owner_upgrade_requests our
-            INNER JOIN accounts a ON a.id = our.account_id
-            LEFT JOIN accounts reviewer ON reviewer.id = our.reviewed_by_account_id
-            WHERE (@status IS NULL OR our.status = @status)
-            ORDER BY our.submitted_at DESC;
-            """,
+            BuildOwnerUpgradeRequestSelect("(@status IS NULL OR our.status = @status)"),
             new { status }).ToList();
     }
 
@@ -233,7 +233,7 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
         connection.Open();
         using var tx = connection.BeginTransaction();
 
-        var adminAccountId = connection.ExecuteScalar<string?>(
+        var adminAccountId = connection.QuerySingleOrDefault<Guid?>(
             """
             SELECT a.id
             FROM accounts a
@@ -245,7 +245,7 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
             new { adminUsername },
             tx);
 
-        if (string.IsNullOrWhiteSpace(adminAccountId))
+        if (adminAccountId is null || adminAccountId == Guid.Empty)
         {
             tx.Rollback();
             return null;
@@ -253,6 +253,181 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
 
         var normalizedAction = action.Trim().ToLowerInvariant();
         if (normalizedAction is not ("approve" or "reject"))
+        {
+            tx.Rollback();
+            return null;
+        }
+
+        var req = connection.QuerySingleOrDefault<PendingOwnerUpgradeRequest>(
+            """
+            SELECT
+                our.id AS RequestId,
+                our.account_id AS AccountId,
+                our.shop_name AS ShopName,
+                our.address_line AS AddressLine,
+                our.latitude AS Latitude,
+                our.longitude AS Longitude,
+                our.status AS Status,
+                a.display_name AS DisplayName
+            FROM owner_upgrade_requests our
+            INNER JOIN accounts a ON a.id = our.account_id
+            WHERE our.id = @requestId
+            LIMIT 1;
+            """,
+            new { requestId },
+            tx);
+
+        if (req is null || req.Status != "pending")
+        {
+            tx.Rollback();
+            return null;
+        }
+
+        if (normalizedAction == "approve")
+        {
+            var paymentReferenceCode = BuildPaymentReferenceCode(requestId);
+            var paymentQrContent =
+                $"NANG QUYEN CHU QUAN | Fee: {OwnerUpgradeFeeAmount:0} VND | Ref: {paymentReferenceCode}";
+            var paymentQrImageUrl = BuildPaymentQrImageUrl(paymentReferenceCode, OwnerUpgradeFeeAmount);
+
+            connection.Execute(
+                """
+                UPDATE owner_upgrade_requests
+                SET
+                    status = 'payment_pending',
+                    reviewed_by_account_id = @reviewedByAccountId,
+                    reviewed_at = CURRENT_TIMESTAMP,
+                    review_note = @ReviewNote,
+                    upgrade_fee_amount = @UpgradeFeeAmount,
+                    payment_reference_code = @PaymentReferenceCode,
+                    payment_qr_content = @PaymentQrContent,
+                    payment_qr_image_url = @PaymentQrImageUrl,
+                    payment_requested_at = CURRENT_TIMESTAMP
+                WHERE id = @requestId;
+                """,
+                new
+                {
+                    requestId,
+                    reviewedByAccountId = adminAccountId,
+                    ReviewNote = reason,
+                    UpgradeFeeAmount = OwnerUpgradeFeeAmount,
+                    PaymentReferenceCode = paymentReferenceCode,
+                    PaymentQrContent = paymentQrContent,
+                    PaymentQrImageUrl = paymentQrImageUrl
+                },
+                tx);
+        }
+        else
+        {
+            connection.Execute(
+                """
+                UPDATE owner_upgrade_requests
+                SET
+                    status = 'rejected',
+                    reviewed_by_account_id = @reviewedByAccountId,
+                    reviewed_at = CURRENT_TIMESTAMP,
+                    review_note = @ReviewNote
+                WHERE id = @requestId;
+                """,
+                new
+                {
+                    requestId,
+                    reviewedByAccountId = adminAccountId,
+                    ReviewNote = reason
+                },
+                tx);
+        }
+
+        tx.Commit();
+        return GetOwnerUpgradeRequestById(connection, requestId);
+    }
+
+    public OwnerUpgradeRequestSummary? ConfirmOwnerUpgradePayment(long requestId, string adminUsername)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        connection.Open();
+        using var tx = connection.BeginTransaction();
+
+        var adminAccountId = connection.QuerySingleOrDefault<Guid?>(
+            """
+            SELECT a.id
+            FROM accounts a
+            INNER JOIN roles r ON r.id = a.role_id
+            WHERE a.username = @adminUsername
+              AND r.code = 'admin'
+            LIMIT 1;
+            """,
+            new { adminUsername },
+            tx);
+
+        if (adminAccountId is null || adminAccountId == Guid.Empty)
+        {
+            tx.Rollback();
+            return null;
+        }
+
+        var req = connection.QuerySingleOrDefault<PendingOwnerUpgradeRequest>(
+            """
+            SELECT
+                our.id AS RequestId,
+                our.account_id AS AccountId,
+                our.shop_name AS ShopName,
+                our.address_line AS AddressLine,
+                our.latitude AS Latitude,
+                our.longitude AS Longitude,
+                our.status AS Status,
+                a.display_name AS DisplayName
+            FROM owner_upgrade_requests our
+            INNER JOIN accounts a ON a.id = our.account_id
+            WHERE our.id = @requestId
+            LIMIT 1;
+            """,
+            new { requestId },
+            tx);
+
+        if (req is null || req.Status != "payment_pending")
+        {
+            tx.Rollback();
+            return null;
+        }
+
+        ActivateOwnerRoleAndShop(connection, tx, req);
+
+        connection.Execute(
+            """
+            UPDATE owner_upgrade_requests
+            SET
+                status = 'approved',
+                payment_confirmed_at = CURRENT_TIMESTAMP,
+                activated_at = CURRENT_TIMESTAMP
+            WHERE id = @requestId;
+            """,
+            new { requestId },
+            tx);
+
+        tx.Commit();
+        return GetOwnerUpgradeRequestById(connection, requestId);
+    }
+
+    public OwnerUpgradeRequestSummary? CancelOwnerUpgradePayment(long requestId, string adminUsername)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        connection.Open();
+        using var tx = connection.BeginTransaction();
+
+        var adminAccountId = connection.QuerySingleOrDefault<Guid?>(
+            """
+            SELECT a.id
+            FROM accounts a
+            INNER JOIN roles r ON r.id = a.role_id
+            WHERE a.username = @adminUsername
+              AND r.code = 'admin'
+            LIMIT 1;
+            """,
+            new { adminUsername },
+            tx);
+
+        if (adminAccountId is null || adminAccountId == Guid.Empty)
         {
             tx.Rollback();
             return null;
@@ -275,97 +450,30 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
             new { requestId },
             tx);
 
-        if (req is null || req.Status != "pending")
+        if (req is null || req.Status != "payment_pending")
         {
             tx.Rollback();
             return null;
-        }
-
-        if (normalizedAction == "approve")
-        {
-            var ownerRoleId = connection.ExecuteScalar<int>(
-                "SELECT id FROM roles WHERE code = 'owner' LIMIT 1;",
-                transaction: tx);
-
-            connection.Execute(
-                "UPDATE accounts SET role_id = @ownerRoleId WHERE id = @accountId;",
-                new { ownerRoleId, accountId = req.AccountId },
-                tx);
-
-            var hasShop = connection.ExecuteScalar<int>(
-                "SELECT COUNT(*) FROM shops WHERE owner_account_id = @accountId;",
-                new { accountId = req.AccountId },
-                tx);
-
-            if (hasShop == 0)
-            {
-                var shopId = Guid.NewGuid().ToString();
-                var slug = BuildSlug(req.ShopName);
-
-                connection.Execute(
-                    """
-                    INSERT INTO shops (
-                        id,
-                        owner_account_id,
-                        name,
-                        slug,
-                        description,
-                        approved_intro,
-                        pending_intro,
-                        intro_review_status,
-                        address_line,
-                        latitude,
-                        longitude,
-                        opening_hours,
-                        is_active
-                    )
-                    VALUES (
-                        @Id,
-                        @OwnerAccountId,
-                        @Name,
-                        @Slug,
-                        @Description,
-                        @ApprovedIntro,
-                        NULL,
-                        'approved',
-                        @AddressLine,
-                        10.75855600,
-                        106.70328400,
-                        '15:00 - 23:00',
-                        1
-                    );
-                    """,
-                    new
-                    {
-                        Id = shopId,
-                        OwnerAccountId = req.AccountId,
-                        Name = req.ShopName,
-                        Slug = EnsureUniqueSlug(connection, tx, slug),
-                        Description = $"Quyen chu quan duoc phe duyet cho {req.ShopName}.",
-                        ApprovedIntro = $"{req.DisplayName} vua tro thanh chu quan trong he thong.",
-                        req.AddressLine
-                    },
-                    tx);
-            }
         }
 
         connection.Execute(
             """
             UPDATE owner_upgrade_requests
             SET
-                status = @Status,
-                reviewed_by_account_id = @reviewedByAccountId,
-                reviewed_at = CURRENT_TIMESTAMP,
-                review_note = @ReviewNote
+                status = 'pending',
+                reviewed_by_account_id = NULL,
+                reviewed_at = NULL,
+                review_note = NULL,
+                upgrade_fee_amount = NULL,
+                payment_reference_code = NULL,
+                payment_qr_content = NULL,
+                payment_qr_image_url = NULL,
+                payment_requested_at = NULL,
+                payment_confirmed_at = NULL,
+                activated_at = NULL
             WHERE id = @requestId;
             """,
-            new
-            {
-                requestId,
-                Status = normalizedAction == "approve" ? "approved" : "rejected",
-                reviewedByAccountId = adminAccountId,
-                ReviewNote = reason
-            },
+            new { requestId },
             tx);
 
         tx.Commit();
@@ -382,28 +490,264 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
     private static OwnerUpgradeRequestSummary? GetOwnerUpgradeRequestById(System.Data.IDbConnection connection, long requestId)
     {
         return connection.QuerySingleOrDefault<OwnerUpgradeRequestSummary>(
-            """
-            SELECT
-                our.id AS Id,
-                a.username AS Username,
-                a.display_name AS DisplayName,
-                our.shop_name AS ShopName,
-                our.address_line AS AddressLine,
-                our.id_card_image_url AS IdCardImageUrl,
-                our.business_license_image_url AS BusinessLicenseImageUrl,
-                our.note AS Note,
-                our.status AS Status,
-                our.submitted_at AS SubmittedAt,
-                our.reviewed_at AS ReviewedAt,
-                reviewer.username AS ReviewedBy,
-                our.review_note AS ReviewNote
-            FROM owner_upgrade_requests our
-            INNER JOIN accounts a ON a.id = our.account_id
-            LEFT JOIN accounts reviewer ON reviewer.id = our.reviewed_by_account_id
-            WHERE our.id = @requestId
-            LIMIT 1;
-            """,
+            BuildOwnerUpgradeRequestSelect("our.id = @requestId", singleResult: true),
             new { requestId });
+    }
+
+    private static string BuildOwnerUpgradeRequestSelect(string whereClause, bool singleResult = false) =>
+        $"""
+        SELECT
+            our.id AS Id,
+            a.username AS Username,
+            a.display_name AS DisplayName,
+            our.shop_name AS ShopName,
+            our.address_line AS AddressLine,
+            our.latitude AS Latitude,
+            our.longitude AS Longitude,
+            our.id_card_image_url AS IdCardImageUrl,
+            our.business_license_image_url AS BusinessLicenseImageUrl,
+            our.note AS Note,
+            our.status AS Status,
+            our.submitted_at AS SubmittedAt,
+            our.reviewed_at AS ReviewedAt,
+            reviewer.username AS ReviewedBy,
+            our.review_note AS ReviewNote,
+            our.upgrade_fee_amount AS UpgradeFeeAmount,
+            our.payment_reference_code AS PaymentReferenceCode,
+            our.payment_qr_content AS PaymentQrContent,
+            our.payment_qr_image_url AS PaymentQrImageUrl,
+            our.payment_requested_at AS PaymentRequestedAt,
+            our.payment_confirmed_at AS PaymentConfirmedAt,
+            our.activated_at AS ActivatedAt
+        FROM owner_upgrade_requests our
+        INNER JOIN accounts a ON a.id = our.account_id
+        LEFT JOIN accounts reviewer ON reviewer.id = our.reviewed_by_account_id
+        WHERE {whereClause}
+        ORDER BY our.submitted_at DESC
+        {(singleResult ? "LIMIT 1" : string.Empty)};
+        """;
+
+    private static string BuildPaymentReferenceCode(long requestId)
+        => $"OWNERUP-{requestId:D6}";
+
+    private static string BuildPaymentQrImageUrl(string paymentReferenceCode, decimal amount)
+    {
+        var encodedInfo = Uri.EscapeDataString(paymentReferenceCode);
+        var encodedAccountName = Uri.EscapeDataString(PaymentAccountName);
+        return $"https://img.vietqr.io/image/{PaymentBankCode}-{PaymentBankAccountNumber}-compact2.png?amount={amount:0}&addInfo={encodedInfo}&accountName={encodedAccountName}";
+    }
+
+    private static void ActivateOwnerRoleAndShop(
+        System.Data.IDbConnection connection,
+        System.Data.IDbTransaction tx,
+        PendingOwnerUpgradeRequest req)
+    {
+        var ownerRoleId = connection.ExecuteScalar<int>(
+            "SELECT id FROM roles WHERE code = 'owner' LIMIT 1;",
+            transaction: tx);
+
+        connection.Execute(
+            "UPDATE accounts SET role_id = @ownerRoleId WHERE id = @accountId;",
+            new { ownerRoleId, accountId = req.AccountId },
+            tx);
+
+        var latitude = req.Latitude ?? 10.75855600m;
+        var longitude = req.Longitude ?? 106.70328400m;
+        var shopId = connection.ExecuteScalar<Guid?>(
+            "SELECT id FROM shops WHERE owner_account_id = @accountId LIMIT 1;",
+            new { accountId = req.AccountId },
+            tx);
+
+        if (!shopId.HasValue || shopId == Guid.Empty)
+        {
+            var newShopId = Guid.NewGuid();
+            var slug = BuildSlug(req.ShopName);
+
+            connection.Execute(
+                """
+                INSERT INTO shops (
+                    id,
+                    owner_account_id,
+                    name,
+                    slug,
+                    description,
+                    approved_intro,
+                    pending_intro,
+                    intro_review_status,
+                    address_line,
+                    latitude,
+                    longitude,
+                    opening_hours,
+                    is_active
+                )
+                VALUES (
+                    @Id,
+                    @OwnerAccountId,
+                    @Name,
+                    @Slug,
+                    @Description,
+                    @ApprovedIntro,
+                    NULL,
+                    'approved',
+                    @AddressLine,
+                    @Latitude,
+                    @Longitude,
+                    '15:00 - 23:00',
+                    1
+                );
+                """,
+                new
+                {
+                    Id = newShopId,
+                    OwnerAccountId = req.AccountId,
+                    Name = req.ShopName,
+                    Slug = EnsureUniqueSlug(connection, tx, slug),
+                    Description = $"Quyen chu quan duoc phe duyet cho {req.ShopName}.",
+                    ApprovedIntro = $"{req.DisplayName} vua tro thanh chu quan trong he thong.",
+                    req.AddressLine,
+                    Latitude = latitude,
+                    Longitude = longitude
+                },
+                tx);
+
+            shopId = newShopId;
+        }
+        else
+        {
+            connection.Execute(
+                """
+                UPDATE shops
+                SET
+                    name = @Name,
+                    address_line = @AddressLine,
+                    latitude = @Latitude,
+                    longitude = @Longitude
+                WHERE id = @ShopId;
+                """,
+                new
+                {
+                    ShopId = shopId.Value,
+                    Name = req.ShopName,
+                    req.AddressLine,
+                    Latitude = latitude,
+                    Longitude = longitude
+                },
+                tx);
+        }
+
+        EnsurePrimaryPoiForShop(connection, tx, shopId.Value, req.ShopName, latitude, longitude);
+    }
+
+    private static void EnsurePrimaryPoiForShop(
+        System.Data.IDbConnection connection,
+        System.Data.IDbTransaction tx,
+        Guid shopId,
+        string shopName,
+        decimal latitude,
+        decimal longitude)
+    {
+        var existingPoiId = connection.ExecuteScalar<Guid?>(
+            "SELECT id FROM pois WHERE shop_id = @shopId ORDER BY created_at ASC LIMIT 1;",
+            new { shopId },
+            tx);
+
+        if (existingPoiId.HasValue && existingPoiId != Guid.Empty)
+        {
+            connection.Execute(
+                """
+                UPDATE pois
+                SET
+                    latitude = @Latitude,
+                    longitude = @Longitude
+                WHERE id = @PoiId;
+                """,
+                new
+                {
+                    PoiId = existingPoiId.Value,
+                    Latitude = latitude,
+                    Longitude = longitude
+                },
+                tx);
+            UpsertDefaultPoiTranslations(connection, tx, existingPoiId.Value, shopName);
+            return;
+        }
+
+        var poiId = Guid.NewGuid();
+        connection.Execute(
+            """
+            INSERT INTO pois (
+                id,
+                shop_id,
+                category,
+                latitude,
+                longitude,
+                trigger_radius_meters,
+                hero_image_url,
+                default_language_code,
+                is_featured,
+                is_active
+            )
+            VALUES (
+                @Id,
+                @ShopId,
+                'food',
+                @Latitude,
+                @Longitude,
+                35,
+                NULL,
+                'vi',
+                0,
+                1
+            );
+            """,
+            new
+            {
+                Id = poiId,
+                ShopId = shopId,
+                Latitude = latitude,
+                Longitude = longitude
+            },
+            tx);
+
+        UpsertDefaultPoiTranslations(connection, tx, poiId, shopName);
+    }
+
+    private static void UpsertDefaultPoiTranslations(
+        System.Data.IDbConnection connection,
+        System.Data.IDbTransaction tx,
+        Guid poiId,
+        string shopName)
+    {
+        connection.Execute(
+            """
+            INSERT INTO poi_translations (
+                poi_id,
+                language_code,
+                name,
+                short_description,
+                description,
+                audio_url
+            )
+            VALUES
+                (@PoiId, 'vi', @NameVi, @ShortVi, @DescriptionVi, NULL),
+                (@PoiId, 'en', @NameEn, @ShortEn, @DescriptionEn, NULL)
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                short_description = VALUES(short_description),
+                description = VALUES(description),
+                audio_url = VALUES(audio_url);
+            """,
+            new
+            {
+                PoiId = poiId,
+                NameVi = shopName,
+                ShortVi = $"POI mac dinh cua {shopName}.",
+                DescriptionVi = $"POI nay duoc tao tu dong khi kich hoat quyen chu quan cho {shopName}.",
+                NameEn = shopName,
+                ShortEn = $"Default POI for {shopName}.",
+                DescriptionEn = $"This POI was created automatically when the owner role was activated for {shopName}."
+            },
+            tx);
     }
 
     private static string BuildSlug(string value)
@@ -445,5 +789,16 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
 
     private sealed record AuthRow(string Username, string Role, string DisplayName, string PasswordHash);
     private sealed record AccountRow(Guid AccountId, string Username, string DisplayName, string Role);
-    private sealed record PendingOwnerUpgradeRequest(long RequestId, Guid AccountId, string ShopName, string AddressLine, string Status, string DisplayName);
+
+    private sealed class PendingOwnerUpgradeRequest
+    {
+        public ulong RequestId { get; init; }
+        public Guid AccountId { get; init; }
+        public string ShopName { get; init; } = string.Empty;
+        public string AddressLine { get; init; } = string.Empty;
+        public decimal? Latitude { get; init; }
+        public decimal? Longitude { get; init; }
+        public string Status { get; init; } = string.Empty;
+        public string DisplayName { get; init; } = string.Empty;
+    }
 }

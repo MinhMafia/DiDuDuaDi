@@ -7,6 +7,8 @@ public class OwnerUpgradeRequestSummary
     public string DisplayName { get; set; } = string.Empty;
     public string ShopName { get; set; } = string.Empty;
     public string AddressLine { get; set; } = string.Empty;
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
     public string? IdCardImageUrl { get; set; }
     public string? BusinessLicenseImageUrl { get; set; }
     public string? Note { get; set; }
@@ -15,4 +17,11 @@ public class OwnerUpgradeRequestSummary
     public DateTime? ReviewedAt { get; set; }
     public string? ReviewedBy { get; set; }
     public string? ReviewNote { get; set; }
+    public decimal? UpgradeFeeAmount { get; set; }
+    public string? PaymentReferenceCode { get; set; }
+    public string? PaymentQrContent { get; set; }
+    public string? PaymentQrImageUrl { get; set; }
+    public DateTime? PaymentRequestedAt { get; set; }
+    public DateTime? PaymentConfirmedAt { get; set; }
+    public DateTime? ActivatedAt { get; set; }
 }

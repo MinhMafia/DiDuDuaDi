@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hinh 3 - Usecase Owner</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Times New Roman", Times, serif;
+        background: #fff;
+        color: #000;
+        padding: 30px 40px;
+      }
+      h1 {
+        text-align: center;
+        font-size: 22pt;
+        font-weight: bold;
+        margin-bottom: 8pt;
+        text-transform: uppercase;
+      }
+      .desc {
+        text-align: center;
+        font-size: 14pt;
+        margin-bottom: 20pt;
+        font-style: italic;
+      }
+      .mermaid {
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hinh 3: So do Usecase chi tiet Owner</h1>
+    <p class="desc">
+      So do usecase chi tiet cua Owner voi 5 usecase chinh, usecase con va he
+      thong tu dong
+    </p>
+
+    <div class="mermaid">
+      graph TD subgraph QuanLyOwner["Quan ly Owner"] UC12["UC12: Quan ly ho so
+      cua hang"] UC12a["UC12a: Cap nhat thong tin shop"] UC12b["UC12b: Gui noi
+      dung gioi thieu cho duy"] UC13["UC13: Quan ly noi dung POI"] UC13a["UC13a:
+      Chinh sua ten mo ta POI"] UC14["UC14: Quan ly thuc don"] UC14a["UC14a:
+      Them mon an moi"] UC14b["UC14b: Sua thong tin mon an"] UC14c["UC14c: Xoa
+      mon an"] UC15["UC15: Tao ma claim code"] UC15a["UC15a: Sinh ma claim
+      code"] UC15b["UC15b: Xem lich su ma da tao"] UC16["UC16: Xem thong ke
+      dashboard"] UC16a["UC16a: Xem dashboard tong quan"] end subgraph
+      HeThongTuDong["He thong tu dong"] AutoTrans["AutoTrans: Dich noi dung tu
+      dong"] Notify["Notify: Gui thong bao duy"] end Owner["Owner"]:::actor
+      Owner --> UC12 Owner --> UC13 Owner --> UC14 Owner --> UC15 Owner --> UC16
+      UC12 -.->|"extend"| UC12a UC12 -.->|"extend"| UC12b UC13 -.->|"extend"|
+      UC13a UC14 -.->|"extend"| UC14a UC14 -.->|"extend"| UC14b UC14
+      -.->|"extend"| UC14c UC15 -.->|"extend"| UC15a UC15 -.->|"extend"| UC15b
+      UC16 -.->|"extend"| UC16a UC13a -.->|"include"| AutoTrans UC12b
+      -.->|"include"| Notify classDef actor
+      fill:#FFF9C4,stroke:#F57F17,stroke-width:3px,color:#000,font-size:18px;
+      classDef main
+      fill:#FFF3E0,stroke:#E65100,stroke-width:2.5px,color:#000,font-size:14px;
+      classDef sub
+      fill:#FFF8E1,stroke:#FF8F00,stroke-width:1.5px,color:#000,font-size:12px;
+      classDef auto
+      fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2px,color:#000,font-size:12px,stroke-dasharray:
+      5 3; class Owner actor; class UC12,UC13,UC14,UC15,UC16 main; class
+      UC12a,UC12b,UC13a,UC14a,UC14b,UC14c,UC15a,UC15b,UC16a sub; class
+      AutoTrans,Notify auto;
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        securityLevel: "loose",
+        flowchart: {
+          htmlLabels: true,
+          curve: "basis",
+          padding: 20,
+          nodeSpacing: 12,
+          rankSpacing: 30,
+        },
+      });
+    </script>
+  </body>
+</html>

@@ -22,7 +22,9 @@ public class MySqlDatabaseInitializer(
         EnsureShopVisitEventsTable(connection, databaseName);
         EnsureAudioPlayEventsTable(connection, databaseName);
         EnsureOwnerUpgradeRequestsTable(connection, databaseName);
+        EnsureOwnerUpgradeLocationColumns(connection, databaseName);
         EnsureOwnerReviewColumns(connection, databaseName);
+        EnsureOwnerUpgradePaymentColumns(connection, databaseName);
         EnsureOwnerDemoSeed(connection);
         EnsureAdminDemoSeed(connection);
         RefreshTouristDemoSeed(connection);
@@ -399,6 +401,92 @@ public class MySqlDatabaseInitializer(
             "ALTER TABLE owner_upgrade_requests ADD COLUMN review_note VARCHAR(500) NULL AFTER reviewed_at;");
     }
 
+    private void EnsureOwnerUpgradeLocationColumns(System.Data.IDbConnection connection, string databaseName)
+    {
+        if (!TableExists(connection, databaseName, "owner_upgrade_requests"))
+        {
+            return;
+        }
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "latitude",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN latitude DECIMAL(10, 8) NULL AFTER address_line;");
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "longitude",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN longitude DECIMAL(11, 8) NULL AFTER latitude;");
+    }
+
+    private void EnsureOwnerUpgradePaymentColumns(System.Data.IDbConnection connection, string databaseName)
+    {
+        if (!TableExists(connection, databaseName, "owner_upgrade_requests"))
+        {
+            return;
+        }
+
+        connection.Execute(
+            """
+            ALTER TABLE owner_upgrade_requests
+            MODIFY COLUMN status ENUM('pending', 'payment_pending', 'approved', 'rejected')
+            NOT NULL DEFAULT 'pending';
+            """);
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "upgrade_fee_amount",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN upgrade_fee_amount DECIMAL(10, 2) NULL AFTER review_note;");
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "payment_reference_code",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN payment_reference_code VARCHAR(50) NULL AFTER upgrade_fee_amount;");
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "payment_qr_content",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN payment_qr_content TEXT NULL AFTER payment_reference_code;");
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "payment_qr_image_url",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN payment_qr_image_url VARCHAR(500) NULL AFTER payment_qr_content;");
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "payment_requested_at",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN payment_requested_at DATETIME NULL AFTER payment_qr_image_url;");
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "payment_confirmed_at",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN payment_confirmed_at DATETIME NULL AFTER payment_requested_at;");
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "owner_upgrade_requests",
+            "activated_at",
+            "ALTER TABLE owner_upgrade_requests ADD COLUMN activated_at DATETIME NULL AFTER payment_confirmed_at;");
+    }
+
     private void EnsureMenuItemsTable(System.Data.IDbConnection connection, string databaseName)
     {
         if (TableExists(connection, databaseName, "menu_items"))
@@ -533,13 +621,23 @@ public class MySqlDatabaseInitializer(
                 account_id CHAR(36) NOT NULL,
                 shop_name VARCHAR(150) NOT NULL,
                 address_line VARCHAR(255) NOT NULL,
+                latitude DECIMAL(10, 8) NULL,
+                longitude DECIMAL(11, 8) NULL,
                 id_card_image_url VARCHAR(500) NULL,
                 business_license_image_url VARCHAR(500) NULL,
                 note VARCHAR(500) NULL,
-                status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
+                status ENUM('pending', 'payment_pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
                 submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 reviewed_by_account_id CHAR(36) NULL,
                 reviewed_at DATETIME NULL,
+                review_note VARCHAR(500) NULL,
+                upgrade_fee_amount DECIMAL(10, 2) NULL,
+                payment_reference_code VARCHAR(50) NULL,
+                payment_qr_content TEXT NULL,
+                payment_qr_image_url VARCHAR(500) NULL,
+                payment_requested_at DATETIME NULL,
+                payment_confirmed_at DATETIME NULL,
+                activated_at DATETIME NULL,
                 PRIMARY KEY (id),
                 KEY idx_owner_upgrade_requests_account_id (account_id),
                 KEY idx_owner_upgrade_requests_status (status),
@@ -650,35 +748,35 @@ public class MySqlDatabaseInitializer(
             UPDATE poi_translations
             SET
                 name = CASE
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Oc Thao - Vinh Khanh'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Ốc Thảo - Vĩnh Khánh'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'en' THEN 'Oc Thao - Vinh Khanh'
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Banh Trang Nuong Win'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Bánh Tráng Nướng Win'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'en' THEN 'Banh Trang Nuong Win'
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Oc Loan - Vinh Khanh'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Ốc Loan - Vĩnh Khánh'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'en' THEN 'Oc Loan - Vinh Khanh'
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Tra Vien Quan - Vinh Khanh'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Trà Viên Quán - Vĩnh Khánh'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'en' THEN 'Tra Vien Quan - Vinh Khanh'
                     ELSE name
                 END,
                 short_description = CASE
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Quan oc dong khach ve dem tren pho Vinh Khanh.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Quán ốc đông khách về đêm trên phố Vĩnh Khánh.'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'en' THEN 'A busy seafood stop on Vinh Khanh street.'
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Quan banh trang nuong gon nhe, de ghe nhanh.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Quán bánh tráng nướng gọn nhẹ, dễ ghé nhanh.'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'en' THEN 'A compact grilled-rice-paper snack stop.'
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Diem oc quen cho nhom ban muon ngoi lai rai.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Điểm ốc quen cho nhóm bạn muốn ngồi lai rai.'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'en' THEN 'A familiar shellfish stop for a relaxed evening meal.'
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Quan nuoc va an vat nho de dung chan.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Quán nước và ăn vặt nhỏ để dừng chân.'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'en' THEN 'A light drinks and snack stop for a short break.'
                     ELSE short_description
                 END,
                 description = CASE
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Oc Thao nam tren tuyen pho am thuc Vinh Khanh, thuong nhon nhip tu cuoi chieu den khuya. Quay bep mo, mon ra deu tay, hop cho khach muon thu kieu an toi binh dan cua khu Quan 4.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Ốc Thảo nằm trên tuyến phố ẩm thực Vĩnh Khánh, thường nhộn nhịp từ cuối chiều đến khuya. Quầy bếp mở, món ra đều tay, hợp cho khách muốn thử kiểu ăn tối bình dân của khu Quận 4.'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'en' THEN 'Oc Thao sits on Vinh Khanh food street and gets lively from late afternoon into the night. It suits visitors who want a casual District 4 seafood dinner with quick, hot dishes.'
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Banh Trang Nuong Win la diem an vat de ghe khi di quanh khu Vinh Khanh. Quan nho, len mon nhanh, hop voi khach muon thu banh trang nuong nhieu topping ma khong can ngoi lau.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Bánh Tráng Nướng Win là điểm ăn vặt dễ ghé khi đi quanh khu Vĩnh Khánh. Quán nhỏ, lên món nhanh, hợp với khách muốn thử bánh tráng nướng nhiều topping mà không cần ngồi lâu.'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'en' THEN 'Banh Trang Nuong Win is a quick snack stop near Vinh Khanh street. The shop is small and the food comes out fast, making it easy to try grilled rice paper without a long sit-down meal.'
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Oc Loan o so 129 Vinh Khanh la mot diem hen quen cua khu pho oc. Khach thuong ghe theo nhom nho, goi vai mon xao nuong va ngoi lai toi muon trong khong khi rat doi thuong cua Quan 4.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Ốc Loan ở số 129 Vĩnh Khánh là một điểm hẹn quen của khu phố ốc. Khách thường ghé theo nhóm nhỏ, gọi vài món xào nướng và ngồi lại tới muộn trong không khí rất đời thường của Quận 4.'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'en' THEN 'Oc Loan at 129 Vinh Khanh is a familiar name on the shellfish street. Small groups often stop here for a few grilled or stir-fried dishes and stay late in the relaxed District 4 atmosphere.'
-                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Tra Vien Quan la diem dung chan nhe o khu Vinh Khanh, hop de goi mot ly tra mat lanh hoac an vat nhanh truoc khi di tiep sang cac quan oc xung quanh.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Trà Viên Quán là điểm dừng chân nhẹ ở khu Vĩnh Khánh, hợp để gọi một ly trà mát lạnh hoặc ăn vặt nhanh trước khi đi tiếp sang các quán ốc xung quanh.'
                     WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'en' THEN 'Tra Vien Quan works as a light break stop around Vinh Khanh, suitable for a cold drink or a quick snack before moving on to the seafood places nearby.'
                     ELSE description
                 END

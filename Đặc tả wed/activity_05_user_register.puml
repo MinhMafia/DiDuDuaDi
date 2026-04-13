@@ -1,0 +1,30 @@
+@startuml activity_05_user_register
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:User truy cap trang dang ky;
+
+:User nhap username;
+:User nhap password;
+:User nhap display_name;
+:User nhap email (tuy chon);
+
+:He thong kiem tra tinh hop le cua du lieu;
+
+if (Du lieu hop le?) then (Khong)
+  :Hien thi thong bao loi;
+  stop
+else (Co)
+  :Ma hoa password;
+  :Tao tai khoan moi voi role "user";
+  :Luu vao bang accounts;
+  :Hien thi thong bao thanh cong;
+  :Chuyen den trang dang nhap;
+endif
+
+stop
+
+@enduml

@@ -25,6 +25,8 @@ import {
   getShopIntroReviews,
   reviewOwnerUpgradeRequest,
   reviewShopIntro,
+  confirmOwnerUpgradePayment,
+  cancelOwnerUpgradePayment,
   getFoodTours,    // <--- PHẢI CÓ DÒNG NÀY
   createFoodTour,
   deleteFoodTour,
@@ -327,10 +329,14 @@ const poisColumns = [
 
   // ================= QUERY =================
   const pendingOwnerRequestsQuery = useQuery({
-
     queryKey: ["owner-upgrade-requests", "pending"],
-    queryFn: () => getOwnerUpgradeRequests("pending"),
-    select: (res) => res.data ?? [],
+    queryFn: async () => {
+      const [pending, paymentPending] = await Promise.all([
+        getOwnerUpgradeRequests("pending"),
+        getOwnerUpgradeRequests("payment_pending"),
+      ]);
+      return [...(pending.data ?? []), ...(paymentPending.data ?? [])];
+    },
   });
 
   const reviewedOwnerRequestsQuery = useQuery({
@@ -367,6 +373,22 @@ const poisColumns = [
       reviewOwnerUpgradeRequest(requestId, action, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["owner-upgrade-requests"] });
+    },
+  });
+
+  const confirmPaymentMutation = useMutation({
+    mutationFn: (requestId) => confirmOwnerUpgradePayment(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["owner-upgrade-requests"] });
+      message.success("Da kich hoat quyen chu quan");
+    },
+  });
+
+  const cancelPaymentMutation = useMutation({
+    mutationFn: (requestId) => cancelOwnerUpgradePayment(requestId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["owner-upgrade-requests"] });
+      message.success("Da huy ma QR");
     },
   });
 
@@ -496,49 +518,101 @@ const poiUpdateMutation = useMutation({
                       📍 {request.addressLine}
                     </Text>
 
+                    {(request.latitude !== null && request.latitude !== undefined) ||
+                    (request.longitude !== null && request.longitude !== undefined) ? (
+                      <Text type="secondary">
+                        🧭 {formatCoordinate(request.latitude)}, {formatCoordinate(request.longitude)}
+                      </Text>
+                    ) : null}
+
                     {request.note && <Text>📝 {request.note}</Text>}
 
-                    <TextArea
-                      placeholder={t("admin.reviewNotePlaceholder")}
-                      autoSize={{ minRows: 2 }}
-                      value={ownerReviewNotes[request.id] || ""}
-                      onChange={(e) =>
-                        setOwnerReviewNotes((prev) => ({
-                          ...prev,
-                          [request.id]: e.target.value,
-                        }))
-                      }
-                    />
+                    {request.status === "payment_pending" ? (
+                      <Space direction="vertical" style={{ width: "100%" }}>
+                        {request.paymentReferenceCode ? (
+                          <Text type="secondary">
+                            QR: {request.paymentReferenceCode}
+                          </Text>
+                        ) : null}
 
-                    <Space>
-                      <Button
-                        type="primary"
-                        loading={ownerReviewMutation.isPending}
-                        onClick={() =>
-                          ownerReviewMutation.mutate({
-                            requestId: request.id,
-                            action: "approve",
-                            reason: ownerReviewNotes[request.id],
-                          })
-                        }
-                      >
-                        Approve
-                      </Button>
+                        {request.paymentQrImageUrl ? (
+                          <img
+                            src={request.paymentQrImageUrl}
+                            alt="Payment QR"
+                            style={{
+                              width: 180,
+                              maxWidth: "100%",
+                              borderRadius: 12,
+                              border: "1px solid #e2e8f0",
+                              padding: 8,
+                              background: "#fff",
+                            }}
+                          />
+                        ) : null}
 
-                      <Button
-                        danger
-                        loading={ownerReviewMutation.isPending}
-                        onClick={() =>
-                          ownerReviewMutation.mutate({
-                            requestId: request.id,
-                            action: "reject",
-                            reason: ownerReviewNotes[request.id],
-                          })
-                        }
-                      >
-                        Reject
-                      </Button>
-                    </Space>
+                        <Space>
+                          <Button
+                            type="primary"
+                            loading={confirmPaymentMutation.isPending}
+                            onClick={() => confirmPaymentMutation.mutate(request.id)}
+                          >
+                            Kich hoat owner
+                          </Button>
+
+                          <Button
+                            danger
+                            loading={cancelPaymentMutation.isPending}
+                            onClick={() => cancelPaymentMutation.mutate(request.id)}
+                          >
+                            Huy QR
+                          </Button>
+                        </Space>
+                      </Space>
+                    ) : (
+                      <>
+                        <TextArea
+                          placeholder={t("admin.reviewNotePlaceholder")}
+                          autoSize={{ minRows: 2 }}
+                          value={ownerReviewNotes[request.id] || ""}
+                          onChange={(e) =>
+                            setOwnerReviewNotes((prev) => ({
+                              ...prev,
+                              [request.id]: e.target.value,
+                            }))
+                          }
+                        />
+
+                        <Space>
+                          <Button
+                            type="primary"
+                            loading={ownerReviewMutation.isPending}
+                            onClick={() =>
+                              ownerReviewMutation.mutate({
+                                requestId: request.id,
+                                action: "approve",
+                                reason: ownerReviewNotes[request.id],
+                              })
+                            }
+                          >
+                            Tao QR thanh toan
+                          </Button>
+
+                          <Button
+                            danger
+                            loading={ownerReviewMutation.isPending}
+                            onClick={() =>
+                              ownerReviewMutation.mutate({
+                                requestId: request.id,
+                                action: "reject",
+                                reason: ownerReviewNotes[request.id],
+                              })
+                            }
+                          >
+                            Reject
+                          </Button>
+                        </Space>
+                      </>
+                    )}
                   </Space>
                 </Card>
               </Col>
@@ -1164,4 +1238,13 @@ const poiUpdateMutation = useMutation({
 </Modal>
     </Space>
   );
+}
+
+function formatCoordinate(value) {
+  if (value === null || value === undefined || value === "") {
+    return "-";
+  }
+
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toFixed(6) : String(value);
 }

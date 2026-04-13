@@ -8,6 +8,8 @@ import MapPage from "./pages/MapPage";
 import OwnerDashboardPage from "./pages/OwnerDashboardPage";
 import SystemBenchMark from "./pages/SystemBenchmark";
 import RegisterPage from "./pages/RegisterPage";
+import SettingsPage from "./pages/SettingsPage";
+import SystemBenchmark from "./pages/SystemBenchmark";
 
 export default function App() {
   return (

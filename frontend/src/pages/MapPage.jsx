@@ -1,44 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import SpeechGuidePlayer from "../components/audio/SpeechGuidePlayer";
 import PoiDetailSheet from "../components/map/PoiDetailSheet";
 import MapView from "../components/map/MapView";
 import Loading from "../components/common/Loading";
 import useGeolocation from "../hooks/useGeolocation";
+import { SUPPORTED_LANGUAGES } from "../i18n";
+import { setAutoNarrateOnTouch, setAutoPlayAudio } from "../store/slices/appSlice";
 import { trackAudioPlay, trackPoiView } from "../services/analyticsService";
 import { getNearbyPois, getPois } from "../services/poiService";
 import { getDrivingRoute } from "../services/routeService";
-import { SUPPORTED_LANGUAGES } from "../i18n";
+import { translateText } from "../services/translateService";
 import { VINH_KHANH_CENTER } from "../utils/constants";
-import { getFoodTours } from "../services/adminService";
 import {
   calculateDistanceMeters,
   formatDistance,
   getLocalizedValue,
 } from "../utils/helpers";
-import {
-  Layout,
-  Card,
-  Row,
-  Col,
-  Slider,
-  Button,
-  Typography,
-  Tag,
-  List,
-  Space,
-  Empty,
-  Spin,
-} from "antd";
-import {
-  AimOutlined,
-  EnvironmentOutlined,
-  CompassOutlined,
-} from "@ant-design/icons";
 import "./MapPage.css";
-import SystemBenchMark from "./SystemBenchmark";
 
 const DEFAULT_RADIUS = 500;
 const DEFAULT_MAP_ZOOM = 16;
@@ -46,7 +27,9 @@ const SEARCH_FOCUS_ZOOM = 18;
 
 export default function MapPage() {
   const { i18n, t } = useTranslation();
+  const dispatch = useDispatch();
   const autoPlayAudio = useSelector((state) => state.app.autoPlayAudio);
+  const autoNarrateOnTouch = useSelector((state) => state.app.autoNarrateOnTouch);
   const searchContainerRef = useRef(null);
   const autoFocusedPoiRef = useRef("");
   const trackedAudioRef = useRef("");
@@ -61,14 +44,14 @@ export default function MapPage() {
   const [mapCenter, setMapCenter] = useState(VINH_KHANH_CENTER);
   const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM);
   const [viewCenter, setViewCenter] = useState(null);
+  const [translatedPoiContent, setTranslatedPoiContent] = useState({});
   const { error: geoError, isLoading: geoLoading, location } = useGeolocation();
   const effectiveLocation = demoLocation ?? location;
-const [selectedTour, setSelectedTour] = useState(null);
-const foodToursQuery = useQuery({
-  queryKey: ["foodTours"],
-  queryFn: getFoodTours,
-  select: (res) => res.data ?? res ?? [],
-});
+
+  const speechLanguage =
+    SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)?.speechLocale ||
+    "vi-VN";
+
   const allPoisQuery = useQuery({
     queryKey: ["pois"],
     queryFn: getPois,
@@ -76,36 +59,90 @@ const foodToursQuery = useQuery({
   });
 
   const nearbyPoisQuery = useQuery({
-    queryKey: [
-      "pois",
-      "nearby",
-      effectiveLocation?.lat,
-      effectiveLocation?.lng,
-      radius,
-    ],
-    queryFn: () =>
-      getNearbyPois(effectiveLocation.lat, effectiveLocation.lng, radius),
+    queryKey: ["pois", "nearby", effectiveLocation?.lat, effectiveLocation?.lng, radius],
+    queryFn: () => getNearbyPois(effectiveLocation.lat, effectiveLocation.lng, radius),
     enabled: !!effectiveLocation,
     select: (response) => response.data ?? [],
   });
 
-  const rawVisiblePois = effectiveLocation
-    ? (nearbyPoisQuery.data ?? [])
-    : (allPoisQuery.data ?? []);
+  const rawVisiblePois = effectiveLocation ? nearbyPoisQuery.data ?? [] : allPoisQuery.data ?? [];
+
+  useEffect(() => {
+    let isCanceled = false;
+
+    async function hydrateMissingTranslations() {
+      const nextTranslatedContent = {};
+
+      await Promise.all(
+        rawVisiblePois.map(async (poi) => {
+          const translatedEntry = {};
+
+          if (shouldDynamicallyTranslate(poi.name, i18n.language)) {
+            translatedEntry.displayName = await safeTranslate(
+              getTranslationSeed(poi.name, i18n.language),
+              speechLanguage,
+            );
+          }
+
+          if (shouldDynamicallyTranslate(poi.description, i18n.language)) {
+            translatedEntry.displayDescription = await safeTranslate(
+              getTranslationSeed(poi.description, i18n.language),
+              speechLanguage,
+            );
+          }
+
+          if (shouldTranslatePlainText(poi.approvedIntroduction, i18n.language)) {
+            translatedEntry.displayIntroduction = await safeTranslate(
+              poi.approvedIntroduction,
+              speechLanguage,
+            );
+          }
+
+          if (Object.keys(translatedEntry).length > 0) {
+            nextTranslatedContent[poi.id] = translatedEntry;
+          }
+        }),
+      );
+
+      if (!isCanceled) {
+        setTranslatedPoiContent(nextTranslatedContent);
+      }
+    }
+
+    if (!rawVisiblePois.length) {
+      setTranslatedPoiContent({});
+      return undefined;
+    }
+
+    hydrateMissingTranslations();
+
+    return () => {
+      isCanceled = true;
+    };
+  }, [i18n.language, rawVisiblePois, speechLanguage]);
 
   const visiblePois = useMemo(
     () =>
-      rawVisiblePois.map((poi) => ({
-        ...poi,
-        audioUrl:
-          getLocalizedValue(poi.audioGuides, i18n.language) ||
-          getLocalizedValue(poi.audioUrl, i18n.language) ||
-          poi.audioUrl ||
-          "",
-        displayDescription: getLocalizedValue(poi.description, i18n.language),
-        displayName: getLocalizedValue(poi.name, i18n.language),
-      })),
-    [i18n.language, rawVisiblePois],
+      rawVisiblePois.map((poi) => {
+        const translatedEntry = translatedPoiContent[poi.id] ?? {};
+
+        return {
+          ...poi,
+          audioUrl:
+            getLocalizedValue(poi.audioGuides, i18n.language) ||
+            getLocalizedValue(poi.audioUrl, i18n.language) ||
+            poi.audioUrl ||
+            "",
+          displayDescription:
+            translatedEntry.displayDescription ||
+            getLocalizedValue(poi.description, i18n.language),
+          displayIntroduction:
+            translatedEntry.displayIntroduction || poi.approvedIntroduction || "",
+          displayName:
+            translatedEntry.displayName || getLocalizedValue(poi.name, i18n.language),
+        };
+      }),
+    [i18n.language, rawVisiblePois, translatedPoiContent],
   );
 
   const normalizedSearchTerm = normalizeForSearch(poiSearchTerm.trim());
@@ -116,28 +153,31 @@ const foodToursQuery = useQuery({
       .filter((poi) => {
         const name = normalizeForSearch(poi.displayName);
         const category = normalizeForSearch(poi.category);
-        return (
-          name.includes(normalizedSearchTerm) ||
-          category.includes(normalizedSearchTerm)
-        );
+        return name.includes(normalizedSearchTerm) || category.includes(normalizedSearchTerm);
       })
       .slice(0, 8);
   }, [normalizedSearchTerm, visiblePois]);
 
   useEffect(() => {
-    if (!selectedPoi || visiblePois.some((poi) => poi.id === selectedPoi.id)) {
+    if (!selectedPoi) return;
+
+    const matchedPoi = visiblePois.find((poi) => poi.id === selectedPoi.id);
+    if (!matchedPoi) {
+      setSelectedPoi(null);
+      setSelectedPoiPlaybackKey("");
+      setIsPoiDetailOpen(false);
       return;
     }
 
-    setSelectedPoi(null);
-    setIsPoiDetailOpen(false);
+    if (matchedPoi !== selectedPoi) {
+      setSelectedPoi(matchedPoi);
+    }
   }, [selectedPoi, visiblePois]);
 
   useEffect(() => {
-    if (!selectedPoi) return;
-    setSelectedPoiPlaybackKey(
-      `${selectedPoi.id}-${i18n.language}-${Date.now()}`,
-    );
+    if (!selectedPoi || !selectedPoiPlaybackKey) return;
+
+    setSelectedPoiPlaybackKey(buildPlaybackKey(selectedPoi.id, i18n.language));
   }, [i18n.language, selectedPoi]);
 
   useEffect(() => {
@@ -188,8 +228,7 @@ const foodToursQuery = useQuery({
     return calculateDistanceMeters(effectiveLocation, selectedPoi.location);
   }, [effectiveLocation, selectedPoi]);
 
-  const isLoading =
-    allPoisQuery.isLoading || (effectiveLocation && nearbyPoisQuery.isLoading);
+  const isLoading = allPoisQuery.isLoading || (effectiveLocation && nearbyPoisQuery.isLoading);
   const queryError = allPoisQuery.error || nearbyPoisQuery.error;
 
   const nearestPoi = visiblePois[0] ?? null;
@@ -211,18 +250,10 @@ const foodToursQuery = useQuery({
     enabled: Boolean(effectiveLocation && selectedPoi?.location),
     staleTime: 60_000,
   });
-
   const routePath = routeQuery.data?.coordinates ?? [];
-  const shouldAutoNarrate =
-    autoPlayAudio && Boolean(selectedPoiDistance) && selectedPoiDistance <= 35;
 
   useEffect(() => {
-    if (
-      !autoPlayAudio ||
-      !nearestPoi ||
-      !nearestPoiDistance ||
-      nearestPoiDistance > 35
-    ) {
+    if (!autoPlayAudio || !nearestPoi || !nearestPoiDistance || nearestPoiDistance > 35) {
       return;
     }
 
@@ -231,7 +262,7 @@ const foodToursQuery = useQuery({
     }
 
     autoFocusedPoiRef.current = nearestPoi.id;
-    handleSelectPoi(nearestPoi);
+    handleSelectPoi(nearestPoi, { narrateNow: true });
   }, [autoPlayAudio, nearestPoi, nearestPoiDistance]);
 
   function handleSelectPoi(poi, options = {}) {
@@ -242,14 +273,30 @@ const foodToursQuery = useQuery({
       return;
     }
 
+    const shouldNarrate =
+      Boolean(options.narrateNow) ||
+      (Boolean(options.touchTriggered) && autoNarrateOnTouch);
+
     setSelectedPoi(poi);
-    setSelectedPoiPlaybackKey(`${poi.id}-${Date.now()}`);
     if (poi?.location) {
       setMapCenter(poi.location);
       if (options.zoomToPoi) {
         setMapZoom(SEARCH_FOCUS_ZOOM);
       }
     }
+
+    if (shouldNarrate) {
+      setSelectedPoiPlaybackKey(buildPlaybackKey(poi.id, i18n.language));
+    } else if (options.resetPlayback !== false) {
+      setSelectedPoiPlaybackKey("");
+    }
+  }
+
+  function handleReplayNarration(poi) {
+    if (!poi || !autoNarrateOnTouch) return;
+
+    setSelectedPoi(poi);
+    setSelectedPoiPlaybackKey(buildPlaybackKey(poi.id, i18n.language));
   }
 
   function handleCenterOnUser() {
@@ -288,7 +335,7 @@ const foodToursQuery = useQuery({
   }
 
   function handleSelectSearchResult(poi) {
-    handleSelectPoi(poi, { zoomToPoi: true });
+    handleSelectPoi(poi, { touchTriggered: true, zoomToPoi: true });
     setPoiSearchTerm(poi.displayName || "");
     setIsSearchOpen(false);
   }
@@ -299,14 +346,8 @@ const foodToursQuery = useQuery({
   }
 
   const distanceToViewCenter =
-    viewCenter && effectiveLocation
-      ? calculateDistanceMeters(effectiveLocation, viewCenter)
-      : 0;
+    viewCenter && effectiveLocation ? calculateDistanceMeters(effectiveLocation, viewCenter) : 0;
   const showSearchBtn = distanceToViewCenter > 50;
-
-  const speechLanguage =
-    SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)
-      ?.speechLocale || "vi-VN";
 
   function handleAudioPlaybackStart() {
     if (!selectedPoi?.shopId) return;
@@ -333,10 +374,7 @@ const foodToursQuery = useQuery({
           : routeQuery.data
             ? t("map.routeSummary", {
                 distance: formatDistance(routeQuery.data.distanceMeters),
-                minutes: Math.max(
-                  1,
-                  Math.round(routeQuery.data.durationSeconds / 60),
-                ),
+                minutes: Math.max(1, Math.round(routeQuery.data.durationSeconds / 60)),
               })
             : ""
       : "";
@@ -350,6 +388,7 @@ const foodToursQuery = useQuery({
             <h1>{t("map.title")}</h1>
             <p className="supporting-text">{t("map.subtitle")}</p>
           </div>
+
           <div className="status-row">
             <span className={`status-pill ${effectiveLocation ? "ok" : ""}`}>
               {demoLocation ? t("map.demoMode") : location ? t("map.gpsOn") : t("map.gpsWaiting")}
@@ -449,6 +488,36 @@ const foodToursQuery = useQuery({
               </div>
             </div>
 
+            <div className="map-toggle-group">
+              <label className="map-toggle-chip">
+                <input
+                  type="checkbox"
+                  checked={autoNarrateOnTouch}
+                  onChange={(event) =>
+                    dispatch(setAutoNarrateOnTouch(event.target.checked))
+                  }
+                />
+                <span>
+                  {t("map.autoNarrateOnTouch", {
+                    defaultValue: "Tự thuyết minh khi chạm POI hoặc mô tả",
+                  })}
+                </span>
+              </label>
+
+              <label className="map-toggle-chip">
+                <input
+                  type="checkbox"
+                  checked={autoPlayAudio}
+                  onChange={(event) => dispatch(setAutoPlayAudio(event.target.checked))}
+                />
+                <span>
+                  {t("map.autoNarrateNearby", {
+                    defaultValue: "Tự thuyết minh khi ở gần POI",
+                  })}
+                </span>
+              </label>
+            </div>
+
             <div className="map-canvas">
               {showSearchBtn ? (
                 <button className="search-area-btn" onClick={handleSearchThisArea} type="button">
@@ -473,7 +542,7 @@ const foodToursQuery = useQuery({
                   demoLocation ? t("map.demoLocationLabel") : t("map.userLocationLabel")
                 }
                 routePath={routePath}
-                onSelectPoi={handleSelectPoi}
+                onSelectPoi={(poi) => handleSelectPoi(poi, { touchTriggered: true })}
                 onMapMoveEnd={handleMapMoveEnd}
                 onMapLongPress={handleMapLongPress}
               />
@@ -495,9 +564,7 @@ const foodToursQuery = useQuery({
           <aside className="map-side-panel">
             <article className="panel-card">
               <h2>{t("map.nearbyTitle")}</h2>
-              {geoLoading ? (
-                <p className="supporting-text">{t("map.requestingLocation")}</p>
-              ) : null}
+              {geoLoading ? <p className="supporting-text">{t("map.requestingLocation")}</p> : null}
               {geoError ? <p className="error-text">{geoError}</p> : null}
               {!geoError && effectiveLocation ? (
                 <p className="supporting-text">
@@ -507,9 +574,7 @@ const foodToursQuery = useQuery({
                   })}
                 </p>
               ) : null}
-              {demoLocation ? (
-                <p className="supporting-text">{t("map.demoHint")}</p>
-              ) : null}
+              {demoLocation ? <p className="supporting-text">{t("map.demoHint")}</p> : null}
               {nearestPoi && nearestPoiDistance ? (
                 <p className="supporting-text">
                   {t("map.nearestPoi", {
@@ -520,9 +585,7 @@ const foodToursQuery = useQuery({
               ) : null}
               {isLoading ? <Loading /> : null}
               {queryError ? (
-                <p className="error-text">
-                  {queryError.message || t("map.loadError")}
-                </p>
+                <p className="error-text">{queryError.message || t("map.loadError")}</p>
               ) : null}
 
               {!isLoading && !queryError && visiblePois.length === 0 ? (
@@ -540,7 +603,7 @@ const foodToursQuery = useQuery({
                       key={poi.id}
                       type="button"
                       className={`poi-card ${selectedPoi?.id === poi.id ? "active" : ""}`}
-                      onClick={() => handleSelectPoi(poi)}
+                      onClick={() => handleSelectPoi(poi, { touchTriggered: true })}
                     >
                       <div className="poi-card-head">
                         <strong>{poi.displayName}</strong>
@@ -567,18 +630,22 @@ const foodToursQuery = useQuery({
                 <div className="selected-poi">
                   <strong>{selectedPoi.displayName}</strong>
                   <span className="poi-category">{selectedPoi.category}</span>
-                  <p>
-                    {selectedPoi.displayDescription || t("map.noDescription")}
-                  </p>
-                  {selectedPoi.approvedIntroduction ? (
-                    <p className="selected-poi-intro">
-                      {selectedPoi.approvedIntroduction}
-                    </p>
+                  {autoNarrateOnTouch ? (
+                    <button
+                      type="button"
+                      className="poi-description-trigger"
+                      onClick={() => handleReplayNarration(selectedPoi)}
+                    >
+                      {selectedPoi.displayDescription || t("map.noDescription")}
+                    </button>
+                  ) : (
+                    <p>{selectedPoi.displayDescription || t("map.noDescription")}</p>
+                  )}
+                  {selectedPoi.displayIntroduction ? (
+                    <p className="selected-poi-intro">{selectedPoi.displayIntroduction}</p>
                   ) : null}
                   {selectedPoi.shopAddress ? (
-                    <p className="selected-poi-address">
-                      {selectedPoi.shopAddress}
-                    </p>
+                    <p className="selected-poi-address">{selectedPoi.shopAddress}</p>
                   ) : null}
                   {selectedPoiDistance ? (
                     <p>
@@ -597,13 +664,8 @@ const foodToursQuery = useQuery({
                     ) : routeQuery.data ? (
                       <p className="supporting-text">
                         {t("map.routeSummary", {
-                          distance: formatDistance(
-                            routeQuery.data.distanceMeters,
-                          ),
-                          minutes: Math.max(
-                            1,
-                            Math.round(routeQuery.data.durationSeconds / 60),
-                          ),
+                          distance: formatDistance(routeQuery.data.distanceMeters),
+                          minutes: Math.max(1, Math.round(routeQuery.data.durationSeconds / 60)),
                         })}
                       </p>
                     ) : null
@@ -614,9 +676,7 @@ const foodToursQuery = useQuery({
                       <div className="poi-menu-list">
                         {selectedPoi.menuItems.map((item) => (
                           <article key={item.id} className="poi-menu-item">
-                            {item.imageUrl ? (
-                              <img src={item.imageUrl} alt={item.name} />
-                            ) : null}
+                            {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : null}
                             <div>
                               <strong>{item.name}</strong>
                               <p>{item.description}</p>
@@ -647,15 +707,11 @@ const foodToursQuery = useQuery({
                     speechLanguage={speechLanguage}
                     speechText={selectedPoi.displayDescription}
                     title={`${selectedPoi.displayName}${
-                      autoPlayAudio &&
-                      (selectedPoiPlaybackKey || shouldAutoNarrate)
+                      selectedPoiPlaybackKey
                         ? ` (${t("audio.autoPlayReady")})`
                         : ""
                     }`}
-                    triggerAutoSpeak={
-                      autoPlayAudio &&
-                      (Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate)
-                    }
+                    triggerAutoSpeak={Boolean(selectedPoiPlaybackKey)}
                   />
                 </div>
               )}
@@ -666,6 +722,7 @@ const foodToursQuery = useQuery({
       {isPoiDetailOpen && selectedPoi ? (
         <PoiDetailSheet
           poi={selectedPoi}
+          autoNarrateOnTouch={autoNarrateOnTouch}
           distanceLabel={
             selectedPoiDistance
               ? t("map.distanceFromYou", {
@@ -676,17 +733,12 @@ const foodToursQuery = useQuery({
           routeSummary={detailRouteSummary}
           speechLanguage={speechLanguage}
           onClose={() => setIsPoiDetailOpen(false)}
+          onNarrateRequest={() => handleReplayNarration(selectedPoi)}
           onPlaybackStart={handleAudioPlaybackStart}
           playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
           speechText={selectedPoi.displayDescription}
-          titleSuffix={
-            selectedPoiPlaybackKey || shouldAutoNarrate
-              ? t("audio.autoPlayReady")
-              : ""
-          }
-          triggerAutoSpeak={
-            Boolean(selectedPoiPlaybackKey) || shouldAutoNarrate
-          }
+          titleSuffix={selectedPoiPlaybackKey ? t("audio.autoPlayReady") : ""}
+          triggerAutoSpeak={Boolean(selectedPoiPlaybackKey)}
         />
       ) : null}
     </section>
@@ -699,4 +751,47 @@ function normalizeForSearch(value) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+function hasDirectLocalizedValue(value, language) {
+  if (!value) return false;
+  if (typeof value !== "object") return false;
+  return Boolean(value[language]);
+}
+
+function shouldDynamicallyTranslate(value, language) {
+  if (!value || language === "vi") return false;
+  return !hasDirectLocalizedValue(value, language);
+}
+
+function shouldTranslatePlainText(value, language) {
+  if (!value || typeof value !== "string") return false;
+  return language !== "vi";
+}
+
+function getTranslationSeed(value, language) {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+
+  return (
+    value[language] ||
+    value.vi ||
+    value.en ||
+    Object.values(value).find((item) => typeof item === "string") ||
+    ""
+  );
+}
+
+async function safeTranslate(text, targetLanguage) {
+  if (!text) return "";
+
+  try {
+    return await translateText(text, targetLanguage);
+  } catch {
+    return text;
+  }
+}
+
+function buildPlaybackKey(poiId, language) {
+  return `${poiId}-${language}-${Date.now()}`;
 }

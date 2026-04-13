@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hinh 4 - Usecase User</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Times New Roman", Times, serif;
+        background: #fff;
+        color: #000;
+        padding: 30px 40px;
+      }
+      h1 {
+        text-align: center;
+        font-size: 22pt;
+        font-weight: bold;
+        margin-bottom: 8pt;
+        text-transform: uppercase;
+      }
+      .desc {
+        text-align: center;
+        font-size: 14pt;
+        margin-bottom: 20pt;
+        font-style: italic;
+      }
+      .mermaid {
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hinh 4: So do Usecase chi tiet User</h1>
+    <p class="desc">
+      So do usecase chi tiet cua User voi 11 usecase chinh, usecase con va dich
+      vu ben ngoai
+    </p>
+
+    <div class="mermaid">
+      graph TD subgraph TraiNghiemUser["Trai nghiem User"] UC01["UC01: Dang ky
+      tai khoan"] UC01a["UC01a: Nhap thong tin dang ky"] UC02["UC02: Dang nhap"]
+      UC02a["UC02a: Nhap username password"] UC03["UC03: Xem danh sach POI"]
+      UC04["UC04: Xem chi tiet POI"] UC05["UC05: Tim kiem POI"] UC05a["UC05a:
+      Loc theo category"] UC05b["UC05b: Tim theo ten POI"] UC06["UC06: Hien thi
+      POI tren ban do"] UC06a["UC06a: Dieu chinh ban kinh tim kiem"] UC07["UC07:
+      Tim duong den POI"] UC07a["UC07a: Xem lo trinh tren ban do"] UC08["UC08:
+      Nghe thuyet minh da ngon ngu"] UC08a["UC08a: Chon ngon ngu thuyet minh"]
+      UC08b["UC08b: Phat dung audio"] UC09["UC09: Auto-play thuyet minh"]
+      UC09a["UC09a: Bat tat auto-play"] UC10["UC10: Gui yeu cau nang cap Owner"]
+      UC10a["UC10a: Dien form nang cap Owner"] UC11["UC11: Chat tro ly AI"]
+      UC11a["UC11a: Nhan tin voi chatbot"] end subgraph DichVuBenNgoai["Dich vu
+      ben ngoai"] OSRM["OSRM: Routing API"] TTS["TTS: Web Speech API Google
+      Cloud TTS"] GPS["GPS: Geolocation"] end User["User"]:::actor User --> UC01
+      User --> UC02 User --> UC03 User --> UC04 User --> UC05 User --> UC06 User
+      --> UC07 User --> UC08 User --> UC09 User --> UC10 User --> UC11 UC01
+      -.->|"include"| UC01a UC02 -.->|"include"| UC02a UC05 -.->|"extend"| UC05a
+      UC05 -.->|"extend"| UC05b UC06 -.->|"extend"| UC06a UC07 -.->|"extend"|
+      UC07a UC08 -.->|"extend"| UC08a UC08 -.->|"extend"| UC08b UC09
+      -.->|"extend"| UC09a UC10 -.->|"include"| UC10a UC11 -.->|"include"| UC11a
+      UC06 -.->|"include"| GPS UC07 -.->|"include"| OSRM UC08 -.->|"include"|
+      TTS UC09 -.->|"include"| GPS UC09 -.->|"include"| TTS classDef actor
+      fill:#FFF9C4,stroke:#F57F17,stroke-width:3px,color:#000,font-size:18px;
+      classDef main
+      fill:#F3E5F5,stroke:#7B1FA2,stroke-width:2.5px,color:#000,font-size:14px;
+      classDef sub
+      fill:#FCE4EC,stroke:#C2185B,stroke-width:1.5px,color:#000,font-size:12px;
+      classDef ext
+      fill:#E0F7FA,stroke:#00838F,stroke-width:2px,color:#000,font-size:12px,stroke-dasharray:
+      5 3; class User actor; class
+      UC01,UC02,UC03,UC04,UC05,UC06,UC07,UC08,UC09,UC10,UC11 main; class
+      UC01a,UC02a,UC05a,UC05b,UC06a,UC07a,UC08a,UC08b,UC09a,UC10a,UC11a sub;
+      class OSRM,TTS,GPS ext;
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: "base",
+        securityLevel: "loose",
+        flowchart: {
+          htmlLabels: true,
+          curve: "basis",
+          padding: 15,
+          nodeSpacing: 12,
+          rankSpacing: 28,
+        },
+      });
+    </script>
+  </body>
+</html>

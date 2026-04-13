@@ -1,0 +1,51 @@
+@startuml
+skinparam usecaseFontSize 12
+skinparam usecaseFontName "Times New Roman"
+skinparam actorFontSize 13
+skinparam actorFontName "Times New Roman"
+skinparam backgroundColor White
+
+actor "Admin" as Admin
+
+rectangle "Quan ly Admin" {
+  usecase "UC17\nDuyet yeu cau nang cap Owner" as UC17
+  usecase "UC17a\nXem danh sach yeu cau" as UC17a
+  usecase "UC17b\nPhe duyet yeu cau" as UC17b
+  usecase "UC17c\nTu choi yeu cau" as UC17c
+
+  usecase "UC18\nKiem duyet noi dung\ngioi thieu shop" as UC18
+  usecase "UC18a\nXem danh sach shop can duy" as UC18a
+  usecase "UC18b\nPhe duyet noi dung" as UC18b
+  usecase "UC18c\nTu choi noi dung" as UC18c
+
+  usecase "UC19\nQuan ly POI CRUD" as UC19
+  usecase "UC19a\nTao POI moi" as UC19a
+  usecase "UC19b\nCap nhat POI" as UC19b
+  usecase "UC19c\nXoa POI" as UC19c
+
+  usecase "UC20\nXem analytics he thong" as UC20
+  usecase "UC20a\nThong ke luot truy cap" as UC20a
+  usecase "UC20b\nThong ke luot phat audio" as UC20b
+}
+
+Admin --> UC17
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+
+UC17 ..> UC17a : <<include>>
+UC17 ..> UC17b : <<extend>>
+UC17 ..> UC17c : <<extend>>
+
+UC18 ..> UC18a : <<include>>
+UC18 ..> UC18b : <<extend>>
+UC18 ..> UC18c : <<extend>>
+
+UC19 ..> UC19a : <<extend>>
+UC19 ..> UC19b : <<extend>>
+UC19 ..> UC19c : <<extend>>
+
+UC20 ..> UC20a : <<extend>>
+UC20 ..> UC20b : <<extend>>
+
+@enduml

@@ -125,16 +125,7 @@ CREATE TABLE IF NOT EXISTS poi_translations (
         FOREIGN KEY (poi_id) REFERENCES pois (id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
--- 1. Tạo bảng chính lưu thông tin lộ trình
-CREATE TABLE food_tours (
-    id VARCHAR(36) PRIMARY KEY,
-    title JSON NOT NULL,
-    description JSON NOT NULL,
-    category VARCHAR(100),
-    image_url TEXT,
-    steps JSON,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
 CREATE TABLE IF NOT EXISTS tours (
     id CHAR(36) NOT NULL,
     created_by_account_id CHAR(36) NULL,
@@ -233,15 +224,40 @@ CREATE TABLE IF NOT EXISTS audio_play_events (
         FOREIGN KEY (poi_id) REFERENCES pois (id)
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-CREATE TABLE IF NOT EXISTS food_tours (
-    id CHAR(36) PRIMARY KEY,
-    title JSON NOT NULL,            -- Lưu { "vi": "...", "en": "..." }
-    description JSON NOT NULL,      -- Lưu { "vi": "...", "en": "..." }
-    category VARCHAR(50),
-    image_url VARCHAR(255),
-    steps JSON NOT NULL,            -- Lưu mảng [{ "PoiId": "...", "Order": 1 }]
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+
+CREATE TABLE IF NOT EXISTS owner_upgrade_requests (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    account_id CHAR(36) NOT NULL,
+    shop_name VARCHAR(150) NOT NULL,
+    address_line VARCHAR(255) NOT NULL,
+    latitude DECIMAL(10, 8) NULL,
+    longitude DECIMAL(11, 8) NULL,
+    id_card_image_url VARCHAR(500) NULL,
+    business_license_image_url VARCHAR(500) NULL,
+    note VARCHAR(500) NULL,
+    status ENUM('pending', 'payment_pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
+    submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    reviewed_by_account_id CHAR(36) NULL,
+    reviewed_at DATETIME NULL,
+    review_note VARCHAR(500) NULL,
+    upgrade_fee_amount DECIMAL(10, 2) NULL,
+    payment_reference_code VARCHAR(50) NULL,
+    payment_qr_content TEXT NULL,
+    payment_qr_image_url VARCHAR(500) NULL,
+    payment_requested_at DATETIME NULL,
+    payment_confirmed_at DATETIME NULL,
+    activated_at DATETIME NULL,
+    PRIMARY KEY (id),
+    KEY idx_owner_upgrade_requests_account_id (account_id),
+    KEY idx_owner_upgrade_requests_status (status),
+    CONSTRAINT fk_owner_upgrade_requests_account_id
+        FOREIGN KEY (account_id) REFERENCES accounts (id)
+        ON DELETE CASCADE,
+    CONSTRAINT fk_owner_upgrade_requests_reviewer
+        FOREIGN KEY (reviewed_by_account_id) REFERENCES accounts (id)
+        ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS chat_sessions (
     id CHAR(36) NOT NULL,
     account_id CHAR(36) NULL,
@@ -705,9 +721,9 @@ VALUES
     (
         '99999999-9999-9999-9999-999999999991',
         'vi',
-        'Oc Vu - Vinh Khanh',
-        'Quan oc quen cho nhom ban muon ngoi an toi.',
-        'Quan oc co nhieu mon xao bo, xao rau muong va hai san nuong de goi chung. Neu muon thu khong khi pho oc Vinh Khanh theo kieu binh dan, day la diem dung kha de tiep can.',
+        'Ốc Vũ - Vĩnh Khánh',
+        'Quán ốc quen cho nhóm bạn muốn ngồi ăn tối.',
+        'Quán ốc có nhiều món xào bơ, xào rau muống và hải sản nướng để gọi chung. Nếu muốn thử không khí phố ốc Vĩnh Khánh theo kiểu bình dân, đây là điểm dừng khá dễ tiếp cận.',
         NULL
     ),
     (
@@ -721,9 +737,9 @@ VALUES
     (
         '99999999-9999-9999-9999-999999999992',
         'vi',
-        'Oc Cuc - Vinh Khanh',
-        'Diem dung gon nhe de thu cac mon oc nuong quen thuoc.',
-        'Oc Cuc co menu gon hon nhung de chon mon, thuong hop voi khach muon ghe nhanh de an hau nuong, so diep mo hanh hay ngheu hap sa. Quan nam ngay tren tuyen pho am thuc nen rat tien khi di bo.',
+        'Ốc Cúc - Vĩnh Khánh',
+        'Điểm dừng gọn nhẹ để thử các món ốc nướng quen thuộc.',
+        'Ốc Cúc có menu gọn hơn nhưng dễ chọn món, thường hợp với khách muốn ghé nhanh để ăn hàu nướng, sò điệp mỡ hành hay nghêu hấp sả. Quán nằm ngay trên tuyến phố ẩm thực nên rất tiện khi đi bộ.',
         NULL
     ),
     (
@@ -811,5 +827,3 @@ VALUES
     ('44444444-4444-4444-4444-444444444441', '55555555-5555-5555-5555-555555555551', 'vi', 'tts', DATE_SUB(NOW(), INTERVAL 70 MINUTE)),
     ('44444444-4444-4444-4444-444444444441', '55555555-5555-5555-5555-555555555551', 'en', 'tts', DATE_SUB(NOW(), INTERVAL 15 MINUTE)),
     ('44444444-4444-4444-4444-444444444442', '55555555-5555-5555-5555-555555555552', 'vi', 'tts', DATE_SUB(NOW(), INTERVAL 20 MINUTE));
-INSERT INTO food_tours (id, title_vi, title_en, category) 
-VALUES (UUID(), 'Tour Ăn Vặt Quận 1', 'D1 Street Food Tour', 'Street Food');

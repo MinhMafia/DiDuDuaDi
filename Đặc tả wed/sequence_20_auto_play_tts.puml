@@ -1,0 +1,43 @@
+@startuml sequence_20_auto_play_tts
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor User
+participant "Frontend\n(MapView)" as FE
+participant "Browser\nGeolocation" as GPS
+participant "Redux Store" as Store
+participant "Web Speech API\n/ Google Cloud TTS" as TTS
+participant "AnalyticsController" as Ctrl
+database "MySQL\naudio_play_events" as DB
+
+User -> FE: Bat ung dung\n(auto-play duoc bat trong Settings)
+
+loop Moi giay
+  FE -> GPS: watchPosition()\ntheo doi vi tri
+  GPS --> FE: Cap nhat vi tri\n{ lat, lng }
+  
+  FE -> Store: Lay danh sach POI\nva ban kinh hien tai
+  Store --> FE: POIs + radius
+  
+  FE -> FE: Tinh khoang cach\nden moi POI (Haversine)
+  
+  alt Khoang cach < 35m
+    FE -> Store: Lay ngon ngu hien tai\n(tieng VI/EN/...)
+    Store --> FE: languageCode
+    
+    FE -> FE: Lay noi dung thuyet minh\n(ten + mo ta) theo ngon ngu
+    
+    FE -> TTS: speechSynthesis.speak()\nhoac Google Cloud TTS
+    TTS -> TTS: Chuyen text thanh audio
+    TTS --> FE: Phat am thanh
+    
+    FE -> Ctrl: POST /api/analytics/audio-play\n{ poiId, languageCode, source }
+    Ctrl -> DB: INSERT INTO\naudio_play_events
+    DB --> Ctrl: Thanh cong
+    Ctrl --> FE: 200 OK
+  end
+end
+
+@enduml

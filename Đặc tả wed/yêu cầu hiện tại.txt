@@ -1,8 +1,43 @@
-
-
-Thiết lập: Cập nhật tọa độ chính xác, hình ảnh và thực đơn.
-Cập nhật hình ảnh: Đăng tải hình ảnh thực tế của quán (Thumbnail) để hiển thị trên Marker khi du khách nhấn vào trên bản đồ.
-
-Mô tả đặc trưng: Viết đoạn giới thiệu ngắn về lịch sử quán hoặc các món "signature" (món đinh) của mình.
-
-Quản lý Menu: Cập nhật danh sách món ăn và giá cả theo thời gian thực (giúp du khách xem nhanh trước khi quyết định ghé vào).
+I. Thông tin tổng quan dự án	5
+1. Mô tả ngắn về dự án	5
+2. Mục tiêu tài liệu	6
+II. Mục tiêu sản phẩm	7
+III. Đối tượng sử dụng	8
+1. Admin	8
+2. Owner	9
+3. User	9
+IV. Phạm vi dự án	10
+1. Phạm vi thực hiện	10
+2. Phạm vi không thực hiện	10
+V. Danh sách tính năng	11
+1. Nhóm tính năng quản lý tài khoản & phân quyền	11
+2. Nhóm tính năng quản lý POI và TOUR	11
+3. Nhóm tính năng tra cứu & trải nghiệm POI hoặc TOUR cho USER	12
+4. Nhóm tính năng thuyết minh & nội dung đa ngôn ngữ	12
+5. Nhóm tính năng hệ thống & bảo mật	13
+VI. Yêu cầu chức năng	13
+1. Yêu cầu chức năng về quản lý tài khoản	13
+2. Yêu cầu chức năng về quản lý POI	13
+3. Yêu cầu chức năng về tra cứu và tìm kiếm POI, TOUR	13
+4. Yêu cầu chức năng về thuyết minh đa ngôn ngữ	14
+VII. Yêu cầu phi chức năng	14
+1. Yêu cầu về bảo mật	14
+2. Yêu cầu về hiệu năng	14
+3. Yêu cầu về tính ổn định và độ tin cậy	14
+4. Yêu cầu về khả năng mở rộng và bảo trì	14
+5. Yêu cầu về khả năng sử dụng	15
+VIII. Luồng người dùng tổng quát	15
+1. Sơ đồ USECASE	15
+2. Sơ đồ ACTIVITY DIAGRAM	18
+3. Sơ đồ SEQUENCE DIAGRAM	36
+IX. Thiết kế và phát triển hệ thống	43
+1. Cơ Sở Dữ Liệu	43
+2. Mô tả chi tiết các bảng	45
+3. Kiến trúc hệ thống	51
+a. Tổng quan kiến trúc	52
+b. Sơ đồ kiến trúc tổng quát	53
+4. Công nghệ sử dụng	53
+7.1. Frontend	53
+7.2. Backend	54
+7.3. DevOps	54
+X. Kết luận và hướng phát triển trong tương lai	54

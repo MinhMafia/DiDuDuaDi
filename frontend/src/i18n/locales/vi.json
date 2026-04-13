@@ -179,6 +179,8 @@
     "fields": {
       "shopName": "Tên quán",
       "address": "Địa chỉ tại Vĩnh Khánh",
+      "latitude": "Vĩ độ",
+      "longitude": "Kinh độ",
       "idCardImageUrl": "Link ảnh căn cước (CCCD)",
       "businessLicenseImageUrl": "Link ảnh GPKD (nếu có)",
       "note": "Ghi chú"
