@@ -7,6 +7,9 @@
   "nav": {
     "home": "ホーム",
     "map": "地図",
+    "cooperate": "店主登録申請",
+    "owner": "店主",
+    "admin": "管理者",
     "routes": "ルート",
     "settings": "設定"
   },
@@ -99,10 +102,208 @@
     "autoPlayReady": "自動再生対応"
   },
   "chat": {
-    "title": "AI フードアシスタント",
+    "title": "AIフードアシスタント",
     "subtitle": "ヴィンカイン通りのデモ店舗について質問できます",
     "welcome": "こんにちは。何を食べるべきか、地図上のデモ店舗、または特定の店名を入力して簡単な説明を聞くことができます。",
     "placeholder": "食べ物、店舗、地図について質問...",
-    "send": "送信"
+    "send": "送信",
+    "close": "閉じる",
+    "fabLabel": "AI"
+  },
+  "home": {
+    "title": "DiDuDuaDi システムテストパネル",
+    "subtitle": "フロントエンドがバックエンドとサンプルデータAPIに接続されているかどうかをテストするための基本的なインターフェース。",
+    "healthNotChecked": "未チェック",
+    "healthConnected": "バックエンド接続済み",
+    "healthFailed": "接続失敗",
+    "connectError": "バックエンドに接続できません",
+    "poiApiError": "POIs APIを呼び出せません",
+    "nearbyApiError": "Nearby APIを呼び出せません",
+    "errorLabel": "エラー",
+    "loading": "データを読み込み中...",
+    "nearbyTitle": "近くのPOI",
+    "emptyNearby": "データなし。「Nearby APIをテスト」ボタンをクリックして結果を表示。",
+    "labels": {
+      "backendStatus": "バックエンドステータス",
+      "serverTime": "サーバー時間",
+      "totalPoi": "POI総数"
+    },
+    "actions": {
+      "testHealth": "Health APIをテスト",
+      "testPois": "POIs APIをテスト",
+      "testNearby": "Nearby APIをテスト"
+    },
+    "fields": {
+      "lat": "緯度",
+      "lng": "経度",
+      "radius": "半径 (メートル)"
+    }
+  },
+  "routes": {
+    "placeholder": "ルートページは次のステップで完成予定です。"
+  },
+  "common": {
+    "loading": "読み込み中...",
+    "unexpectedErrorTitle": "ページでエラーが発生しました",
+    "unexpectedErrorDescription": "ページをリロードするか、再ログインして続行してください。"
+  },
+  "collaboration": {
+    "title": "パートナー募集",
+    "subtitle": "店舗情報を入力して、ユーザーから店主へのアップグレードを申請してください。管理者が承認後に権限を付与します。",
+    "currentUser": "現在のアカウント",
+    "submit": "店主登録を申請",
+    "submitting": "送信中...",
+    "success": "店主申請を送信しました。",
+    "error": "申請を送信できませんでした。",
+    "fields": {
+      "shopName": "店舗名",
+      "address": "ヴィンカインの住所",
+      "latitude": "緯度",
+      "longitude": "経度",
+      "idCardImageUrl": "身分証明書画像URL",
+      "businessLicenseImageUrl": "営業許可証画像URL（任意）",
+      "note": "備考"
+    }
+  },
+  "owner": {
+    "badge": "店主ワークスペース",
+    "title": "店主ダッシュボード",
+    "subtitle": "メニュー、紹介コンテンツ、請求コード、統計を管理し、観光客アプリにより豊かな店舗情報を表示します。",
+    "noShop": "まだ店舗がリンクされていません",
+    "error": "店主ダッシュボードのデータを読み込めませんでした。",
+    "statsTitle": "クイック統計",
+    "shopInfoTitle": "店舗プロフィールと紹介",
+    "poiTitle": "マップ上のPOIコンテンツ",
+    "poiSubtitle": "以下の名前と説明は、観光客がマップ上であなたの店舗を開いたときに表示される内容です。",
+    "menuTitle": "メニュー管理",
+    "menuSubtitle": "ここで有効にした料理は、観光客があなたのPOIを開いたときに表示されます。",
+    "claimTitle": "現金請求コード",
+    "claimSubtitle": "レストランで現金支払いを行う顧客用のアクティベーションコードを生成します。",
+    "viewMap": "マップビューを開く",
+    "summaryFallback": "店舗情報を充実させて、観光客が完全なプロフィールを見られるようにします。",
+    "summaryUnavailable": "未更新",
+    "saveProfile": "店舗プロフィールを保存",
+    "saving": "保存中...",
+    "addMenu": "料理を追加",
+    "updateMenu": "料理を更新",
+    "cancelEdit": "編集をキャンセル",
+    "createClaim": "請求コードを作成",
+    "available": "表示中",
+    "hidden": "非表示",
+    "edit": "編集",
+    "delete": "削除",
+    "feedback": {
+      "saved": "店舗プロフィールを更新しました。",
+      "poiSaved": "マップ上のPOIコンテンツを更新しました。",
+      "menuCreated": "新しい料理を追加しました。",
+      "menuUpdated": "料理を更新しました。",
+      "menuDeleted": "料理を削除しました。",
+      "claimCreated": "請求コードを作成しました"
+    },
+    "stats": {
+      "totalVisits": "POI訪問数",
+      "audioPlays": "音声再生数",
+      "claimCodes": "作成した請求コード",
+      "todayVisits": "今日の訪問",
+      "todayAudio": "今日の音声"
+    },
+    "status": {
+      "approved": "承認済み",
+      "rejected": "却下",
+      "pending": "審査待ち",
+      "notSubmitted": "未提出"
+    },
+    "labels": {
+      "issuedAt": "作成日時",
+      "menuCount": "現在の料理数"
+    },
+    "empty": {
+      "menu": "まだメニューに料理がありません。レストランの最初の料理を追加してください。",
+      "claims": "最近作成された請求コードはありません。"
+    },
+    "sections": {
+      "overviewKicker": "ビジネス概要",
+      "overview": "店舗概要",
+      "performanceKicker": "アプリパフォーマンス",
+      "profileKicker": "コア店舗プロフィール",
+      "profileDescription": "表示される店舗プロフィールと管理者がレビューする紹介ドラフトを更新します。",
+      "mapKicker": "観光客がマップ上で見るもの",
+      "menuKicker": "メニューエディター",
+      "editMenu": "メニュー項目を編集",
+      "menuListKicker": "現在表示中",
+      "menuList": "現在のメニュー",
+      "menuListDescription": "これらは観光客があなたのPOIを開いたときに表示される料理です。",
+      "claimKicker": "現金支払い",
+      "claimHistoryKicker": "発行済みコードを追跡",
+      "claimHistory": "最近の請求コード",
+      "claimHistoryDescription": "顧客が来店したときに最近発行されたコードをすばやく確認します。"
+    },
+    "fields": {
+      "shopName": "店舗名",
+      "address": "住所",
+      "latitude": "緯度",
+      "longitude": "経度",
+      "description": "現在の短い説明",
+      "pendingIntro": "管理者レビュー待ちの紹介ドラフト",
+      "hours": "営業時間",
+      "phone": "電話番号",
+      "imageUrl": "画像URL",
+      "menuName": "料理名",
+      "poiCategory": "場所カテゴリ",
+      "poiNameVi": "POI名（ベトナム語）",
+      "poiNameEn": "POI名（英語）",
+      "poiDescriptionVi": "POI説明（ベトナム語）",
+      "poiDescriptionEn": "POI説明（英語）",
+      "menuDescription": "料理の説明",
+      "price": "価格",
+      "order": "表示順序",
+      "available": "観光客に表示",
+      "amount": "金額",
+      "expireAfterHours": "有効期限（時間）",
+      "note": "備考"
+    },
+    "savePoi": "POIコンテンツを保存"
+  },
+  "admin": {
+    "title": "管理者ダッシュボード",
+    "subtitle": "店主申請のレビュー、店舗コンテンツの管理、最近のレビュー履歴を追跡します。",
+    "ownerRequestsTitle": "店主アップグレード申請",
+    "ownerRequestsSubtitle": "ユーザーの申請をレビューし、店主になる申請を承認または却下します。",
+    "shopIntroTitle": "保留中の店舗紹介",
+    "shopIntroSubtitle": "店舗紹介がマップと音声ガイドで観光客に表示される前にドラフトをレビューします。",
+    "reviewHistoryTitle": "最近のレビュー履歴",
+    "reviewHistorySubtitle": "処理された申請を追跡し、決定とレビューノートを再確認しやすくします。",
+    "ownerHistoryTitle": "店主申請履歴",
+    "shopIntroHistoryTitle": "店舗紹介レビュー履歴",
+    "labels": {
+      "user": "ユーザー",
+      "owner": "店主",
+      "address": "住所",
+      "idCard": "身分証明書",
+      "businessLicense": "営業許可証",
+      "note": "備考",
+      "reviewNote": "レビュー備考",
+      "latestReviewNote": "最新のレビュー備考",
+      "currentContent": "現在のコンテンツ",
+      "pendingContent": "提出されたコンテンツ",
+      "noContent": "まだコンテンツはありません。"
+    },
+    "status": {
+      "approved": "承認済み",
+      "rejected": "却下",
+      "pending": "保留中"
+    },
+    "approve": "承認",
+    "reject": "却下",
+    "approveContent": "コンテンツを承認",
+    "processing": "処理中...",
+    "reviewNotePlaceholder": "承認備考または却下理由を入力",
+    "loadOwnerRequestsError": "店主申請を読み込めませんでした。",
+    "loadShopIntrosError": "店舗紹介ドラフトを読み込めませんでした。",
+    "loadHistoryError": "レビュー履歴を読み込めませんでした。",
+    "emptyPendingOwnerRequests": "保留中の店主申請はありません。",
+    "emptyPendingShopIntros": "保留中の店舗紹介はありません。",
+    "emptyOwnerHistory": "店主申請履歴はまだありません。",
+    "emptyShopIntroHistory": "店舗紹介レビュー履歴はまだありません。"
   }
 }

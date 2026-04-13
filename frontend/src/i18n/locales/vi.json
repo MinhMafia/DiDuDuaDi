@@ -89,8 +89,7 @@
     "tapPoiHint": "Bật GPS để xem khoảng cách thực tế.",
     "routeLoading": "Đang tính lộ trình di chuyển...",
     "routeError": "Không lấy được lộ trình lúc này.",
-    "routeSummary": "Lộ trình ước tính: {{distance}}, khoảng {{minutes}} phút lái xe."
-    ,
+    "routeSummary": "Lộ trình ước tính: {{distance}}, khoảng {{minutes}} phút lái xe.",
     "labels": {
       "openingHours": "Giờ mở cửa",
       "phone": "Điện thoại"
@@ -289,6 +288,7 @@
   "admin": {
     "title": "Bảng điều khiển admin",
     "subtitle": "Quản lý duyệt yêu cầu chủ quán, kiểm duyệt nội dung quán và theo dõi lịch sử xử lý.",
+    "badge": "Quản trị hệ thống",
     "ownerRequestsTitle": "Yêu cầu nâng quyền chủ quán",
     "ownerRequestsSubtitle": "Kiểm tra hồ sơ người dùng và phê duyệt hoặc từ chối yêu cầu trở thành chủ quán.",
     "shopIntroTitle": "Nội dung giới thiệu quán chờ duyệt",
@@ -326,6 +326,26 @@
     "emptyPendingOwnerRequests": "Không có yêu cầu nào đang chờ duyệt.",
     "emptyPendingShopIntros": "Không có nội dung nào đang chờ duyệt.",
     "emptyOwnerHistory": "Chưa có lịch sử yêu cầu chủ quán.",
-    "emptyShopIntroHistory": "Chưa có lịch sử duyệt nội dung quán."
+    "emptyShopIntroHistory": "Chưa có lịch sử duyệt nội dung quán.",
+    "sections": {
+      "overview": "Tổng quan",
+      "overviewKicker": "Tổng quan hệ thống",
+      "overviewDescription": "Xem nhanh các yêu cầu đang chờ và thống kê cơ bản.",
+      "ownerRequests": "Duyệt chủ quán",
+      "ownerRequestsKicker": "Yêu cầu nâng quyền",
+      "ownerRequestsDescription": "Phê duyệt hoặc từ chối yêu cầu trở thành chủ quán.",
+      "shopIntros": "Duyệt nội dung",
+      "shopIntrosKicker": "Nội dung giới thiệu",
+      "shopIntrosDescription": "Kiểm duyệt nội dung giới thiệu quán trước khi hiển thị.",
+      "statistics": "Thống kê",
+      "statisticsKicker": "Top quán & POI",
+      "statisticsDescription": "Xem top quán và địa điểm được tương tác nhiều nhất.",
+      "managePois": "Quản lý POI",
+      "managePoisKicker": "Địa điểm trên bản đồ",
+      "managePoisDescription": "Thêm, sửa, xóa các điểm POI hiển thị trên bản đồ.",
+      "foodTours": "Quản lý Tour",
+      "foodToursKicker": "Lộ trình du lịch",
+      "foodToursDescription": "Tạo và quản lý các tour du lịch ẩm thực."
+    }
   }
 }

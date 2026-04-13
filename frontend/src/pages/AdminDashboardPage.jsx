@@ -1,9 +1,8 @@
- import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import {
-  Card,
   Button,
   Input,
   Typography,
@@ -16,10 +15,12 @@ import {
   Table,
   Modal,
   Form,
-  Tabs,
   message,
+  Descriptions,
 } from "antd";
+import { QRCodeSVG as QRCode } from "qrcode.react";
 
+import Loading from "../components/common/Loading";
 import {
   getOwnerUpgradeRequests,
   getShopIntroReviews,
@@ -27,14 +28,11 @@ import {
   reviewShopIntro,
   confirmOwnerUpgradePayment,
   cancelOwnerUpgradePayment,
-  getFoodTours,    // <--- PHẢI CÓ DÒNG NÀY
+  getFoodTours,
   createFoodTour,
   deleteFoodTour,
-  updateFoodTour
-  
+  updateFoodTour,
 } from "../services/adminService";
-
-
 
 import {
   getTopShops,
@@ -43,289 +41,67 @@ import {
   createPoi,
   updatePoi,
   deletePoi,
-  
+  getPoiById,
 } from "../services/analyticsService";
 
+import "./AdminDashboardPage.css";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 
+const EMPTY_POI = {
+  name: "",
+  description: "",
+  category: "street_food",
+  shopAddress: "",
+  lat: "",
+  lng: "",
+};
+
+const EMPTY_TOUR = {
+  title: "",
+  category: "",
+  description: "",
+};
+
+// Tạo URL chi tiết POI cho QR code
+const generatePoiDetailUrl = (poiId) => {
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/poi/${poiId}`;
+};
+
 export default function AdminDashboardPage() {
-  // Trong AdminDashboardPage component
-  const [editingTour, setEditingTour] = useState(null);
-const [editTourModalVisible, setEditTourModalVisible] = useState(false);
-const [tourModalVisible, setTourModalVisible] = useState(false);
-const [selectedPois, setSelectedPois] = useState([]); // Danh sách POI được chọn cho tour
-const foodTourDeleteMutation = useMutation({
-  mutationFn: deleteFoodTour,
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["foodTours"] });
-    message.success("Xóa tour thành công");
-  },
-});
-const foodToursQuery = useQuery({
-  queryKey: ["foodTours"],
-  queryFn: getFoodTours,
-  select: (res) => {
-    if (Array.isArray(res)) return res;
-    if (Array.isArray(res?.data)) return res.data;
-    return [];
-  },
-});
-const foodTourUpdateMutation = useMutation({
-  mutationFn: ({ id, data }) => updateFoodTour(id, data),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["foodTours"] });
-    message.success("Cập nhật tour thành công");
-    setEditTourModalVisible(false);
-    setSelectedPois([]);
-    setEditingTour(null);
-  },
-});
-
-const tourCreateMutation = useMutation({
-  mutationFn: createFoodTour,
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['foodTours'] });
-    message.success('Tạo tour thành công');
-    setTourModalVisible(false);
-    setSelectedPois([]);
-  },
-});
   const { t } = useTranslation();
-  const currentUser = useSelector((state) => state.app.currentUser);
   const queryClient = useQueryClient();
+  const currentUser = useSelector((state) => state.app.currentUser);
 
+  const [activeSection, setActiveSection] = useState("overview");
+  const [feedback, setFeedback] = useState("");
+
+  // POI Detail modal state
+  const [poiDetailVisible, setPoiDetailVisible] = useState(false);
+  const [selectedPoiId, setSelectedPoiId] = useState(null);
+
+  // Owner review states
   const [ownerReviewNotes, setOwnerReviewNotes] = useState({});
   const [introReviewNotes, setIntroReviewNotes] = useState({});
 
   // Stats states
-  const [statsPeriod, setStatsPeriod] = useState('30');
-  const [statsMetric, setStatsMetric] = useState('visits');
+  const [statsPeriod, setStatsPeriod] = useState("30");
+  const [statsMetric, setStatsMetric] = useState("visits");
 
-  // POI manage
+  // POI manage states
   const [poiModalVisible, setPoiModalVisible] = useState(false);
   const [editingPoi, setEditingPoi] = useState(null);
-  const [poiSearch, setPoiSearch] = useState('');
+  const [poiSearch, setPoiSearch] = useState("");
+  const [poiForm, setPoiForm] = useState(EMPTY_POI);
 
-  const periods = ['7', '30', '90'];
-  const metrics = ['visits', 'audio'];
-const tourColumns = [
-  {
-    title: "Tên lộ trình",
-    render: (_, record) =>
-      record.title?.vi || record.title?.en || "Chưa có tên",
-  },
-  {
-    title: "Danh mục",
-    dataIndex: "category",
-    render: (cat) => <Tag color="orange">{cat}</Tag>,
-  },
-  {
-    title: "Số điểm dừng",
-    render: (_, record) => (
-      <Tag color="blue">{record.steps?.length || 0} địa điểm</Tag>
-    ),
-  },
-  {
-    title: "Mô tả",
-    render: (_, record) =>
-      record.description?.vi || record.description?.en || "Không có mô tả",
-  },
-  {
-    title: "Thao tác",
-    render: (_, record) => (
-      <Space>
-        <Button
-  size="small"
-  onClick={() => {
-    
-    setEditingTour(record);
-    setEditTourModalVisible(true);
-
-    setSelectedPois(record.steps?.map(s => s.poiId) || []);
-  }}
->
-  Sửa
-</Button>
-
-        <Button
-          size="small"
-          danger
-          onClick={() => {
-            Modal.confirm({
-              title: "Xóa food tour?",
-              content: record.title?.vi || "Không tên",
-              okText: "Xóa",
-              okType: "danger",
-              cancelText: "Hủy",
-              onOk: () => {
-                foodTourDeleteMutation.mutate(record.id);
-              },
-            });
-          }}
-        >
-          Xóa
-        </Button>
-      </Space>
-    ),
-  },
-];
-const shopsColumns = [
-  { 
-    title: 'Quán', 
-    dataIndex: 'name', 
-    render: (text) => <strong>{text}</strong> 
-  },
-  { 
-    title: 'Slug', 
-    dataIndex: 'slug' 
-  },
-  {
-    title: 'Vị trí',
-    render: (_, record) => {
-      const lat = Number(record?.lat);
-      const lng = Number(record?.lng);
-
-      if (isNaN(lat) || isNaN(lng)) return "N/A";
-
-      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    }
-  },
-  { 
-    title: 'Lượt', 
-    dataIndex: 'count',
-    sorter: (a, b) => a.count - b.count 
-  },
-  { 
-    title: 'Chỉ số', 
-    dataIndex: 'metric' 
-  },
-];
-// --- BỘ CỘT CHO TOP POI (THỐNG KÊ) ---
-const topPoisColumns = [
-  { 
-    title: 'Tên địa điểm', 
-    render: (_, record) => (
-      <strong>{record.name || record.Name || record.shopName || "N/A"}</strong>
-    )
-  },
-  { 
-    title: 'ID', 
-    render: (_, record) => <Tag>{(record.id || record.Id || "").slice(-8)}</Tag>
-  },
-  {
-    title: 'Vị trí',
-    render: (_, record) => {
-      const lat = record.lat ?? record.location?.lat;
-      const lng = record.lng ?? record.location?.lng;
-      return lat ? `${Number(lat).toFixed(3)}, ${Number(lng).toFixed(3)}` : "N/A";
-    }
-  },
-  { 
-    title: 'Lượt tương tác', 
-    dataIndex: 'count',
-    sorter: (a, b) => a.count - b.count,
-    render: (count) => <Tag color="orange" style={{ fontWeight: 'bold' }}>{count} lượt</Tag>
-  },
-  { 
-    title: 'Chỉ số', 
-    dataIndex: 'metric',
-    render: (m) => <Tag color="purple">{m}</Tag>
-  },
-];
-
-// --- BỘ CỘT CHO QUẢN LÝ POI (FULL THÔNG TIN) ---
-const managePoisColumns = [
-  { 
-    title: 'Tên', 
-    render: (_, record) => {
-      const nameObj = record.name || {};
-      return <strong>{nameObj.vi || nameObj.en || record.shopName || "N/A"}</strong>;
-    }
-  },
-  {
-    title: 'Danh mục',
-    dataIndex: 'category',
-    render: (cat) => <Tag color="blue">{cat || 'street_food'}</Tag>
-  },
-  {
-    title: 'Địa chỉ',
-    dataIndex: 'shopAddress',
-    ellipsis: true,
-    width: 200,
-  },
-  {
-    title: 'Thông số',
-    render: (_, record) => (
-      <Space direction="vertical" size={0}>
-        <small>📍 {record.lat}, {record.lng}</small>
-        <small>🎯 Bán kính: {record.radius}m</small>
-      </Space>
-    )
-  },
-  {
-    title: 'Menu',
-    dataIndex: 'menuItems',
-    render: (menu) => (
-      <Tag color={menu?.length > 0 ? "green" : "default"}>
-        {menu?.length || 0} món
-      </Tag>
-    )
-  }
-];
-const poisColumns = [
-  { 
-    title: 'Tên', 
-    dataIndex: 'name',
-    render: (name, record) => {
-      // Ưu tiên hiển thị displayName (đã map ở useQuery) hoặc shopName
-      if (record.displayName) return <strong>{record.displayName}</strong>;
-      if (record.shopName) return <strong>{record.shopName}</strong>;
-      
-      if (!name) return "Không có tên";
-      return name.vi || name.en || Object.values(name)[0] || "Không có tên";
-    }
-  },
-  { 
-    title: 'ID', 
-    dataIndex: 'id', 
-    render: (id) => id?.slice?.(-8) || "N/A"
-  },
-  {
-    title: 'Danh mục',
-    dataIndex: 'category',
-    render: (category) => category ? <Tag color="blue">{category}</Tag> : "N/A"
-  },
-  {
-    title: 'Địa chỉ',
-    dataIndex: 'shopAddress',
-    render: (address) => address || "Chưa cập nhật",
-    ellipsis: true, // Thêm ellipsis để tránh địa chỉ quá dài làm vỡ bảng
-  },
-  {
-    title: 'Vị trí',
-    render: (_, record) => {
-      // Lấy từ biến đã map (lat/lng) hoặc lấy trực tiếp từ object location
-      const lat = record?.lat ?? record?.location?.lat;
-      const lng = record?.lng ?? record?.location?.lng;
-
-      if (lat == null || lng == null) return "Không có tọa độ";
-
-      return `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`;
-    }
-  },
-  {
-    title: 'Bán kính',
-    dataIndex: 'radius',
-    render: (radius) => radius ? `${radius}m` : "N/A"
-  },
-  {
-    title: 'Thực đơn',
-    dataIndex: 'menuItems',
-    render: (menuItems) => menuItems?.length ? <Tag color="green">{menuItems.length} món</Tag> : "Trống"
-  }
-];
+  // Tour states
+  const [tourModalVisible, setTourModalVisible] = useState(false);
+  const [editTourModalVisible, setEditTourModalVisible] = useState(false);
+  const [editingTour, setEditingTour] = useState(null);
+  const [selectedPois, setSelectedPois] = useState([]);
+  const [tourForm, setTourForm] = useState(EMPTY_TOUR);
 
   // ================= QUERY =================
   const pendingOwnerRequestsQuery = useQuery({
@@ -367,12 +143,70 @@ const poisColumns = [
     },
   });
 
+  const topShopsQuery = useQuery({
+    queryKey: ["topShops", statsPeriod, statsMetric],
+    queryFn: () => getTopShops(parseInt(statsPeriod), 10, statsMetric),
+    enabled: !!(statsPeriod && statsMetric),
+    select: (res) => {
+      if (Array.isArray(res)) return res;
+      if (Array.isArray(res?.data)) return res.data;
+      if (Array.isArray(res?.data?.items)) return res.data.items;
+      return [];
+    },
+  });
+
+  const topPoisQuery = useQuery({
+    queryKey: ["topPois", statsPeriod, statsMetric],
+    queryFn: () => getTopPois(parseInt(statsPeriod), 10, statsMetric),
+    enabled: !!(statsPeriod && statsMetric),
+    select: (res) => {
+      return Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.data?.items)
+          ? res.data.items
+          : [];
+    },
+  });
+
+  const poisQuery = useQuery({
+    queryKey: ["pois"],
+    queryFn: () => getPois(),
+    select: (res) => {
+      const data = res.data ?? [];
+      return data.map((p) => ({
+        ...p,
+        lat: p.location?.lat,
+        lng: p.location?.lng,
+        displayName: p.name?.vi || p.name?.en || Object.values(p.name || {})[0],
+      }));
+    },
+  });
+
+  const foodToursQuery = useQuery({
+    queryKey: ["foodTours"],
+    queryFn: getFoodTours,
+    select: (res) => {
+      if (Array.isArray(res)) return res;
+      if (Array.isArray(res?.data)) return res.data;
+      return [];
+    },
+  });
+
+  // Query lấy chi tiết POI
+  const poiDetailQuery = useQuery({
+    queryKey: ["poi-detail", selectedPoiId],
+    queryFn: () => getPoiById(selectedPoiId),
+    enabled: !!selectedPoiId && poiDetailVisible,
+    select: (res) => res.data ?? null,
+  });
+
   // ================= MUTATION =================
   const ownerReviewMutation = useMutation({
     mutationFn: ({ requestId, action, reason }) =>
       reviewOwnerUpgradeRequest(requestId, action, reason),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["owner-upgrade-requests"] });
+      setFeedback(response.message || "Đã xử lý yêu cầu chủ quán");
     },
   });
 
@@ -380,7 +214,7 @@ const poisColumns = [
     mutationFn: (requestId) => confirmOwnerUpgradePayment(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["owner-upgrade-requests"] });
-      message.success("Da kich hoat quyen chu quan");
+      setFeedback("Đã kích hoạt quyền chủ quán");
     },
   });
 
@@ -388,617 +222,1117 @@ const poisColumns = [
     mutationFn: (requestId) => cancelOwnerUpgradePayment(requestId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["owner-upgrade-requests"] });
-      message.success("Da huy ma QR");
+      setFeedback("Đã hủy mã QR");
     },
   });
 
   const introReviewMutation = useMutation({
     mutationFn: ({ shopId, action, reason }) =>
       reviewShopIntro(shopId, action, reason),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ["shop-intro-reviews"] });
+      setFeedback(response.message || "Đã duyệt nội dung quán");
     },
   });
-
-  // Stats queries
-const topShopsQuery = useQuery({
-  queryKey: ['topShops', statsPeriod, statsMetric],
-  queryFn: () => getTopShops(parseInt(statsPeriod), 10, statsMetric),
-  enabled: !!(statsPeriod && statsMetric),
-select: (res) => {
-  
-
-  if (Array.isArray(res)) return res; // 🔥 QUAN TRỌNG
-
-  if (Array.isArray(res?.data)) return res.data;
-
-  if (Array.isArray(res?.data?.items)) return res.data.items;
-
-  return [];
-}
-});
-const chartTopShops = (topShopsQuery.data || []).map(item => ({
-  name: item.name,
-  lượt: item.count || 0,
-}));
-const topPoisQuery = useQuery({
-  queryKey: ['topPois', statsPeriod, statsMetric],
-  queryFn: () => getTopPois(parseInt(statsPeriod), 10, statsMetric),
-  enabled: !!(statsPeriod && statsMetric),
-  select: (res) => {
- 
-
-    return Array.isArray(res?.data)
-      ? res.data
-      : Array.isArray(res?.data?.items)
-      ? res.data.items
-      : [];
-  },
-});
-
-const poisQuery = useQuery({
-  queryKey: ['pois'],
-  queryFn: () => getPois(),
-  select: (res) => {
-    const data = res.data ?? [];
-
-    return data.map(p => ({
-      ...p,
-      lat: p.location?.lat,
-      lng: p.location?.lng,
-      displayName:
-        p.name?.vi ||
-        p.name?.en ||
-        Object.values(p.name || {})[0],
-    }));
-  },
-});
 
   const poiCreateMutation = useMutation({
     mutationFn: createPoi,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pois'] });
-      message.success('Tạo POI thành công');
+      queryClient.invalidateQueries({ queryKey: ["pois"] });
+      setPoiForm(EMPTY_POI);
+      setFeedback("Đã tạo POI thành công");
     },
   });
 
-const poiUpdateMutation = useMutation({
-  mutationFn: ({ id, data }) => updatePoi(id, data),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ['pois'] });
-    message.success('Cập nhật POI thành công');
-  },
-});
+  const poiUpdateMutation = useMutation({
+    mutationFn: ({ id, data }) => updatePoi(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["pois"] });
+      setPoiForm(EMPTY_POI);
+      setEditingPoi(null);
+      setFeedback("Đã cập nhật POI thành công");
+    },
+  });
 
   const poiDeleteMutation = useMutation({
     mutationFn: deletePoi,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pois'] });
-      message.success('Xóa POI thành công');
+      queryClient.invalidateQueries({ queryKey: ["pois"] });
+      setFeedback("Đã xóa POI thành công");
     },
   });
 
+  const tourCreateMutation = useMutation({
+    mutationFn: createFoodTour,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["foodTours"] });
+      setTourForm(EMPTY_TOUR);
+      setSelectedPois([]);
+      setTourModalVisible(false);
+      setFeedback("Đã tạo tour thành công");
+    },
+  });
 
-  // ================= RENDER =================
-  return (
-    <Space direction="vertical" size={20} style={{ width: "100%" }}>
-      
-      {/* HEADER */}
-      <Card style={{ borderRadius: 16 }}>
-        <Space direction="vertical">
-          <Title level={3}>{t("admin.title")}</Title>
-          <Text type="secondary">{t("admin.subtitle")}</Text>
-          <Tag color="blue">{currentUser?.displayName}</Tag>
-        </Space>
-      </Card>
+  const tourUpdateMutation = useMutation({
+    mutationFn: ({ id, data }) => updateFoodTour(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["foodTours"] });
+      setEditingTour(null);
+      setSelectedPois([]);
+      setEditTourModalVisible(false);
+      setFeedback("Đã cập nhật tour thành công");
+    },
+  });
 
-      {/* OWNER REQUESTS */}
-      <Card
-        title={t("admin.ownerRequestsTitle")}
-        extra={<Tag color="orange">Pending</Tag>}
-        style={{ borderRadius: 16 }}
-      >
-        {pendingOwnerRequestsQuery.isLoading ? (
-          <Spin />
-        ) : pendingOwnerRequestsQuery.data.length === 0 ? (
+  const tourDeleteMutation = useMutation({
+    mutationFn: deleteFoodTour,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["foodTours"] });
+      setFeedback("Đã xóa tour thành công");
+    },
+  });
+
+  // ================= DERIVED DATA =================
+  const pendingOwnerCount = pendingOwnerRequestsQuery.data?.length ?? 0;
+  const pendingIntroCount = pendingIntroReviewsQuery.data?.length ?? 0;
+  const totalPois = poisQuery.data?.length ?? 0;
+  const totalTours = foodToursQuery.data?.length ?? 0;
+
+  // ================= SECTIONS =================
+  const sections = [
+    {
+      id: "overview",
+      label: t("admin.sections.overview") || "Tổng quan",
+      kicker: t("admin.sections.overviewKicker") || "Tổng quan hệ thống",
+      description:
+        t("admin.sections.overviewDescription") ||
+        "Xem nhanh các yêu cầu đang chờ và thống kê cơ bản.",
+      badge: `${pendingOwnerCount + pendingIntroCount} đang chờ`,
+    },
+    {
+      id: "ownerRequests",
+      label: t("admin.sections.ownerRequests") || "Duyệt chủ quán",
+      kicker: t("admin.sections.ownerRequestsKicker") || "Yêu cầu nâng quyền",
+      description:
+        t("admin.sections.ownerRequestsDescription") ||
+        "Phê duyệt hoặc từ chối yêu cầu trở thành chủ quán.",
+      badge:
+        pendingOwnerCount > 0 ? `${pendingOwnerCount} đang chờ` : "Không có",
+    },
+    {
+      id: "shopIntros",
+      label: t("admin.sections.shopIntros") || "Duyệt nội dung",
+      kicker: t("admin.sections.shopIntrosKicker") || "Nội dung giới thiệu",
+      description:
+        t("admin.sections.shopIntrosDescription") ||
+        "Kiểm duyệt nội dung giới thiệu quán trước khi hiển thị.",
+      badge:
+        pendingIntroCount > 0 ? `${pendingIntroCount} đang chờ` : "Không có",
+    },
+    {
+      id: "statistics",
+      label: t("admin.sections.statistics") || "Thống kê",
+      kicker: t("admin.sections.statisticsKicker") || "Top quán & POI",
+      description:
+        t("admin.sections.statisticsDescription") ||
+        "Xem top quán và địa điểm được tương tác nhiều nhất.",
+      badge: `${statsPeriod} ngày`,
+    },
+    {
+      id: "managePois",
+      label: t("admin.sections.managePois") || "Quản lý POI",
+      kicker: t("admin.sections.managePoisKicker") || "Địa điểm trên bản đồ",
+      description:
+        t("admin.sections.managePoisDescription") ||
+        "Thêm, sửa, xóa các điểm POI hiển thị trên bản đồ.",
+      badge: `${totalPois} POI`,
+    },
+    {
+      id: "foodTours",
+      label: t("admin.sections.foodTours") || "Quản lý Tour",
+      kicker: t("admin.sections.foodToursKicker") || "Lộ trình du lịch",
+      description:
+        t("admin.sections.foodToursDescription") ||
+        "Tạo và quản lý các tour du lịch ẩm thực.",
+      badge: `${totalTours} tour`,
+    },
+  ];
+
+  const activeSectionMeta =
+    sections.find((section) => section.id === activeSection) ?? sections[0];
+
+  // ================= HANDLERS =================
+  function handlePoiSubmit(event) {
+    event.preventDefault();
+    setFeedback("");
+
+    const payload = {
+      name: {
+        vi: poiForm.name,
+        en: poiForm.name,
+      },
+      description: {
+        vi: poiForm.description || "",
+        en: poiForm.description || "",
+      },
+      shopAddress: poiForm.shopAddress,
+      category: poiForm.category || "street_food",
+      lat: Number(poiForm.lat),
+      lng: Number(poiForm.lng),
+      radius: editingPoi?.radius || 35,
+      imageUrl: editingPoi?.imageUrl || null,
+    };
+
+    if (editingPoi) {
+      poiUpdateMutation.mutate({
+        id: editingPoi.id || editingPoi.Id,
+        data: payload,
+      });
+    } else {
+      poiCreateMutation.mutate(payload);
+    }
+  }
+
+  function handleDeletePoi(poiId) {
+    Modal.confirm({
+      title: "Xóa POI?",
+      content: "Bạn có chắc chắn muốn xóa điểm này?",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: () => {
+        poiDeleteMutation.mutate(poiId);
+      },
+    });
+  }
+
+  function openPoiDetail(poiId) {
+    setSelectedPoiId(poiId);
+    setPoiDetailVisible(true);
+  }
+
+  function openCreateTourModal() {
+    setTourForm(EMPTY_TOUR);
+    setSelectedPois([]);
+    setEditingTour(null);
+    setTourModalVisible(true);
+  }
+
+  function openEditTourModal(tour) {
+    setEditingTour(tour);
+    setTourForm({
+      title: tour.title?.vi || "",
+      category: tour.category || "",
+      description: tour.description?.vi || "",
+    });
+    setSelectedPois(tour.steps?.map((s) => s.poiId) || []);
+    setEditTourModalVisible(true);
+  }
+
+  function handleTourSubmit(event) {
+    event.preventDefault();
+    setFeedback("");
+
+    const payload = {
+      title: {
+        vi: tourForm.title,
+        en: tourForm.title,
+      },
+      description: {
+        vi: tourForm.description || "",
+        en: tourForm.description || "",
+      },
+      category: tourForm.category?.trim(),
+      steps: selectedPois.map((id, index) => ({
+        poiId: id,
+        order: index + 1,
+      })),
+    };
+
+    if (editingTour) {
+      tourUpdateMutation.mutate({
+        id: editingTour.id,
+        data: payload,
+      });
+    } else {
+      tourCreateMutation.mutate(payload);
+    }
+  }
+
+  function handleDeleteTour(tourId) {
+    Modal.confirm({
+      title: "Xóa tour?",
+      content: "Bạn có chắc chắn muốn xóa tour này?",
+      okText: "Xóa",
+      okType: "danger",
+      cancelText: "Hủy",
+      onOk: () => {
+        tourDeleteMutation.mutate(tourId);
+      },
+    });
+  }
+
+  function handlePoiEdit(poi) {
+    setEditingPoi(poi);
+    setPoiForm({
+      name: poi.name?.vi || poi.name?.en || poi.shopName || "",
+      description: poi.description?.vi || poi.description?.en || "",
+      category: poi.category || "street_food",
+      shopAddress: poi.shopAddress || "",
+      lat: poi.lat ?? poi.location?.lat ?? "",
+      lng: poi.lng ?? poi.location?.lng ?? "",
+    });
+    setPoiModalVisible(true);
+  }
+
+  // ================= RENDER PANELS =================
+  function renderOverviewPanel() {
+    return (
+      <div className="admin-overview-grid">
+        <div className="admin-stat-card">
+          <strong>{pendingOwnerCount}</strong>
+          <span>Yêu cầu chủ quán đang chờ</span>
+        </div>
+        <div className="admin-stat-card">
+          <strong>{pendingIntroCount}</strong>
+          <span>Nội dung quán đang chờ duyệt</span>
+        </div>
+        <div className="admin-stat-card">
+          <strong>{totalPois}</strong>
+          <span>Tổng số POI trên bản đồ</span>
+        </div>
+        <div className="admin-stat-card">
+          <strong>{totalTours}</strong>
+          <span>Tour du lịch đã tạo</span>
+        </div>
+      </div>
+    );
+  }
+
+  function renderOwnerRequestsPanel() {
+    const requests = pendingOwnerRequestsQuery.data ?? [];
+    const isLoading = pendingOwnerRequestsQuery.isLoading;
+
+    return (
+      <div className="admin-panel">
+        <div className="admin-panel-header">
+          <div>
+            <p className="admin-section-kicker">
+              {t("admin.sections.ownerRequestsKicker")}
+            </p>
+            <h2>{t("admin.sections.ownerRequests")}</h2>
+            <p>{t("admin.sections.ownerRequestsDescription")}</p>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <Loading />
+        ) : requests.length === 0 ? (
           <Empty description={t("admin.emptyPendingOwnerRequests")} />
         ) : (
-          <Row gutter={[16, 16]}>
-            {pendingOwnerRequestsQuery.data.map((request) => (
-              <Col xs={24} md={12} lg={8} key={request.id}>
-                <Card style={{ borderRadius: 12 }}>
-                  <Space direction="vertical" style={{ width: "100%" }}>
-                    <Title level={5}>{request.shopName}</Title>
-
+          <div className="admin-cards-list">
+            {requests.map((request) => (
+              <div className="admin-card" key={request.id}>
+                <h3>{request.shopName}</h3>
+                <p>
+                  <Text type="secondary">
+                    👤 {request.username} - {request.displayName}
+                  </Text>
+                </p>
+                <p>
+                  <Text type="secondary">📍 {request.addressLine}</Text>
+                </p>
+                {(request.latitude !== null &&
+                  request.latitude !== undefined) ||
+                (request.longitude !== null &&
+                  request.longitude !== undefined) ? (
+                  <p>
                     <Text type="secondary">
-                      👤 {request.username} - {request.displayName}
+                      🧭 {formatCoordinate(request.latitude)},{" "}
+                      {formatCoordinate(request.longitude)}
                     </Text>
+                  </p>
+                ) : null}
+                {request.note && <p>📝 {request.note}</p>}
 
-                    <Text type="secondary">
-                      📍 {request.addressLine}
-                    </Text>
-
-                    {(request.latitude !== null && request.latitude !== undefined) ||
-                    (request.longitude !== null && request.longitude !== undefined) ? (
-                      <Text type="secondary">
-                        🧭 {formatCoordinate(request.latitude)}, {formatCoordinate(request.longitude)}
-                      </Text>
+                {request.status === "payment_pending" ? (
+                  <div className="admin-card-actions">
+                    {request.paymentReferenceCode ? (
+                      <p>QR: {request.paymentReferenceCode}</p>
                     ) : null}
-
-                    {request.note && <Text>📝 {request.note}</Text>}
-
-                    {request.status === "payment_pending" ? (
-                      <Space direction="vertical" style={{ width: "100%" }}>
-                        {request.paymentReferenceCode ? (
-                          <Text type="secondary">
-                            QR: {request.paymentReferenceCode}
-                          </Text>
-                        ) : null}
-
-                        {request.paymentQrImageUrl ? (
-                          <img
-                            src={request.paymentQrImageUrl}
-                            alt="Payment QR"
-                            style={{
-                              width: 180,
-                              maxWidth: "100%",
-                              borderRadius: 12,
-                              border: "1px solid #e2e8f0",
-                              padding: 8,
-                              background: "#fff",
-                            }}
-                          />
-                        ) : null}
-
-                        <Space>
-                          <Button
-                            type="primary"
-                            loading={confirmPaymentMutation.isPending}
-                            onClick={() => confirmPaymentMutation.mutate(request.id)}
-                          >
-                            Kich hoat owner
-                          </Button>
-
-                          <Button
-                            danger
-                            loading={cancelPaymentMutation.isPending}
-                            onClick={() => cancelPaymentMutation.mutate(request.id)}
-                          >
-                            Huy QR
-                          </Button>
-                        </Space>
-                      </Space>
-                    ) : (
-                      <>
-                        <TextArea
-                          placeholder={t("admin.reviewNotePlaceholder")}
-                          autoSize={{ minRows: 2 }}
-                          value={ownerReviewNotes[request.id] || ""}
-                          onChange={(e) =>
-                            setOwnerReviewNotes((prev) => ({
-                              ...prev,
-                              [request.id]: e.target.value,
-                            }))
-                          }
-                        />
-
-                        <Space>
-                          <Button
-                            type="primary"
-                            loading={ownerReviewMutation.isPending}
-                            onClick={() =>
-                              ownerReviewMutation.mutate({
-                                requestId: request.id,
-                                action: "approve",
-                                reason: ownerReviewNotes[request.id],
-                              })
-                            }
-                          >
-                            Tao QR thanh toan
-                          </Button>
-
-                          <Button
-                            danger
-                            loading={ownerReviewMutation.isPending}
-                            onClick={() =>
-                              ownerReviewMutation.mutate({
-                                requestId: request.id,
-                                action: "reject",
-                                reason: ownerReviewNotes[request.id],
-                              })
-                            }
-                          >
-                            Reject
-                          </Button>
-                        </Space>
-                      </>
-                    )}
-                  </Space>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        )}
-      </Card>
-
-      {/* SHOP INTRO */}
-      <Card
-        title={t("admin.shopIntroTitle")}
-        extra={<Tag color="purple">Review</Tag>}
-        style={{ borderRadius: 16 }}
-      >
-        {pendingIntroReviewsQuery.isLoading ? (
-          <Spin />
-        ) : pendingIntroReviewsQuery.data.length === 0 ? (
-          <Empty description={t("admin.emptyPendingShopIntros")} />
-        ) : (
-          <Row gutter={[16, 16]}>
-            {pendingIntroReviewsQuery.data.map((item) => (
-              <Col xs={24} md={12} lg={8} key={item.shopId}>
-                <Card style={{ borderRadius: 12 }}>
-                  <Space direction="vertical" style={{ width: "100%" }}>
-                    <Title level={5}>{item.shopName}</Title>
-
-                    <Text type="secondary">
-                      👤 {item.ownerDisplayName}
-                    </Text>
-
-                    <Text type="secondary">
-                      📍 {item.addressLine}
-                    </Text>
-
-                    <Text>
-                      <b>Pending:</b> {item.pendingIntroduction}
-                    </Text>
-
+                    {request.paymentQrImageUrl ? (
+                      <img
+                        src={request.paymentQrImageUrl}
+                        alt="Payment QR"
+                        className="admin-qr-image"
+                      />
+                    ) : null}
+                    <div className="admin-card-actions">
+                      <Button
+                        type="primary"
+                        loading={confirmPaymentMutation.isPending}
+                        onClick={() =>
+                          confirmPaymentMutation.mutate(request.id)
+                        }
+                      >
+                        Kích hoạt owner
+                      </Button>
+                      <Button
+                        danger
+                        loading={cancelPaymentMutation.isPending}
+                        onClick={() => cancelPaymentMutation.mutate(request.id)}
+                      >
+                        Hủy QR
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="admin-card-actions">
                     <TextArea
-                      placeholder="Review note..."
+                      placeholder={t("admin.reviewNotePlaceholder")}
                       autoSize={{ minRows: 2 }}
-                      value={introReviewNotes[item.shopId] || ""}
+                      value={ownerReviewNotes[request.id] || ""}
                       onChange={(e) =>
-                        setIntroReviewNotes((prev) => ({
+                        setOwnerReviewNotes((prev) => ({
                           ...prev,
-                          [item.shopId]: e.target.value,
+                          [request.id]: e.target.value,
                         }))
                       }
                     />
-
-                    <Space>
+                    <div className="admin-card-actions">
                       <Button
                         type="primary"
-                        loading={introReviewMutation.isPending}
+                        loading={ownerReviewMutation.isPending}
                         onClick={() =>
-                          introReviewMutation.mutate({
-                            shopId: item.shopId,
+                          ownerReviewMutation.mutate({
+                            requestId: request.id,
                             action: "approve",
-                            reason: introReviewNotes[item.shopId],
+                            reason: ownerReviewNotes[request.id],
                           })
                         }
                       >
-                        Approve
+                        Tạo QR thanh toán
                       </Button>
-
                       <Button
                         danger
-                        loading={introReviewMutation.isPending}
+                        loading={ownerReviewMutation.isPending}
                         onClick={() =>
-                          introReviewMutation.mutate({
-                            shopId: item.shopId,
+                          ownerReviewMutation.mutate({
+                            requestId: request.id,
                             action: "reject",
-                            reason: introReviewNotes[item.shopId],
+                            reason: ownerReviewNotes[request.id],
                           })
                         }
                       >
-                        Reject
+                        Từ chối
                       </Button>
-                    </Space>
-                  </Space>
-                </Card>
-              </Col>
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
-          </Row>
+          </div>
         )}
-      </Card>
+      </div>
+    );
+  }
 
-      {/* HISTORY */}
-      <Card title={t("admin.reviewHistoryTitle")} style={{ borderRadius: 16 }}>
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Title level={5}>Owner History</Title>
-            {reviewedOwnerRequestsQuery.isLoading ? (
-              <Spin />
-            ) : (
-              reviewedOwnerRequestsQuery.data.map((item) => (
-                <Card key={item.id} size="small" style={{ marginBottom: 8 }}>
-                  <Space direction="vertical">
-                    <strong>{item.shopName}</strong>
-                    <Tag color={item.status === "approved" ? "green" : "red"}>
-                      {item.status}
-                    </Tag>
-                  </Space>
-                </Card>
-              ))
-            )}
-          </Col>
+  function renderShopIntrosPanel() {
+    const intros = pendingIntroReviewsQuery.data ?? [];
+    const isLoading = pendingIntroReviewsQuery.isLoading;
 
-          <Col xs={24} md={12}>
-            <Title level={5}>Intro History</Title>
-            {reviewedIntroReviewsQuery.isLoading ? (
-              <Spin />
-            ) : (
-              reviewedIntroReviewsQuery.data.map((item) => (
-                <Card key={item.shopId} size="small" style={{ marginBottom: 8 }}>
-                  <Space direction="vertical">
-                    <strong>{item.shopName}</strong>
-                    <Tag
-                      color={
-                        item.reviewStatus === "approved" ? "green" : "red"
+    return (
+      <div className="admin-panel">
+        <div className="admin-panel-header">
+          <div>
+            <p className="admin-section-kicker">
+              {t("admin.sections.shopIntrosKicker")}
+            </p>
+            <h2>{t("admin.sections.shopIntros")}</h2>
+            <p>{t("admin.sections.shopIntrosDescription")}</p>
+          </div>
+        </div>
+
+        {isLoading ? (
+          <Loading />
+        ) : intros.length === 0 ? (
+          <Empty description={t("admin.emptyPendingShopIntros")} />
+        ) : (
+          <div className="admin-cards-list">
+            {intros.map((item) => (
+              <div className="admin-card" key={item.shopId}>
+                <h3>{item.shopName}</h3>
+                <p>
+                  <Text type="secondary">👤 {item.ownerDisplayName}</Text>
+                </p>
+                <p>
+                  <Text type="secondary">📍 {item.addressLine}</Text>
+                </p>
+                <p>
+                  <strong>Pending:</strong> {item.pendingIntroduction}
+                </p>
+                <div className="admin-card-actions">
+                  <TextArea
+                    placeholder="Review note..."
+                    autoSize={{ minRows: 2 }}
+                    value={introReviewNotes[item.shopId] || ""}
+                    onChange={(e) =>
+                      setIntroReviewNotes((prev) => ({
+                        ...prev,
+                        [item.shopId]: e.target.value,
+                      }))
+                    }
+                  />
+                  <div className="admin-card-actions">
+                    <Button
+                      type="primary"
+                      loading={introReviewMutation.isPending}
+                      onClick={() =>
+                        introReviewMutation.mutate({
+                          shopId: item.shopId,
+                          action: "approve",
+                          reason: introReviewNotes[item.shopId],
+                        })
                       }
                     >
-                      {item.reviewStatus}
-                    </Tag>
-                  </Space>
-                </Card>
-              ))
+                      Duyệt
+                    </Button>
+                    <Button
+                      danger
+                      loading={introReviewMutation.isPending}
+                      onClick={() =>
+                        introReviewMutation.mutate({
+                          shopId: item.shopId,
+                          action: "reject",
+                          reason: introReviewNotes[item.shopId],
+                        })
+                      }
+                    >
+                      Từ chối
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function renderStatisticsPanel() {
+    return (
+      <div className="admin-panel">
+        <div className="admin-panel-header">
+          <div>
+            <p className="admin-section-kicker">
+              {t("admin.sections.statisticsKicker")}
+            </p>
+            <h2>{t("admin.sections.statistics")}</h2>
+            <p>{t("admin.sections.statisticsDescription")}</p>
+          </div>
+        </div>
+
+        <div className="admin-filters">
+          <Text strong>Khoảng thời gian:</Text>
+          {["7", "30", "90"].map((p) => (
+            <Button
+              key={p}
+              type={statsPeriod === p ? "primary" : "default"}
+              onClick={() => setStatsPeriod(p)}
+            >
+              {p} ngày
+            </Button>
+          ))}
+          <Text strong>Chỉ số:</Text>
+          {["visits", "audio"].map((m) => (
+            <Button
+              key={m}
+              type={statsMetric === m ? "primary" : "default"}
+              onClick={() => setStatsMetric(m)}
+            >
+              {m}
+            </Button>
+          ))}
+        </div>
+
+        <div className="admin-stats-grid">
+          <div className="admin-stats-table">
+            <h3>Top quán</h3>
+            {topShopsQuery.isLoading ? (
+              <Loading />
+            ) : topShopsQuery.data?.length === 0 ? (
+              <Empty />
+            ) : (
+              <Table
+                rowKey="slug"
+                columns={[
+                  {
+                    title: "Quán",
+                    dataIndex: "name",
+                    render: (text) => <strong>{text}</strong>,
+                  },
+                  { title: "Slug", dataIndex: "slug" },
+                  {
+                    title: "Vị trí",
+                    render: (_, record) => {
+                      const lat = Number(record?.lat);
+                      const lng = Number(record?.lng);
+                      if (isNaN(lat) || isNaN(lng)) return "N/A";
+                      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    },
+                  },
+                  {
+                    title: "Lượt",
+                    dataIndex: "count",
+                    sorter: (a, b) => a.count - b.count,
+                  },
+                ]}
+                dataSource={topShopsQuery.data}
+                pagination={false}
+                size="small"
+              />
             )}
-          </Col>
-        </Row>
-      </Card>
-      <Card title="📊 Thống kê quán & địa điểm" style={{ borderRadius: 16 }}>
-  <Space direction="vertical" style={{ width: "100%" }} size={16}>
-    
-    {/* FILTER */}
-    <Space>
-      <Text strong>Khoảng thời gian:</Text>
-      {periods.map((p) => (
-        <Button
-          key={p}
-          type={statsPeriod === p ? "primary" : "default"}
-          onClick={() => setStatsPeriod(p)}
-        >
-          {p} ngày
-        </Button>
-      ))}
+          </div>
+          <div className="admin-stats-table">
+            <h3>Top POI</h3>
+            {topPoisQuery.isLoading ? (
+              <Loading />
+            ) : topPoisQuery.data?.length === 0 ? (
+              <Empty />
+            ) : (
+              <Table
+                rowKey={(record) => record.id || record.Id}
+                columns={[
+                  {
+                    title: "Tên địa điểm",
+                    render: (_, record) => (
+                      <strong>
+                        {record.name || record.Name || record.shopName || "N/A"}
+                      </strong>
+                    ),
+                  },
+                  {
+                    title: "ID",
+                    render: (_, record) => (
+                      <Tag>{(record.id || record.Id || "").slice(-8)}</Tag>
+                    ),
+                  },
+                  {
+                    title: "Vị trí",
+                    render: (_, record) => {
+                      const lat = record.lat ?? record.location?.lat;
+                      const lng = record.lng ?? record.location?.lng;
+                      return lat
+                        ? `${Number(lat).toFixed(3)}, ${Number(lng).toFixed(3)}`
+                        : "N/A";
+                    },
+                  },
+                  {
+                    title: "Lượt tương tác",
+                    dataIndex: "count",
+                    sorter: (a, b) => a.count - b.count,
+                    render: (count) => (
+                      <Tag color="orange" style={{ fontWeight: "bold" }}>
+                        {count} lượt
+                      </Tag>
+                    ),
+                  },
+                ]}
+                dataSource={topPoisQuery.data}
+                pagination={false}
+                size="small"
+              />
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-      <Text strong>Chỉ số:</Text>
-      {metrics.map((m) => (
-        <Button
-          key={m}
-          type={statsMetric === m ? "primary" : "default"}
-          onClick={() => setStatsMetric(m)}
-        >
-          {m}
-        </Button>
-      ))}
-    </Space>
-
-    {/* TABLES */}
-    <Row gutter={16}>
-      <Col xs={24} lg={12}>
-        <Card title="Top quán">
-       {topShopsQuery.isLoading ? (
-  <Spin />
-) : !topShopsQuery.data ? (
-  <Spin />
-) : topShopsQuery.data.length === 0 ? (
-  <Empty />
-) : (
-  <Table
-    rowKey="slug"
-    columns={shopsColumns}
-    dataSource={topShopsQuery.data}
-    pagination={false}
-  />
-)}
-        </Card>
-      </Col>
-
-      <Col xs={24} lg={12}>
-        <Card title="Top POI">
-          {topPoisQuery.isLoading ? (
-            <Spin />
-          ) : topPoisQuery.data?.length === 0 ? (
-            <Empty />
-          ) : (
-          <Table
-  rowKey={(record) => record.id || record.Id}
-  columns={topPoisColumns} // <--- Dùng bộ cột thống kê
-  dataSource={Array.isArray(topPoisQuery.data) ? topPoisQuery.data : []}
-  pagination={false}
-  size="middle"
-/>
-          )}
-        </Card>
-      </Col>
-    </Row>
-  </Space>
-</Card>
-<Card title="📍 Quản lý POI" style={{ borderRadius: 16 }}>
-  <Space direction="vertical" style={{ width: "100%" }} size={16}>
-
-    {/* SEARCH + ADD */}
-    <Space style={{ width: "100%", justifyContent: "space-between" }}>
-      <Input
-        placeholder="Tìm POI..."
-        value={poiSearch}
-        onChange={(e) => setPoiSearch(e.target.value)}
-        style={{ width: 300 }}
-      />
-
-      <Button
-        type="primary"
-        onClick={() => {
-          setEditingPoi(null);
-          setPoiModalVisible(true);
-        }}
-      >
-        + Thêm POI
-      </Button>
-    </Space>
-
-    {/* TABLE */}
-    <Table
-      rowKey="Id"
-      loading={poisQuery.isLoading}
-      dataSource={Array.isArray(poisQuery.data)
-  ? poisQuery.data.filter((p) => {
-      const name = p?.Name ?? "";
+  function renderManagePoisPanel() {
+    const pois = poisQuery.data ?? [];
+    const filteredPois = pois.filter((p) => {
+      const name = p?.displayName || p?.Name || "";
       return name.toLowerCase().includes(poiSearch.toLowerCase());
-    })
-  : []
-}
-      columns={[
-        ...poisColumns,
-        {
-          title: "Hành động",
-          render: (_, record) => (
-            <Space>
-              <Button
-                onClick={() => {
-                  setEditingPoi(record);
-                  setPoiModalVisible(true);
-                }}
-              >
-                Sửa
-              </Button>
+    });
 
-              <Button
-                danger
-                onClick={() =>
-  poiDeleteMutation.mutate(record.id || record.Id)
-}
-              >
-                Xóa
-              </Button>
-            </Space>
-          ),
-        },
-      ]}
-    />
-  </Space>
-</Card>
-{/* SECTION QUẢN LÝ FOOD TOUR */}
-      <Card title="🚶 Quản lý Food Tour (Lộ trình)" style={{ borderRadius: 16, marginTop: 20 }}>
-        <Button 
-          type="primary" 
-          style={{ marginBottom: 16 }}
-          onClick={() => {
-            setTourModalVisible(true);
-            setSelectedPois([]); // Reset khi mở mới
-          }}
-        >
-          + Tạo lộ trình mới
-        </Button>
-        
+    return (
+      <div className="admin-panel">
+        <div className="admin-panel-header">
+          <div>
+            <p className="admin-section-kicker">
+              {t("admin.sections.managePoisKicker")}
+            </p>
+            <h2>{t("admin.sections.managePois")}</h2>
+            <p>{t("admin.sections.managePoisDescription")}</p>
+          </div>
+          <Button
+            type="primary"
+            onClick={() => {
+              setEditingPoi(null);
+              setPoiForm(EMPTY_POI);
+              setPoiModalVisible(true);
+            }}
+          >
+            + Thêm POI
+          </Button>
+        </div>
+
+        <div className="admin-search-bar">
+          <Input
+            placeholder="Tìm POI..."
+            value={poiSearch}
+            onChange={(e) => setPoiSearch(e.target.value)}
+          />
+        </div>
+
+        <div className="admin-table-wrapper">
+          <Table
+            rowKey="Id"
+            loading={poisQuery.isLoading}
+            dataSource={filteredPois}
+            scroll={{ x: 1100 }}
+            columns={[
+              {
+                title: "Tên",
+                render: (_, record) => (
+                  <strong>
+                    {record.displayName ||
+                      record.Name ||
+                      record.shopName ||
+                      "N/A"}
+                  </strong>
+                ),
+                width: 180,
+                ellipsis: true,
+              },
+              {
+                title: "Danh mục",
+                dataIndex: "category",
+                render: (cat) => <Tag color="blue">{cat || "street_food"}</Tag>,
+                width: 120,
+              },
+              {
+                title: "Địa chỉ",
+                dataIndex: "shopAddress",
+                ellipsis: true,
+                width: 200,
+              },
+              {
+                title: "Vị trí",
+                render: (_, record) => {
+                  const lat = record?.lat ?? record?.location?.lat;
+                  const lng = record?.lng ?? record?.location?.lng;
+                  if (lat == null || lng == null) return "Không có tọa độ";
+                  return `${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)}`;
+                },
+                width: 150,
+              },
+              {
+                title: "Bán kính",
+                dataIndex: "radius",
+                render: (radius) => (radius ? `${radius}m` : "N/A"),
+                width: 100,
+              },
+              {
+                title: "Thực đơn",
+                dataIndex: "menuItems",
+                render: (menuItems) =>
+                  menuItems?.length ? (
+                    <Tag color="green">{menuItems.length} món</Tag>
+                  ) : (
+                    "Trống"
+                  ),
+                width: 100,
+              },
+              {
+                title: "Hành động",
+                render: (_, record) => (
+                  <Space>
+                    <Button
+                      size="small"
+                      type="primary"
+                      onClick={() => openPoiDetail(record.id || record.Id)}
+                    >
+                      Chi tiết
+                    </Button>
+                    <Button size="small" onClick={() => handlePoiEdit(record)}>
+                      Sửa
+                    </Button>
+                    <Button
+                      size="small"
+                      danger
+                      onClick={() =>
+                        poiDeleteMutation.mutate(record.id || record.Id)
+                      }
+                    >
+                      Xóa
+                    </Button>
+                  </Space>
+                ),
+                width: 180,
+                fixed: "right",
+              },
+            ]}
+            pagination={{ pageSize: 10 }}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  function renderFoodToursPanel() {
+    const tours = foodToursQuery.data ?? [];
+
+    return (
+      <div className="admin-panel">
+        <div className="admin-panel-header">
+          <div>
+            <p className="admin-section-kicker">
+              {t("admin.sections.foodToursKicker")}
+            </p>
+            <h2>{t("admin.sections.foodTours")}</h2>
+            <p>{t("admin.sections.foodToursDescription")}</p>
+          </div>
+          <Button type="primary" onClick={openCreateTourModal}>
+            + Tạo tour mới
+          </Button>
+        </div>
+
         <Table
-  rowKey="id"
-  dataSource={foodToursQuery.data}
-  loading={foodToursQuery.isLoading}
-  columns={tourColumns}
-  pagination={{ pageSize: 5 }}
-/>
-      </Card>
-<Modal
+          rowKey="id"
+          dataSource={tours}
+          loading={foodToursQuery.isLoading}
+          columns={[
+            {
+              title: "Tên lộ trình",
+              render: (_, record) =>
+                record.title?.vi || record.title?.en || "Chưa có tên",
+            },
+            {
+              title: "Danh mục",
+              dataIndex: "category",
+              render: (cat) => <Tag color="orange">{cat}</Tag>,
+            },
+            {
+              title: "Số điểm dừng",
+              render: (_, record) => (
+                <Tag color="blue">{record.steps?.length || 0} địa điểm</Tag>
+              ),
+            },
+            {
+              title: "Mô tả",
+              render: (_, record) =>
+                record.description?.vi ||
+                record.description?.en ||
+                "Không có mô tả",
+            },
+            {
+              title: "Thao tác",
+              render: (_, record) => (
+                <Space>
+                  <Button
+                    size="small"
+                    onClick={() => openEditTourModal(record)}
+                  >
+                    Sửa
+                  </Button>
+                  <Button
+                    size="small"
+                    danger
+                    onClick={() => handleDeleteTour(record.id)}
+                  >
+                    Xóa
+                  </Button>
+                </Space>
+              ),
+            },
+          ]}
+          pagination={{ pageSize: 5 }}
+        />
+      </div>
+    );
+  }
+
+  function renderActivePanel() {
+    if (activeSection === "overview") return renderOverviewPanel();
+    if (activeSection === "ownerRequests") return renderOwnerRequestsPanel();
+    if (activeSection === "shopIntros") return renderShopIntrosPanel();
+    if (activeSection === "statistics") return renderStatisticsPanel();
+    if (activeSection === "managePois") return renderManagePoisPanel();
+    if (activeSection === "foodTours") return renderFoodToursPanel();
+    return renderOverviewPanel();
+  }
+
+  // ================= MAIN RENDER =================
+  return (
+    <section className="admin-page">
+      <header className="admin-hero">
+        <div className="admin-hero-copy">
+          <p className="admin-kicker">
+            {t("admin.badge") || "Quản trị hệ thống"}
+          </p>
+          <h1>{t("admin.title")}</h1>
+          <p>{t("admin.subtitle")}</p>
+          <Tag color="blue">{currentUser?.displayName}</Tag>
+        </div>
+      </header>
+
+      {feedback ? <div className="admin-feedback">{feedback}</div> : null}
+
+      <div className="admin-shell">
+        <aside className="admin-nav">
+          <article className="admin-card admin-nav-card">
+            <div className="admin-card-head">
+              <div>
+                <p className="admin-section-kicker">
+                  {t("admin.badge") || "Quản trị"}
+                </p>
+                <h2>{activeSectionMeta.label}</h2>
+                <p>{activeSectionMeta.description}</p>
+              </div>
+            </div>
+
+            <div className="admin-nav-list">
+              {sections.map((section) => (
+                <button
+                  key={section.id}
+                  type="button"
+                  className={`admin-nav-button ${
+                    activeSection === section.id ? "active" : ""
+                  }`}
+                  onClick={() => setActiveSection(section.id)}
+                >
+                  <div className="admin-nav-button-copy">
+                    <span>{section.kicker}</span>
+                    <strong>{section.label}</strong>
+                    <small>{section.description}</small>
+                  </div>
+                  <span className="admin-nav-badge">{section.badge}</span>
+                </button>
+              ))}
+            </div>
+          </article>
+        </aside>
+
+        <div className="admin-stage">{renderActivePanel()}</div>
+      </div>
+
+      {/* POI Modal */}
+      <Modal
+        title={editingPoi ? "Cập nhật POI" : "Thêm POI"}
+        open={poiModalVisible}
+        onCancel={() => {
+          setPoiModalVisible(false);
+          setEditingPoi(null);
+          setPoiForm(EMPTY_POI);
+        }}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          layout="vertical"
+          onFinish={handlePoiSubmit}
+          initialValues={
+            editingPoi
+              ? {
+                  name: poiForm.name,
+                  shopAddress: poiForm.shopAddress,
+                  description: poiForm.description,
+                  Latitude: poiForm.lat,
+                  Longitude: poiForm.lng,
+                }
+              : {}
+          }
+        >
+          <Form.Item
+            name="name"
+            label="Tên"
+            rules={[{ required: true, message: "Vui lòng nhập tên!" }]}
+          >
+            <Input
+              placeholder="Nhập tên quán/địa điểm"
+              value={poiForm.name}
+              onChange={(e) => setPoiForm({ ...poiForm, name: e.target.value })}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="shopAddress"
+            label="Địa chỉ"
+            rules={[{ required: true, message: "Vui lòng nhập địa chỉ!" }]}
+          >
+            <Input
+              placeholder="Nhập địa chỉ đầy đủ"
+              value={poiForm.shopAddress}
+              onChange={(e) =>
+                setPoiForm({ ...poiForm, shopAddress: e.target.value })
+              }
+            />
+          </Form.Item>
+
+          <Form.Item name="description" label="Mô tả">
+            <Input.TextArea
+              rows={3}
+              placeholder="Nhập mô tả về địa điểm này..."
+              value={poiForm.description}
+              onChange={(e) =>
+                setPoiForm({ ...poiForm, description: e.target.value })
+              }
+            />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="Latitude"
+                label="Vĩ độ (Latitude)"
+                rules={[{ required: true, message: "Thiếu vĩ độ!" }]}
+              >
+                <Input
+                  placeholder="VD: 10.758995"
+                  value={poiForm.lat}
+                  onChange={(e) =>
+                    setPoiForm({ ...poiForm, lat: e.target.value })
+                  }
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="Longitude"
+                label="Kinh độ (Longitude)"
+                rules={[{ required: true, message: "Thiếu kinh độ!" }]}
+              >
+                <Input
+                  placeholder="VD: 106.703621"
+                  value={poiForm.lng}
+                  onChange={(e) =>
+                    setPoiForm({ ...poiForm, lng: e.target.value })
+                  }
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            loading={poiCreateMutation.isPending || poiUpdateMutation.isPending}
+          >
+            {editingPoi ? "Lưu cập nhật" : "Thêm POI"}
+          </Button>
+        </Form>
+      </Modal>
+
+      {/* Create Tour Modal */}
+      <Modal
         title="Tạo lộ trình du lịch mới"
         open={tourModalVisible}
-        onCancel={() => setTourModalVisible(false)}
+        onCancel={() => {
+          setTourModalVisible(false);
+          setSelectedPois([]);
+          setTourForm(EMPTY_TOUR);
+        }}
         width={800}
         footer={null}
         destroyOnClose
       >
-        <Form 
-          layout="vertical" 
-    onFinish={(values) => {
-  const payload = {
-    title: { 
-      vi: values.title, 
-      en: values.title 
-    },
-    description: { 
-      vi: values.desc || "", 
-      en: values.desc || "" 
-    },
-    // Đảm bảo không nhập sai chính tả, hoặc dùng Select thay vì Input
-    category: values.category?.trim(), 
-    steps: selectedPois.map((id, index) => ({
-      poiId: id,
-      order: index + 1
-    }))
-  };
-  
-  tourCreateMutation.mutate(payload);
-}}
-        >
-          <Form.Item name="title" label="Tên Tour" rules={[{ required: true, message: 'Vui lòng nhập tên tour' }]}>
-            <Input placeholder="VD: Japanese Food Tour" />
+        <Form layout="vertical" onFinish={handleTourSubmit}>
+          <Form.Item
+            name="title"
+            label="Tên Tour"
+            rules={[{ required: true, message: "Vui lòng nhập tên tour" }]}
+          >
+            <Input
+              placeholder="VD: Japanese Food Tour"
+              value={tourForm.title}
+              onChange={(e) =>
+                setTourForm({ ...tourForm, title: e.target.value })
+              }
+            />
           </Form.Item>
 
-          <Form.Item name="category" label="Chủ đề (Category)" rules={[{ required: true }]}>
-            <Input placeholder="VD: japanese, street_food..." />
+          <Form.Item
+            name="category"
+            label="Chủ đề (Category)"
+            rules={[{ required: true }]}
+          >
+            <Input
+              placeholder="VD: japanese, street_food..."
+              value={tourForm.category}
+              onChange={(e) =>
+                setTourForm({ ...tourForm, category: e.target.value })
+              }
+            />
           </Form.Item>
 
-          <Form.Item name="desc" label="Mô tả ngắn">
-            <TextArea placeholder="Mô tả về lộ trình này..." />
+          <Form.Item name="description" label="Mô tả ngắn">
+            <Input.TextArea
+              placeholder="Mô tả về lộ trình này..."
+              value={tourForm.description}
+              onChange={(e) =>
+                setTourForm({ ...tourForm, description: e.target.value })
+              }
+            />
           </Form.Item>
 
           <div style={{ marginBottom: 16 }}>
-            <Text strong>Chọn địa điểm (Nhấn theo thứ tự bạn muốn khách đi):</Text>
-            <div style={{ 
-              marginTop: 8, 
-              maxHeight: 350, 
-              overflowY: 'auto', 
-              border: '1px solid #f0f0f0', 
-              padding: 12,
-              borderRadius: 8 
-            }}>
-              {poisQuery.isLoading ? <Spin /> : poisQuery.data?.map(poi => {
-                const isSelected = selectedPois.includes(poi.id);
-                const orderIndex = selectedPois.indexOf(poi.id) + 1;
-                
-                return (
-                  <Card 
-                    key={poi.id} 
-                    size="small" 
-                    style={{ 
-                      marginBottom: 8, 
-                      borderColor: isSelected ? '#1890ff' : '#f0f0f0',
-                      backgroundColor: isSelected ? '#e6f7ff' : '#fff'
-                    }}
-                  >
-                    <Row justify="space-between" align="middle">
-                      <Col span={18}>
-                        <Text strong>{poi.displayName}</Text>
+            <Text strong>
+              Chọn địa điểm (Nhấn theo thứ tự bạn muốn khách đi):
+            </Text>
+            <div className="admin-poi-select-list">
+              {poisQuery.isLoading ? (
+                <Loading />
+              ) : (
+                poisQuery.data?.map((poi) => {
+                  const isSelected = selectedPois.includes(poi.id);
+                  const orderIndex = selectedPois.indexOf(poi.id) + 1;
+
+                  return (
+                    <div
+                      key={poi.id}
+                      className={`admin-poi-card ${isSelected ? "selected" : ""}`}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedPois(
+                            selectedPois.filter((id) => id !== poi.id),
+                          );
+                        } else {
+                          setSelectedPois([...selectedPois, poi.id]);
+                        }
+                      }}
+                    >
+                      <div className="admin-poi-card-info">
+                        <strong>{poi.displayName}</strong>
                         <br />
-                        <small type="secondary">{poi.shopAddress}</small>
-                      </Col>
-                      <Col span={6} style={{ textAlign: 'right' }}>
-                        <Button 
-                          size="small"
-                          type={isSelected ? "primary" : "default"}
-                          shape="round"
-                          onClick={() => {
-                            if (isSelected) {
-                              setSelectedPois(selectedPois.filter(id => id !== poi.id));
-                            } else {
-                              setSelectedPois([...selectedPois, poi.id]);
-                            }
-                          }}
-                        >
-                          {isSelected ? `Điểm thứ ${orderIndex}` : "Thêm vào"}
-                        </Button>
-                      </Col>
-                    </Row>
-                  </Card>
-                );
-              })}
+                        <small>{poi.shopAddress}</small>
+                      </div>
+                      <Button
+                        size="small"
+                        type={isSelected ? "primary" : "default"}
+                        shape="round"
+                      >
+                        {isSelected ? `Điểm thứ ${orderIndex}` : "Thêm vào"}
+                      </Button>
+                    </div>
+                  );
+                })
+              )}
             </div>
-            {selectedPois.length === 0 && <Text type="danger"><small>* Vui lòng chọn ít nhất 1 địa điểm</small></Text>}
+            {selectedPois.length === 0 && (
+              <Text type="danger">
+                <small>* Vui lòng chọn ít nhất 1 địa điểm</small>
+              </Text>
+            )}
           </div>
 
-          <Button 
-            type="primary" 
-            htmlType="submit" 
-            block 
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
             size="large"
             disabled={selectedPois.length === 0}
             loading={tourCreateMutation.isPending}
@@ -1007,236 +1341,214 @@ const poiUpdateMutation = useMutation({
           </Button>
         </Form>
       </Modal>
-<Modal
-  title={editingPoi ? "Cập nhật POI" : "Thêm POI"}
-  open={poiModalVisible}
-  onCancel={() => setPoiModalVisible(false)}
-  footer={null}
-  destroyOnClose // Reset form khi đóng modal
->
-  <Form
-    layout="vertical"
-    // 🔥 Map lại dữ liệu để khi nhấn "Sửa", form hiển thị đúng giá trị
-    initialValues={
-      editingPoi
-        ? {
-            ...editingPoi,
-            Name: editingPoi.name?.vi || editingPoi.name?.en || editingPoi.shopName || "",
-            description: editingPoi.description?.vi || editingPoi.description?.en || "",
-            shopAddress: editingPoi.shopAddress || "",
-            Latitude: editingPoi.lat ?? editingPoi.location?.lat ?? "",
-            Longitude: editingPoi.lng ?? editingPoi.location?.lng ?? "",
-          }
-        : {}
-    }
-    onFinish={(values) => {
-      // 🔥 Cấu trúc lại payload theo đúng object JSON của backend
-      const payload = {
-        name: {
-          vi: values.Name,
-          en: values.Name,
-        },
-        description: {
-          vi: values.description || "",
-          en: values.description || "",
-        },
-        shopAddress: values.shopAddress,
-        category: editingPoi?.category || "street_food", // Giữ nguyên category cũ nếu đang sửa
-        lat: Number(values.Latitude), 
-        lng: Number(values.Longitude),
-        radius: editingPoi?.radius || 35, // Giữ nguyên radius cũ hoặc default 35
-        imageUrl: editingPoi?.imageUrl || null,
-      };
 
-      if (editingPoi) {
-        poiUpdateMutation.mutate({
-          id: editingPoi.id || editingPoi.Id,
-          data: payload,
-        });
-      } else {
-        poiCreateMutation.mutate(payload);
-      }
-      
-      // Đóng modal sau khi submit (tuỳ chọn)
-      setPoiModalVisible(false); 
-    }}
-  >
-    <Form.Item 
-      name="Name" 
-      label="Tên" 
-      rules={[{ required: true, message: 'Vui lòng nhập tên!' }]}
-    >
-      <Input placeholder="Nhập tên quán/địa điểm" />
-    </Form.Item>
-
-    <Form.Item 
-      name="shopAddress" 
-      label="Địa chỉ" 
-      rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
-    >
-      <Input placeholder="Nhập địa chỉ đầy đủ" />
-    </Form.Item>
-
-    <Form.Item 
-      name="description" 
-      label="Mô tả"
-    >
-      <Input.TextArea rows={3} placeholder="Nhập mô tả về địa điểm này..." />
-    </Form.Item>
-
-    <Row gutter={16}>
-      <Col span={12}>
-        <Form.Item 
-          name="Latitude" 
-          label="Vĩ độ (Latitude)" 
-          rules={[{ required: true, message: 'Thiếu vĩ độ!' }]}
+      {/* Edit Tour Modal */}
+      <Modal
+        title="Cập nhật Food Tour"
+        open={editTourModalVisible}
+        onCancel={() => {
+          setEditTourModalVisible(false);
+          setEditingTour(null);
+          setSelectedPois([]);
+        }}
+        footer={null}
+        width={800}
+        destroyOnClose
+      >
+        <Form
+          layout="vertical"
+          onFinish={handleTourSubmit}
+          initialValues={{
+            title: tourForm.title,
+            category: tourForm.category,
+            description: tourForm.description,
+          }}
         >
-          <Input placeholder="VD: 10.758995" />
-        </Form.Item>
-      </Col>
-      <Col span={12}>
-        <Form.Item 
-          name="Longitude" 
-          label="Kinh độ (Longitude)" 
-          rules={[{ required: true, message: 'Thiếu kinh độ!' }]}
-        >
-          <Input placeholder="VD: 106.703621" />
-        </Form.Item>
-      </Col>
-    </Row>
+          <Form.Item name="title" label="Tên Tour" rules={[{ required: true }]}>
+            <Input
+              value={tourForm.title}
+              onChange={(e) =>
+                setTourForm({ ...tourForm, title: e.target.value })
+              }
+            />
+          </Form.Item>
 
-    <Button 
-      type="primary" 
-      htmlType="submit" 
-      block 
-      loading={poiCreateMutation.isPending || poiUpdateMutation.isPending}
-    >
-      {editingPoi ? "Lưu cập nhật" : "Thêm POI"}
-    </Button>
-  </Form>
-</Modal>
-<Modal
-  title="Cập nhật Food Tour"
-  open={editTourModalVisible}
-  onCancel={() => {
-    setEditTourModalVisible(false);
-    setEditingTour(null);
-    setSelectedPois([]);
-  }}
-  footer={null}
-  width={800}
-  destroyOnClose
->
-  <Form
-    layout="vertical"
-    initialValues={{
-      title: editingTour?.title?.vi,
-      category: editingTour?.category,
-      desc: editingTour?.description?.vi,
-    }}
-    onFinish={(values) => {
-      const payload = {
-        title: {
-          vi: values.title,
-          en: values.title,
-        },
-        description: {
-          vi: values.desc || "",
-          en: values.desc || "",
-        },
-        category: values.category?.trim(),
-        steps: selectedPois.map((id, index) => ({
-          poiId: id,
-          order: index + 1,
-        })),
-      };
+          <Form.Item
+            name="category"
+            label="Chủ đề"
+            rules={[{ required: true }]}
+          >
+            <Input
+              value={tourForm.category}
+              onChange={(e) =>
+                setTourForm({ ...tourForm, category: e.target.value })
+              }
+            />
+          </Form.Item>
 
-      foodTourUpdateMutation.mutate({
-        id: editingTour.id,
-        data: payload,
-      });
-    }}
-  >
-    <Form.Item name="title" label="Tên Tour" rules={[{ required: true }]}>
-      <Input />
-    </Form.Item>
+          <Form.Item name="description" label="Mô tả">
+            <Input.TextArea
+              value={tourForm.description}
+              onChange={(e) =>
+                setTourForm({ ...tourForm, description: e.target.value })
+              }
+            />
+          </Form.Item>
 
-    <Form.Item name="category" label="Chủ đề" rules={[{ required: true }]}>
-      <Input />
-    </Form.Item>
+          <div style={{ marginBottom: 16 }}>
+            <Text strong>Chọn địa điểm (theo thứ tự):</Text>
+            <div className="admin-poi-select-list">
+              {poisQuery.isLoading ? (
+                <Loading />
+              ) : (
+                poisQuery.data?.map((poi) => {
+                  const isSelected = selectedPois.includes(poi.id);
+                  const orderIndex = selectedPois.indexOf(poi.id) + 1;
 
-    <Form.Item name="desc" label="Mô tả">
-      <Input.TextArea />
-    </Form.Item>
+                  return (
+                    <div
+                      key={poi.id}
+                      className={`admin-poi-card ${isSelected ? "selected" : ""}`}
+                      onClick={() => {
+                        if (isSelected) {
+                          setSelectedPois(
+                            selectedPois.filter((id) => id !== poi.id),
+                          );
+                        } else {
+                          setSelectedPois([...selectedPois, poi.id]);
+                        }
+                      }}
+                    >
+                      <div className="admin-poi-card-info">
+                        <strong>{poi.displayName}</strong>
+                        <br />
+                        <small>{poi.shopAddress}</small>
+                      </div>
+                      <Button
+                        size="small"
+                        type={isSelected ? "primary" : "default"}
+                        shape="round"
+                      >
+                        {isSelected ? `#${orderIndex}` : "Thêm"}
+                      </Button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
 
-    {/* ================= POI SELECT (GIỐNG CREATE MODAL) ================= */}
-    <div style={{ marginBottom: 16 }}>
-      <Text strong>Chọn địa điểm (theo thứ tự):</Text>
+          <Button
+            type="primary"
+            htmlType="submit"
+            block
+            loading={tourUpdateMutation.isPending}
+            disabled={selectedPois.length === 0}
+          >
+            Cập nhật tour
+          </Button>
+        </Form>
+      </Modal>
 
-      <div style={{
-        marginTop: 8,
-        maxHeight: 350,
-        overflowY: "auto",
-        border: "1px solid #f0f0f0",
-        padding: 12,
-        borderRadius: 8
-      }}>
-        {poisQuery.isLoading ? <Spin /> : poisQuery.data?.map(poi => {
-          const isSelected = selectedPois.includes(poi.id);
-          const orderIndex = selectedPois.indexOf(poi.id) + 1;
-
-          return (
-            <Card
-              key={poi.id}
-              size="small"
-              style={{
-                marginBottom: 8,
-                borderColor: isSelected ? "#1890ff" : "#f0f0f0",
-                backgroundColor: isSelected ? "#e6f7ff" : "#fff"
-              }}
+      {/* POI Detail Modal with QR Code */}
+      <Modal
+        title="Chi tiết POI"
+        open={poiDetailVisible}
+        onCancel={() => {
+          setPoiDetailVisible(false);
+          setSelectedPoiId(null);
+        }}
+        width={800}
+        footer={[
+          <Button
+            key="close"
+            onClick={() => {
+              setPoiDetailVisible(false);
+              setSelectedPoiId(null);
+            }}
+          >
+            Đóng
+          </Button>,
+        ]}
+        destroyOnClose
+      >
+        {poiDetailQuery.isLoading ? (
+          <Loading />
+        ) : poiDetailQuery.data ? (
+          <div className="admin-poi-detail">
+            <Descriptions
+              title={
+                <div className="admin-poi-detail-header">
+                  <h3>
+                    {poiDetailQuery.data.name?.vi ||
+                      poiDetailQuery.data.shopName ||
+                      "N/A"}
+                  </h3>
+                  <Tag color="blue">
+                    {poiDetailQuery.data.category || "street_food"}
+                  </Tag>
+                </div>
+              }
+              bordered
+              column={2}
             >
-              <Row justify="space-between" align="middle">
-                <Col span={18}>
-                  <Text strong>{poi.displayName}</Text>
-                  <br />
-                  <small>{poi.shopAddress}</small>
-                </Col>
+              <Descriptions.Item label="ID">
+                <code>{poiDetailQuery.data.id?.slice(-8) || "N/A"}</code>
+              </Descriptions.Item>
+              <Descriptions.Item label="Địa chỉ">
+                {poiDetailQuery.data.shopAddress || "Chưa cập nhật"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Vĩ độ" span={1}>
+                {poiDetailQuery.data.lat ??
+                  poiDetailQuery.data.location?.lat ??
+                  "N/A"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Kinh độ" span={1}>
+                {poiDetailQuery.data.lng ??
+                  poiDetailQuery.data.location?.lng ??
+                  "N/A"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Bán kính" span={1}>
+                {poiDetailQuery.data.radius
+                  ? `${poiDetailQuery.data.radius}m`
+                  : "N/A"}
+              </Descriptions.Item>
+              <Descriptions.Item label="Số món" span={1}>
+                {poiDetailQuery.data.menuItems?.length || 0} món
+              </Descriptions.Item>
+              <Descriptions.Item label="Mô tả" span={2}>
+                {poiDetailQuery.data.description?.vi ||
+                  poiDetailQuery.data.description?.en ||
+                  "Chưa có mô tả"}
+              </Descriptions.Item>
+            </Descriptions>
 
-                <Col span={6} style={{ textAlign: "right" }}>
-                  <Button
-                    size="small"
-                    type={isSelected ? "primary" : "default"}
-                    shape="round"
-                    onClick={() => {
-                      if (isSelected) {
-                        setSelectedPois(selectedPois.filter(id => id !== poi.id));
-                      } else {
-                        setSelectedPois([...selectedPois, poi.id]);
-                      }
-                    }}
-                  >
-                    {isSelected ? `#${orderIndex}` : "Thêm"}
-                  </Button>
-                </Col>
-              </Row>
-            </Card>
-          );
-        })}
-      </div>
-    </div>
-
-    <Button
-      type="primary"
-      htmlType="submit"
-      block
-      loading={foodTourUpdateMutation.isPending}
-      disabled={selectedPois.length === 0}
-    >
-      Cập nhật tour
-    </Button>
-  </Form>
-</Modal>
-    </Space>
+            {/* QR Code Section */}
+            <div className="admin-qr-section">
+              <h4>📱 QR Code - Quét để xem chi tiết quán</h4>
+              <p className="admin-qr-description">
+                Quét mã QR này để xem thông tin chi tiết về quán trên ứng dụng
+              </p>
+              <div className="admin-qr-container">
+                <QRCode
+                  value={generatePoiDetailUrl(poiDetailQuery.data.id)}
+                  size={256}
+                  level="H"
+                  includeMargin={true}
+                  renderAs="svg"
+                />
+                <div className="admin-qr-url">
+                  <Text type="secondary">URL:</Text>
+                  <code>{generatePoiDetailUrl(poiDetailQuery.data.id)}</code>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Empty description="Không tìm thấy thông tin POI" />
+        )}
+      </Modal>
+    </section>
   );
 }
 

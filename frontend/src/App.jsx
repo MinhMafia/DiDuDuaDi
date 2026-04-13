@@ -6,6 +6,7 @@ import CollaborationPage from "./pages/CollaborationPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import OwnerDashboardPage from "./pages/OwnerDashboardPage";
+import PoiDetailPage from "./pages/PoiDetailPage";
 import RegisterPage from "./pages/RegisterPage";
 import SettingsPage from "./pages/SettingsPage";
 import SystemBenchmark from "./pages/SystemBenchmark";
@@ -13,9 +14,12 @@ import SystemBenchmark from "./pages/SystemBenchmark";
 export default function App() {
   return (
     <Routes>
-      <Route path="/test" element ={<SystemBenchmark></SystemBenchmark>} ></Route>
+      <Route path="/test" element={<SystemBenchmark></SystemBenchmark>}></Route>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+
+      {/* POI Detail - Public route, accessible without auth */}
+      <Route path="/poi/:id" element={<PoiDetailPage />} />
 
       <Route
         element={<ProtectedRoute allowedRoles={["user", "owner", "admin"]} />}

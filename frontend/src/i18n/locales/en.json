@@ -288,6 +288,7 @@
   "admin": {
     "title": "Admin dashboard",
     "subtitle": "Review owner requests, moderate shop content, and track recent moderation history.",
+    "badge": "System administration",
     "ownerRequestsTitle": "Owner upgrade requests",
     "ownerRequestsSubtitle": "Review user submissions and approve or reject requests to become a shop owner.",
     "shopIntroTitle": "Pending shop introductions",
@@ -325,6 +326,26 @@
     "emptyPendingOwnerRequests": "There are no pending owner requests.",
     "emptyPendingShopIntros": "There are no pending shop intros.",
     "emptyOwnerHistory": "No owner request history yet.",
-    "emptyShopIntroHistory": "No shop intro review history yet."
+    "emptyShopIntroHistory": "No shop intro review history yet.",
+    "sections": {
+      "overview": "Overview",
+      "overviewKicker": "System overview",
+      "overviewDescription": "Quick view of pending requests and basic statistics.",
+      "ownerRequests": "Owner approvals",
+      "ownerRequestsKicker": "Upgrade requests",
+      "ownerRequestsDescription": "Approve or reject requests to become a shop owner.",
+      "shopIntros": "Content review",
+      "shopIntrosKicker": "Introduction content",
+      "shopIntrosDescription": "Moderate shop introduction content before displaying to tourists.",
+      "statistics": "Statistics",
+      "statisticsKicker": "Top shops & POIs",
+      "statisticsDescription": "View top shops and most interacted locations.",
+      "managePois": "Manage POIs",
+      "managePoisKicker": "Map locations",
+      "managePoisDescription": "Add, edit, or delete POI locations on the map.",
+      "foodTours": "Tour management",
+      "foodToursKicker": "Travel itineraries",
+      "foodToursDescription": "Create and manage culinary tour routes."
+    }
   }
 }
