@@ -1,25 +1,24 @@
 services:
-  postgres:
-    image: postgis/postgis:16-3.4
+  mysql:
+    image: mysql:8.0
     environment:
-      POSTGRES_DB: didududadi
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      MYSQL_DATABASE: didududi
+      MYSQL_ROOT_PASSWORD: my-secret-pw
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mysqldata:/var/lib/mysql
 
   backend:
     build: ./backend/DiDuDuaDi.API
     ports:
       - "5000:8080"
     environment:
-      ConnectionStrings__Default: "Host=postgres;Database=didududadi;Username=postgres;Password=postgres"
+      ConnectionStrings__DefaultConnection: "Server=mysql;Port=3306;Database=didududi;User=root;Password=my-secret-pw;SslMode=None;"
       OpenAI__ApiKey: "${OPENAI_API_KEY}"
       OpenAI__Model: "gpt-4o-mini"
     depends_on:
-      - postgres
+      - mysql
 
   frontend:
     build: ./frontend
@@ -31,4 +30,4 @@ services:
       - backend
 
 volumes:
-  pgdata:
+  mysqldata:

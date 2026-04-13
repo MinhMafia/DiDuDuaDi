@@ -6,17 +6,13 @@ import CollaborationPage from "./pages/CollaborationPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import OwnerDashboardPage from "./pages/OwnerDashboardPage";
+import SystemBenchMark from "./pages/SystemBenchmark";
 import RegisterPage from "./pages/RegisterPage";
-<<<<<<< HEAD
-import SettingsPage from "./pages/SettingsPage";
-import SystemBenchmark from "./pages/SystemBenchmark";
-=======
->>>>>>> 950ceeaa31932b15611344a77015dd18135325a2
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/test" element ={<SystemBenchmark></SystemBenchmark>} ></Route>
+      <Route path="/test" element={<SystemBenchMark />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 

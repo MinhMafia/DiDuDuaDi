@@ -50,7 +50,7 @@ export default function ChatButton() {
         displayDescription: getLocalizedValue(poi.description, i18n.language),
         displayName: getLocalizedValue(poi.name, i18n.language),
       })),
-    [i18n.language, poisQuery.data]
+    [i18n.language, poisQuery.data],
   );
 
   const handleSubmit = async (e) => {
@@ -103,7 +103,6 @@ export default function ChatButton() {
 
   return (
     <>
-      {/* FLOAT BUTTON */}
       <Button
         type="primary"
         shape="circle"
@@ -121,7 +120,6 @@ export default function ChatButton() {
         }}
       />
 
-      {/* CHAT DRAWER */}
       <Drawer
         title="🤖 AI Assistant"
         placement="right"
@@ -135,7 +133,6 @@ export default function ChatButton() {
           height: "100%",
         }}
       >
-        {/* MESSAGES */}
         <div
           style={{
             flex: 1,
@@ -150,19 +147,15 @@ export default function ChatButton() {
                 key={msg.id}
                 style={{
                   display: "flex",
-                  justifyContent:
-                    msg.role === "user" ? "flex-end" : "flex-start",
+                  justifyContent: msg.role === "user" ? "flex-end" : "flex-start",
                 }}
               >
                 <Space align="start">
-                  {msg.role === "assistant" && (
-                    <Avatar icon={<RobotOutlined />} />
-                  )}
+                  {msg.role === "assistant" ? <Avatar icon={<RobotOutlined />} /> : null}
 
                   <div
                     style={{
-                      background:
-                        msg.role === "user" ? "#1677ff" : "#fff",
+                      background: msg.role === "user" ? "#1677ff" : "#fff",
                       color: msg.role === "user" ? "#fff" : "#000",
                       padding: "10px 14px",
                       borderRadius: 16,
@@ -174,22 +167,19 @@ export default function ChatButton() {
                     <Text style={{ color: "inherit" }}>{msg.text}</Text>
                   </div>
 
-                  {msg.role === "user" && (
-                    <Avatar icon={<UserOutlined />} />
-                  )}
+                  {msg.role === "user" ? <Avatar icon={<UserOutlined />} /> : null}
                 </Space>
               </div>
             ))}
 
-            {loading && (
+            {loading ? (
               <div style={{ textAlign: "center" }}>
                 <Spin />
               </div>
-            )}
+            ) : null}
           </Space>
         </div>
 
-        {/* INPUT */}
         <form
           onSubmit={handleSubmit}
           style={{
@@ -215,55 +205,4 @@ export default function ChatButton() {
       </Drawer>
     </>
   );
-<<<<<<< HEAD
 }
-=======
-}
-
-function buildAssistantReply(message, pois, language) {
-  const normalized = message.toLowerCase();
-
-  const matchedPoi = pois.find(
-    (poi) =>
-      poi.displayName.toLowerCase().includes(normalized) ||
-      normalized.includes(poi.displayName.toLowerCase()),
-  );
-
-  if (matchedPoi) {
-    return `${matchedPoi.displayName}: ${matchedPoi.displayDescription}`;
-  }
-
-  if (
-    normalized.includes("an gi") ||
-    normalized.includes("mon nao") ||
-    normalized.includes("goi y") ||
-    normalized.includes("what should i eat") ||
-    normalized.includes("what to eat") ||
-    normalized.includes("recommend")
-  ) {
-    const shortlist = pois
-      .slice(0, 3)
-      .map((poi) => `- ${poi.displayName}`)
-      .join("\n");
-
-    return language === "en"
-      ? `Here are a few demo spots on Vinh Khanh food street:\n${shortlist}\nYou can tap a marker on the map to hear the description.`
-      : `Đây là vài quán demo ở phố ẩm thực Vĩnh Khánh:\n${shortlist}\nBạn có thể chạm vào marker trên bản đồ để nghe mô tả.`;
-  }
-
-  if (
-    normalized.includes("gan toi") ||
-    normalized.includes("gan day") ||
-    normalized.includes("near me") ||
-    normalized.includes("nearby")
-  ) {
-    return language === "en"
-      ? "Open the map and allow GPS. The app will highlight nearby restaurants and can auto-narrate when you get close."
-      : "Hãy mở bản đồ và cấp quyền GPS. Ứng dụng sẽ hiện các quán gần bạn và có thể tự động đọc mô tả khi bạn đến gần.";
-  }
-
-  return language === "en"
-    ? "I can suggest demo restaurants on Vinh Khanh food street, explain a selected place, or guide you to use the live map and audio narration."
-    : "Mình có thể gợi ý các quán demo ở phố ẩm thực Vĩnh Khánh, giải thích về từng quán, hoặc hướng dẫn bạn dùng bản đồ và nghe mô tả bằng giọng nói.";
-}
->>>>>>> 950ceeaa31932b15611344a77015dd18135325a2
