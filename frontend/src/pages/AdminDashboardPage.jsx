@@ -2,6 +2,24 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
+import { Cell } from "recharts";
+import { CrownOutlined } from "@ant-design/icons";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+import {
+  UserOutlined,
+  FileTextOutlined,
+  EnvironmentOutlined,
+  RocketOutlined,
+} from "@ant-design/icons";
+import { Card } from "antd";
 import {
   Button,
   Input,
@@ -63,7 +81,12 @@ const EMPTY_TOUR = {
   category: "",
   description: "",
 };
-
+const COLORS = [
+  "#468bfa", // xanh chính
+  "#6366f1", // tím xanh
+  "#22c55e", // xanh lá
+  "#f59e0b", // cam
+];
 // Tạo URL chi tiết POI cho QR code
 const generatePoiDetailUrl = (poiId) => {
   const baseUrl = window.location.origin;
@@ -297,7 +320,24 @@ export default function AdminDashboardPage() {
   const pendingIntroCount = pendingIntroReviewsQuery.data?.length ?? 0;
   const totalPois = poisQuery.data?.length ?? 0;
   const totalTours = foodToursQuery.data?.length ?? 0;
-
+const overviewChartData = [
+  {
+    name: "Owner",
+    value: pendingOwnerCount,
+  },
+  {
+    name: "Intro",
+    value: pendingIntroCount,
+  },
+  {
+    name: "POI",
+    value: totalPois,
+  },
+  {
+    name: "Tour",
+    value: totalTours,
+  },
+];
   // ================= SECTIONS =================
   const sections = [
     {
@@ -488,24 +528,78 @@ export default function AdminDashboardPage() {
   // ================= RENDER PANELS =================
   function renderOverviewPanel() {
     return (
-      <div className="admin-overview-grid">
-        <div className="admin-stat-card">
-          <strong>{pendingOwnerCount}</strong>
-          <span>Yêu cầu chủ quán đang chờ</span>
-        </div>
-        <div className="admin-stat-card">
-          <strong>{pendingIntroCount}</strong>
-          <span>Nội dung quán đang chờ duyệt</span>
-        </div>
-        <div className="admin-stat-card">
-          <strong>{totalPois}</strong>
-          <span>Tổng số POI trên bản đồ</span>
-        </div>
-        <div className="admin-stat-card">
-          <strong>{totalTours}</strong>
-          <span>Tour du lịch đã tạo</span>
-        </div>
+     <div className="admin-overview-grid">
+  <Card className="stat-card stat-purple">
+    <div className="stat-content">
+      <div className="stat-icon">
+        <UserOutlined />
       </div>
+      <div>
+        <h2>{pendingOwnerCount}</h2>
+        <p>Yêu cầu chủ quán đang chờ</p>
+      </div>
+    </div>
+  </Card>
+
+  <Card className="stat-card stat-orange">
+    <div className="stat-content">
+      <div className="stat-icon">
+        <FileTextOutlined />
+      </div>
+      <div>
+        <h2>{pendingIntroCount}</h2>
+        <p>Nội dung quán đang chờ duyệt</p>
+      </div>
+    </div>
+  </Card>
+
+  <Card className="stat-card stat-blue">
+    <div className="stat-content">
+      <div className="stat-icon">
+        <EnvironmentOutlined />
+      </div>
+      <div>
+        <h2>{totalPois}</h2>
+        <p>Tổng số POI trên bản đồ</p>
+      </div>
+    </div>
+  </Card>
+
+  <Card className="stat-card stat-green">
+    <div className="stat-content">
+      <div className="stat-icon">
+        <RocketOutlined />
+      </div>
+      <div>
+        <h2>{totalTours}</h2>
+        <p>Tour du lịch đã tạo</p>
+      </div>
+    </div>
+  </Card>
+   {/* CHART */}
+   <Card className="admin-chart" style={{ marginTop: 24 }}>
+        <h3 className="admin-chart-title" style={{ marginBottom: 200 }}>Thống kê tổng quan</h3>
+
+        <ResponsiveContainer width="100%" height={300}>
+  <BarChart data={overviewChartData}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="name" />
+    <YAxis />
+    <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} />
+
+    <Bar dataKey="value" radius={[8, 8, 0, 0]}>
+      {overviewChartData.map((entry, index) => (
+        <Cell
+          key={`cell-${index}`}
+          fill={COLORS[index % COLORS.length]}
+        />
+      ))}
+    </Bar>
+  </BarChart>
+</ResponsiveContainer>
+      </Card>
+      
+</div>
     );
   }
 
@@ -1068,16 +1162,27 @@ export default function AdminDashboardPage() {
   // ================= MAIN RENDER =================
   return (
     <section className="admin-page">
-      <header className="admin-hero">
-        <div className="admin-hero-copy">
-          <p className="admin-kicker">
-            {t("admin.badge") || "Quản trị hệ thống"}
-          </p>
-          <h1>{t("admin.title")}</h1>
-          <p>{t("admin.subtitle")}</p>
-          <Tag color="blue">{currentUser?.displayName}</Tag>
-        </div>
-      </header>
+     
+<header className="admin-hero">
+  <div className="admin-hero-copy">
+    <div className="admin-hero-top">
+      <div className="admin-hero-icon">
+        <CrownOutlined />
+      </div>
+
+      <p className="admin-kicker">
+        {t("admin.badge") || "Quản trị hệ thống"}
+      </p>
+    </div>
+
+    <h1>{t("admin.title")}</h1>
+    <p>{t("admin.subtitle")}</p>
+
+    <Tag className="admin-user-tag">
+      {currentUser?.displayName}
+    </Tag>
+  </div>
+</header>
 
       {feedback ? <div className="admin-feedback">{feedback}</div> : null}
 

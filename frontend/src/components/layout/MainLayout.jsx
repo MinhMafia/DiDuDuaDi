@@ -34,7 +34,7 @@ export default function MainLayout({ children }) {
           </button>
         </div>
       </header>
-      <main className="app-main">{children}</main>
+      <main className="">{children}</main>
       <BottomNav />
       <ChatButton />
     </div>

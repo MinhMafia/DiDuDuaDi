@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import SpeechGuidePlayer from "../audio/SpeechGuidePlayer";
-
+import "./Poi.css";
 export default function PoiDetailSheet({
   poi,
   autoNarrateOnTouch = false,

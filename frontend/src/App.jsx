@@ -10,6 +10,7 @@ import PoiDetailPage from "./pages/PoiDetailPage";
 import RegisterPage from "./pages/RegisterPage";
 import SettingsPage from "./pages/SettingsPage";
 import SystemBenchmark from "./pages/SystemBenchmark";
+import { ConfigProvider } from "antd";
 
 export default function App() {
   return (
@@ -69,7 +70,25 @@ export default function App() {
           path="/admin"
           element={
             <MainLayout>
-              <AdminDashboardPage />
+             <ConfigProvider
+  theme={{
+    token: {
+      colorPrimary: "#468bfa", 
+      borderRadius: 12,
+      fontFamily: "Inter, sans-serif",
+    },
+    components: {
+      Button: {
+        borderRadius: 10,
+      },
+      Card: {
+        borderRadius: 16,
+      },
+    },
+  }}
+>
+  <AdminDashboardPage />
+</ConfigProvider>
             </MainLayout>
           }
         />

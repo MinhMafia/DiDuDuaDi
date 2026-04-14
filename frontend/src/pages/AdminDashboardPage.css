@@ -550,3 +550,230 @@
     align-self: flex-start;
   }
 }
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  border-radius: 16px !important;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.stat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.stat-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  font-size: 22px;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+/* màu từng card */
+.stat-purple .stat-icon {
+  background: #ede9fe;
+  color: #468bfa;
+}
+
+.stat-orange .stat-icon {
+  background: #fff7ed;
+  color: #f97316;
+}
+
+.stat-blue .stat-icon {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.stat-green .stat-icon {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+/* số */
+.stat-card h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* label */
+.stat-card p {
+  margin: 0;
+  color: #6b7280;
+}
+/* ===== SIDEBAR WRAPPER ===== */
+.admin-nav {
+  width: 280px;
+}
+
+.admin-nav-card {
+  border-radius: 18px;
+  padding: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+}
+
+/* ===== HEADER ===== */
+.admin-card-head {
+  margin-bottom: 12px;
+}
+
+.admin-section-kicker {
+  font-size: 12px;
+  color: #6366f1;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.admin-card-head h2 {
+  margin: 4px 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.admin-card-head p {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ===== NAV LIST ===== */
+.admin-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ===== BUTTON ===== */
+.admin-nav-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: left;
+}
+
+/* hover */
+.admin-nav-button:hover {
+  background: #f1f5f9;
+  transform: translateX(4px);
+}
+
+/* active */
+.admin-nav-button.active {
+  background: linear-gradient(135deg, #468bfa, #60a5fa);
+  color: white;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4);
+}
+
+/* text */
+.admin-nav-button-copy span {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.admin-nav-button-copy strong {
+  display: block;
+  font-size: 14px;
+  margin-top: 2px;
+}
+
+.admin-nav-button-copy small {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* active text trắng */
+.admin-nav-button.active .admin-nav-button-copy span,
+.admin-nav-button.active .admin-nav-button-copy small {
+  color: #e0e7ff;
+}
+
+/* ===== BADGE ===== */
+.admin-nav-badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #374151;
+  font-weight: 600;
+}
+
+/* badge active */
+.admin-nav-button.active .admin-nav-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* ===== SCROLL (nếu dài) ===== */
+.admin-nav {
+  position: sticky;
+  top: 20px;
+  height: fit-content;
+}
+.stat-card {
+  border-radius: 16px;
+}
+
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 992px) {
+  .admin-overview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.admin-chart {
+  grid-column: span 4; /* 🔥 cái này quyết định full width */
+}
+.admin-chart-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+    text-align: center;
+  background: linear-gradient(135deg, #468bfa, #5aa3ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  text-shadow: 0 4px 12px rgba(70, 139, 250, 0.4);
+}
+.admin-nav-button-copy strong {
+  font-size: 15px;
+  font-weight: 600;
+
+  background: linear-gradient(135deg, #468bfa, #5aa3ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}.admin-nav-button-copy span {
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+.admin-nav-button-copy small {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+.admin-nav-badge {
+  color: #468bfa;
+  font-weight: 600;
+}

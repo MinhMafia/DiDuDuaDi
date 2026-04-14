@@ -727,3 +727,406 @@
     max-height: 220px;
   }
 }
+body {
+  font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+/* TITLE */
+.panel-card h2 {
+  font-size: 18px;
+  font-weight: 700;
+
+  background: linear-gradient(90deg, #ff7a18, #ff3d81);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* TEXT phụ */
+.supporting-text {
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* POI name */
+.poi-card-head strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Category */
+.poi-category {
+  font-size: 12px;
+  color: #f97316;
+  font-weight: 500;
+}
+
+/* Description */
+.poi-card p {
+  font-size: 13.5px;
+  color: #475569;
+}
+
+/* Selected POI */
+.selected-poi strong {
+  font-size: 17px;
+  font-weight: 700;
+
+  background: linear-gradient(90deg, #22c55e, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Giá */
+.poi-menu-item span {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+/* Menu title */
+.poi-menu-preview h3 {
+  color: #0ea5e9;
+}
+/* TITLE chính (Nearby / Selected) */
+.panel-card h2 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 12px;
+
+  background: linear-gradient(90deg, #2563eb, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* TEXT phụ */
+.supporting-text {
+  color: #64748b; /* slate-500 */
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* TEXT lỗi */
+.error-text {
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Tên POI */
+.poi-card-head strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a; /* slate-900 */
+}
+
+/* Category */
+.poi-category {
+  font-size: 12px;
+  font-weight: 500;
+  color: #6366f1; /* indigo */
+}
+
+/* Description */
+.poi-card p {
+  font-size: 13.5px;
+  color: #475569; /* slate-600 */
+  line-height: 1.5;
+}
+
+/* Meta (tọa độ, distance) */
+.poi-meta {
+  font-size: 12px;
+  color: #94a3b8; /* slate-400 */
+}
+
+/* Selected POI */
+.selected-poi strong {
+  font-size: 17px;
+  font-weight: 700;
+
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Intro */
+.selected-poi-intro {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+/* Address */
+.selected-poi-address {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Giá tiền */
+.poi-menu-item span {
+  font-size: 13px;
+  font-weight: 600;
+  color: #16a34a; /* xanh lá */
+}
+
+/* Menu title */
+.poi-menu-preview h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0ea5e9;
+}
+/* GRID CHÍNH */
+.map-content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* map to hơn sidebar */
+  gap: 20px;
+  height: calc(100vh - 140px);
+  padding: 16px;
+}
+
+/* CARD CHUNG */
+.map-stage-card,
+.panel-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+/* MAP CARD */
+.map-stage-card {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+}
+
+/* TOOLBAR */
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* RANGE */
+.radius-control {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* SEARCH */
+.map-search {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.map-search-input {
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+/* CLEAR BTN */
+.map-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* DROPDOWN */
+.map-search-dropdown {
+  position: absolute;
+  top: 110%;
+  width: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.map-search-item {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.map-search-item:hover {
+  background: #f8fafc;
+}
+
+/* TOOLBAR TEXT */
+.map-toolbar-text {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* BUTTON */
+.map-action-group {
+  display: flex;
+  gap: 8px;
+}
+
+.map-action-button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.map-action-button.secondary {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+/* TOGGLE */
+.map-toggle-group {
+  display: flex;
+  gap: 12px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+
+.map-toggle-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f8fafc;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+/* MAP */
+.map-canvas {
+  flex: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+/* SEARCH AREA BTN */
+.search-area-btn {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+/* LEGEND */
+.map-legend {
+  display: flex;
+  justify-content: space-around;
+  font-size: 12px;
+  padding: 8px;
+  color: #64748b;
+}
+
+/* SIDEBAR */
+.map-side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* PANEL */
+.panel-card {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* POI LIST */
+.poi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* POI CARD */
+.poi-card {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+  background: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.poi-card.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+/* SELECTED POI */
+.selected-poi {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* MENU */
+.poi-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.poi-menu-item {
+  display: flex;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 8px;
+  border-radius: 10px;
+}
+
+.poi-menu-item img {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .map-content-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .map-side-panel {
+    flex-direction: column;
+    height: auto;
+  }
+}
