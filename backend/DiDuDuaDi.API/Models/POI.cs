@@ -17,4 +17,5 @@ public class POI
     public List<MenuItemSummary> MenuItems { get; set; } = [];
     public double Radius { get; set; } = 500;
     public string? ImageUrl { get; set; }
+    public bool IsFavorite { get; set; }
 }

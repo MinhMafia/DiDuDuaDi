@@ -18,6 +18,7 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
 
         const string sql = """
             SELECT
+                a.id AS Id,
                 a.username AS Username,
                 r.code AS Role,
                 a.display_name AS DisplayName,
@@ -39,7 +40,7 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
             "UPDATE accounts SET last_login_at = CURRENT_TIMESTAMP WHERE username = @username;",
             new { username });
 
-        return new AuthUser(row.Username, row.Role, row.DisplayName);
+        return new AuthUser(row.Id, row.Username, row.Role, row.DisplayName);
     }
 
     public AuthUser? Register(RegisterRequest request)
@@ -93,7 +94,12 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
                 RoleId = userRoleId
             });
 
-        return new AuthUser(username, "user", displayName);
+        return new AuthUser(
+            Guid.Parse(accountId),
+            username,
+            "user",
+            displayName
+        );
     }
 
     public OwnerUpgradeRequestSummary? CreateOwnerUpgradeRequest(CreateOwnerUpgradeRequest request)
@@ -787,7 +793,7 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
         return slug;
     }
 
-    private sealed record AuthRow(string Username, string Role, string DisplayName, string PasswordHash);
+    private sealed record AuthRow(Guid Id, string Username, string Role, string DisplayName, string PasswordHash);
     private sealed record AccountRow(Guid AccountId, string Username, string DisplayName, string Role);
 
     private sealed class PendingOwnerUpgradeRequest

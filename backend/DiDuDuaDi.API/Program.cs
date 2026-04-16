@@ -34,6 +34,7 @@ builder.Services.AddSingleton<IDatabaseInitializer, MySqlDatabaseInitializer>();
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();
 builder.Services.AddScoped<IPoiRepository, MySqlPoiRepository>();
 builder.Services.AddScoped<IAuthRepository, MySqlAuthRepository>();
+builder.Services.AddScoped<IUserRepository, MySqlUserRepository>();
 builder.Services.AddScoped<IOwnerRepository, MySqlOwnerRepository>();
 builder.Services.AddScoped<IAnalyticsRepository, MySqlAnalyticsRepository>();
 builder.Services.AddScoped<IAdminRepository, MySqlAdminRepository>();

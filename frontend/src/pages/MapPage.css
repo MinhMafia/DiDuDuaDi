@@ -340,7 +340,13 @@
   box-shadow: 0 10px 26px rgba(255, 107, 53, 0.12);
 }
 
-.poi-card-head,
+.poi-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+
 .poi-meta {
   display: flex;
   justify-content: space-between;
@@ -875,6 +881,48 @@ body {
   font-size: 15px;
   font-weight: 600;
   color: #0ea5e9;
+}
+
+/* Styles for favorite button and card layout */
+.poi-card-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  overflow: hidden;
+  flex: 1;
+}
+
+.poi-card-info strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.poi-favorite-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af; /* slate-400 */
+  transition: color 150ms ease-in-out, transform 150ms ease;
+}
+
+.poi-favorite-btn:hover {
+  color: #f87171; /* red-400 */
+  transform: scale(1.1);
+}
+
+.poi-favorite-btn.active {
+  color: #ef4444; /* red-500 */
+}
+
+.poi-favorite-btn.active svg {
+  fill: currentColor;
 }
 /* GRID CHÍNH */
 .map-content-grid {

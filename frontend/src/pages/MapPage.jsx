@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import SpeechGuidePlayer from "../components/audio/SpeechGuidePlayer";
@@ -14,6 +14,7 @@ import { getNearbyPois, getPois } from "../services/poiService";
 import { getDrivingRoute } from "../services/routeService";
 import { translateText } from "../services/translateService";
 import { VINH_KHANH_CENTER } from "../utils/constants";
+import userService from "../services/userService";
 import {
   calculateDistanceMeters,
   formatDistance,
@@ -28,6 +29,8 @@ const SEARCH_FOCUS_ZOOM = 18;
 export default function MapPage() {
   const { i18n, t } = useTranslation();
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
+  const currentUser = useSelector((state) => state.app.currentUser);
   const autoPlayAudio = useSelector((state) => state.app.autoPlayAudio);
   const autoNarrateOnTouch = useSelector((state) => state.app.autoNarrateOnTouch);
   const searchContainerRef = useRef(null);
@@ -122,8 +125,8 @@ export default function MapPage() {
   }, [i18n.language, rawVisiblePois, speechLanguage]);
 
   const visiblePois = useMemo(
-    () =>
-      rawVisiblePois.map((poi) => {
+    () => {
+      const mapped = rawVisiblePois.map((poi) => {
         const translatedEntry = translatedPoiContent[poi.id] ?? {};
 
         return {
@@ -141,7 +144,13 @@ export default function MapPage() {
           displayName:
             translatedEntry.displayName || getLocalizedValue(poi.name, i18n.language),
         };
-      }),
+      });
+
+      return mapped.sort((a, b) => {
+        if (a.isFavorite === b.isFavorite) return 0;
+        return a.isFavorite ? -1 : 1;
+      });
+    },
     [i18n.language, rawVisiblePois, translatedPoiContent],
   );
 
@@ -231,7 +240,20 @@ export default function MapPage() {
   const isLoading = allPoisQuery.isLoading || (effectiveLocation && nearbyPoisQuery.isLoading);
   const queryError = allPoisQuery.error || nearbyPoisQuery.error;
 
-  const nearestPoi = visiblePois[0] ?? null;
+  const nearestPoi = useMemo(() => {
+    if (!effectiveLocation || !visiblePois.length) return null;
+    let minDistance = Infinity;
+    let nearest = null;
+    for (const poi of visiblePois) {
+      const dist = calculateDistanceMeters(effectiveLocation, poi.location);
+      if (dist < minDistance) {
+        minDistance = dist;
+        nearest = poi;
+      }
+    }
+    return nearest;
+  }, [effectiveLocation, visiblePois]) ?? (visiblePois[0] || null);
+
   const nearestPoiDistance =
     nearestPoi && effectiveLocation
       ? calculateDistanceMeters(effectiveLocation, nearestPoi.location)
@@ -264,6 +286,76 @@ export default function MapPage() {
     autoFocusedPoiRef.current = nearestPoi.id;
     handleSelectPoi(nearestPoi, { narrateNow: true });
   }, [autoPlayAudio, nearestPoi, nearestPoiDistance]);
+
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async ({ poiId, isFavorite }) => {
+      if (isFavorite) {
+        return userService.removeFavorite(poiId);
+      } else {
+        return userService.addFavorite(poiId);
+      }
+    },
+    // When mutate is called, we optimistically update the UI
+    onMutate: async ({ poiId, isFavorite }) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["pois"] });
+
+      // Snapshot the previous value of both queries
+      const allPoisQueryKey = ["pois"];
+      const nearbyPoisQueryKey = ["pois", "nearby", effectiveLocation?.lat, effectiveLocation?.lng, radius];
+      
+      const previousAllPois = queryClient.getQueryData(allPoisQueryKey);
+      const previousNearbyPois = queryClient.getQueryData(nearbyPoisQueryKey);
+
+      // The function to update a POI's favorite status in a list
+      const updatePoiInList = (oldData) => {
+          if (!oldData) return oldData;
+          // Kiểm tra nếu cache lưu object chứa .data (API response)
+          if (oldData.data && Array.isArray(oldData.data)) {
+              return {
+                  ...oldData,
+                  data: oldData.data.map(poi => 
+                      poi.id === poiId ? { ...poi, isFavorite: !isFavorite } : poi
+                  )
+              };
+          }
+          // Dự phòng nếu cache đã là mảng
+          if (Array.isArray(oldData)) {
+              return oldData.map(poi => 
+                  poi.id === poiId ? { ...poi, isFavorite: !isFavorite } : poi
+              );
+          }
+          return oldData;
+      };
+
+      // Optimistically update to the new value
+      queryClient.setQueryData(allPoisQueryKey, updatePoiInList);
+      if (effectiveLocation) {
+          queryClient.setQueryData(nearbyPoisQueryKey, updatePoiInList);
+      }
+
+      // Return a context object with the snapshotted value
+      return { previousAllPois, previousNearbyPois, allPoisQueryKey, nearbyPoisQueryKey };
+    },
+    // If the mutation fails, use the context returned from onMutate to roll back
+    onError: (err, variables, context) => {
+      queryClient.setQueryData(context.allPoisQueryKey, context.previousAllPois);
+      queryClient.setQueryData(context.nearbyPoisQueryKey, context.previousNearbyPois);
+    },
+    // Always refetch after error or success to ensure data is in sync with the server
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["pois"] });
+    },
+  });
+
+  function handleToggleFavorite(event, poi) {
+    event.stopPropagation(); // Ngăn việc bấm thả tim làm chọn luôn POI trên bản đồ
+    if (!currentUser) {
+      alert(t("auth.loginRequired", "Bạn cần đăng nhập để sử dụng tính năng này."));
+      return;
+    }
+    toggleFavoriteMutation.mutate({ poiId: poi.id, isFavorite: poi.isFavorite });
+  }
 
   function handleSelectPoi(poi, options = {}) {
     if (!poi) {
@@ -606,8 +698,22 @@ export default function MapPage() {
                       onClick={() => handleSelectPoi(poi, { touchTriggered: true })}
                     >
                       <div className="poi-card-head">
-                        <strong>{poi.displayName}</strong>
-                        <span className="poi-category">{poi.category}</span>
+                        <div className="poi-card-info">
+                          <strong>{poi.displayName}</strong>
+                          <span className="poi-category">{poi.category}</span>
+                        </div>
+                        {(!currentUser || currentUser.role === "user") && (
+                          <button
+                            type="button"
+                            className={`poi-favorite-btn ${poi.isFavorite ? "active" : ""}`}
+                            onClick={(e) => handleToggleFavorite(e, poi)}
+                            title={poi.isFavorite ? t("favorites.remove", "Bỏ yêu thích") : t("favorites.add", "Thêm vào yêu thích")}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                            </svg>
+                          </button>
+                        )}
                       </div>
                       <p>{poi.displayDescription || t("map.noDescription")}</p>
                       <div className="poi-meta">

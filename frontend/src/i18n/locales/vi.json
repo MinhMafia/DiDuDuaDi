@@ -11,7 +11,8 @@
     "owner": "Chủ quán",
     "admin": "Admin",
     "routes": "Lộ trình",
-    "settings": "Cài đặt"
+    "settings": "Cài đặt",
+    "favorites": "Yêu thích"
   },
   "auth": {
     "badge": "Đăng nhập hệ thống",
@@ -94,6 +95,13 @@
       "openingHours": "Giờ mở cửa",
       "phone": "Điện thoại"
     }
+  },
+  "favorites": {
+    "title": "Danh sách quán yêu thích",
+    "subtitle": "Những địa điểm bạn đã lưu để ghé thăm sau.",
+    "empty": "Bạn chưa có quán yêu thích nào. Hãy khám phá bản đồ và thả tim vào những địa điểm bạn muốn lưu lại nhé!",
+    "add": "Thêm vào yêu thích",
+    "remove": "Bỏ yêu thích"
   },
   "settings": {
     "title": "Cài đặt trải nghiệm",
