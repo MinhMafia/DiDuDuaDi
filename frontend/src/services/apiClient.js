@@ -1,13 +1,36 @@
 import axios from "axios";
 
+function resolveApiBaseUrl() {
+  const shouldUseLocalProxyByDefault =
+    import.meta.env.DEV && import.meta.env.VITE_FORCE_REMOTE_API !== "true";
+
+  if (shouldUseLocalProxyByDefault) {
+    return "/api";
+  }
+
+  const configuredBaseUrl =
+    import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+
+  if (!configuredBaseUrl) {
+    return "/api";
+  }
+
+  const trimmedBaseUrl = configuredBaseUrl.replace(/\/+$/, "");
+  return trimmedBaseUrl.endsWith("/api") ? trimmedBaseUrl : `${trimmedBaseUrl}/api`;
+}
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
+  baseURL: resolveApiBaseUrl(),
   timeout: 10000,
 });
 
 apiClient.interceptors.request.use((config) => {
+  const requestPath = config.url ?? "";
+  const isAuthRequest =
+    requestPath.includes("/auth/login") || requestPath.includes("/auth/register");
+
   const session = window.localStorage.getItem("didududadi.session");
-  if (!session) {
+  if (!session || isAuthRequest) {
     return config;
   }
 

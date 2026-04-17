@@ -4,6 +4,10 @@
 .env
 .env.local
 .env.*.local
+**/appsettings.Development.json
+**/appsettings.Production.json
+appsettings.Development.json
+appsettings.Production.json
 
 # Node
 node_modules/
@@ -16,6 +20,7 @@ frontend/.vite/
 .dotnet/
 .nuget/
 *.user
+fatal_error.log
 
 # IDE
 .vscode/

@@ -40,12 +40,53 @@ builder.Services.AddScoped<IAnalyticsRepository, MySqlAnalyticsRepository>();
 builder.Services.AddScoped<IAdminRepository, MySqlAdminRepository>();
 builder.Services.AddHttpClient<ITranslationService, GoogleFreeTranslationService>();
 builder.Services.AddHttpClient<ITextToSpeechService, GoogleFreeTextToSpeechService>();
+builder.Services.AddHttpClient<IMistralChatService, MistralChatService>();
+
+var configuredCorsOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>();
+
+var allowedCorsOrigins = (configuredCorsOrigins is { Length: > 0 }
+        ? configuredCorsOrigins
+        : ["http://localhost:3000", "http://localhost:5173"])
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Select(origin => origin.Trim().TrimEnd('/'))
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray();
+
+var allowedCorsOriginSet = new HashSet<string>(allowedCorsOrigins, StringComparer.OrdinalIgnoreCase);
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
         policy
-            .WithOrigins("http://localhost:3000", "http://localhost:5173")
+            .SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrWhiteSpace(origin))
+                {
+                    return false;
+                }
+
+                var normalizedOrigin = origin.Trim().TrimEnd('/');
+                if (allowedCorsOriginSet.Contains(normalizedOrigin))
+                {
+                    return true;
+                }
+
+                if (!Uri.TryCreate(normalizedOrigin, UriKind.Absolute, out var uri))
+                {
+                    return false;
+                }
+
+                if (!string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+                    && !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
+                return string.Equals(uri.Host, "localhost", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(uri.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase);
+            })
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
