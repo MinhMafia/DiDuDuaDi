@@ -6,6 +6,25 @@
 const CACHE_KEY_PREFIX = "didududadi_trans_";
 let activeCloudTtsCancel = null;
 
+function resolveApiBaseUrl() {
+  const shouldUseLocalProxyByDefault =
+    import.meta.env.DEV && import.meta.env.VITE_FORCE_REMOTE_API !== "true";
+
+  if (shouldUseLocalProxyByDefault) {
+    return "/api";
+  }
+
+  const configuredBaseUrl =
+    import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+
+  if (!configuredBaseUrl) {
+    return "/api";
+  }
+
+  const trimmedBaseUrl = configuredBaseUrl.replace(/\/+$/, "");
+  return trimmedBaseUrl.endsWith("/api") ? trimmedBaseUrl : `${trimmedBaseUrl}/api`;
+}
+
 const GOOGLE_TTS_LANGUAGE_MAP = {
   vi: "vi",
   "vi-vn": "vi",
@@ -203,7 +222,8 @@ export function playCloudTts(text, langCode, callbacks) {
       }
 
       const resolvedLang = resolveGoogleTtsLanguage(langCode);
-      const url = `/api/tts/google?lang=${encodeURIComponent(resolvedLang)}&text=${encodeURIComponent(chunk)}`;
+      const apiBaseUrl = resolveApiBaseUrl();
+      const url = `${apiBaseUrl}/tts/google?lang=${encodeURIComponent(resolvedLang)}&text=${encodeURIComponent(chunk)}`;
 
       currentAudio = new Audio(url);
       spawnedAudios.push(currentAudio);

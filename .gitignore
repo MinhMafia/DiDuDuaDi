@@ -13,14 +13,24 @@ appsettings.Production.json
 node_modules/
 frontend/dist/
 frontend/.vite/
+dist/
+build/
 
 # .NET
 **/bin/
 **/obj/
+**/bin-temp/
+**/obj-temp/
+publish/
+publish-*/
+**/publish/
+**/publish-*/
 .dotnet/
+.dotnet-cli/
 .nuget/
 *.user
 fatal_error.log
+*.log
 
 # IDE
 .vscode/
@@ -32,3 +42,8 @@ fatal_error.log
 Thumbs.db
 
 .fake
+tmp/
+.sixth/
+*.mp3
+*.wav
+backend/DiDuDuaDi.API/Data/note.txt

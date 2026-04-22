@@ -44,5 +44,12 @@ public class AIController : ControllerBase
                 false,
                 ex.Message));
         }
+        catch (Exception)
+        {
+            return StatusCode(503, new ApiResponse<AiChatResponse>(
+                new AiChatResponse(string.Empty),
+                false,
+                "AI assistant is temporarily unavailable."));
+        }
     }
 }

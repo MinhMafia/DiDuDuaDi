@@ -11,7 +11,6 @@ export default function BottomNav() {
   const linkClassName = ({ isActive }) =>
     `bottom-nav__link${isActive ? " bottom-nav__link--active" : ""}`;
 
-  // Check if current route is active for each role
   const isOwnerMapActive =
     currentUser?.role === "owner" && location.pathname === "/map";
   const isOwnerDashboardActive =
@@ -34,6 +33,7 @@ export default function BottomNav() {
             </NavLink>
           </>
         ) : null}
+
         {currentUser?.role === "owner" ? (
           <>
             <NavLink
@@ -42,7 +42,7 @@ export default function BottomNav() {
                 `bottom-nav__link${isActive || isOwnerMapActive ? " bottom-nav__link--active" : ""}`
               }
             >
-              🗺️ {t("nav.map")}
+              {t("nav.map")}
             </NavLink>
             <NavLink
               to="/owner"
@@ -50,10 +50,11 @@ export default function BottomNav() {
                 `bottom-nav__link${isActive || isOwnerDashboardActive ? " bottom-nav__link--active" : ""}`
               }
             >
-              🏪 {t("nav.owner")}
+              {t("nav.owner")}
             </NavLink>
           </>
         ) : null}
+
         {currentUser?.role === "admin" ? (
           <>
             <NavLink
@@ -62,7 +63,7 @@ export default function BottomNav() {
                 `bottom-nav__link${isActive || isAdminMapActive ? " bottom-nav__link--active" : ""}`
               }
             >
-              🗺️ {t("nav.map")}
+              {t("nav.map")}
             </NavLink>
             <NavLink
               to="/admin"
@@ -70,7 +71,7 @@ export default function BottomNav() {
                 `bottom-nav__link${isActive || isAdminDashboardActive ? " bottom-nav__link--active" : ""}`
               }
             >
-              👨‍💼 {t("nav.admin")}
+              {t("nav.admin")}
             </NavLink>
           </>
         ) : null}

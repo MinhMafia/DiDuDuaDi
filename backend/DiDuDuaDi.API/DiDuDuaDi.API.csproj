@@ -4,7 +4,11 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DiDuDuaDi.API</RootNamespace>
+    <DefaultItemExcludes>$(DefaultItemExcludes);bin-temp/**;obj-temp/**</DefaultItemExcludes>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="bin/**/*.cs;obj/**/*.cs;bin-temp/**/*.cs;obj-temp/**/*.cs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="GTranslate" Version="2.3.1" />

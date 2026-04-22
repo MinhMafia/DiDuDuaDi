@@ -5,15 +5,7 @@ import { getPois } from "../../services/poiService";
 import { getLocalizedValue } from "../../utils/helpers";
 import { askMistral } from "../../services/mistralService";
 
-import {
-  Drawer,
-  Button,
-  Input,
-  Space,
-  Typography,
-  Avatar,
-  Spin,
-} from "antd";
+import { Drawer, Button, Input, Space, Typography, Avatar, Spin } from "antd";
 import {
   MessageOutlined,
   UserOutlined,
@@ -34,7 +26,10 @@ export default function ChatButton() {
     {
       id: "welcome",
       role: "assistant",
-      text: t("chat.welcome", "Xin chào! Mình là trợ lý du lịch AI. Mình có thể giúp gì cho bạn hôm nay?"),
+      text: t(
+        "chat.welcome",
+        "Xin chào! Mình là trợ lý du lịch AI. Mình có thể giúp gì cho bạn hôm nay?",
+      ),
     },
   ]);
 
@@ -161,8 +156,14 @@ export default function ChatButton() {
       <Drawer
         title={
           <Space>
-            <Avatar size="small" icon={<RobotOutlined />} style={{ background: "#10a37f" }} />
-            <span style={{ fontWeight: 600, color: "#1f2937" }}>AI Assistant</span>
+            <Avatar
+              size="small"
+              icon={<RobotOutlined />}
+              style={{ background: "#10a37f" }}
+            />
+            <span style={{ fontWeight: 600, color: "#1f2937" }}>
+              AI Assistant
+            </span>
           </Space>
         }
         placement="right"
@@ -221,7 +222,9 @@ export default function ChatButton() {
                     color: isUser ? "#ffffff" : "#1f2937",
                     padding: "12px 16px",
                     // Bo góc bất đối xứng tạo hình đuôi bong bóng chat
-                    borderRadius: isUser ? "20px 20px 4px 20px" : "20px 20px 20px 4px",
+                    borderRadius: isUser
+                      ? "20px 20px 4px 20px"
+                      : "20px 20px 20px 4px",
                     maxWidth: "75%",
                     whiteSpace: "pre-wrap",
                     wordBreak: "break-word",
@@ -247,8 +250,18 @@ export default function ChatButton() {
           })}
 
           {loading && (
-            <div style={{ display: "flex", justifyContent: "flex-start", gap: 8, alignItems: "flex-end" }}>
-              <Avatar icon={<RobotOutlined />} style={{ background: "#10a37f" }} />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-start",
+                gap: 8,
+                alignItems: "flex-end",
+              }}
+            >
+              <Avatar
+                icon={<RobotOutlined />}
+                style={{ background: "#10a37f" }}
+              />
               <div
                 style={{
                   background: "#ffffff",
@@ -275,7 +288,13 @@ export default function ChatButton() {
           }}
         >
           <form onSubmit={handleSubmit} style={{ margin: 0 }}>
-            <Space.Compact style={{ width: "100%", boxShadow: "0 2px 6px rgba(0,0,0,0.05)", borderRadius: "24px" }}>
+            <Space.Compact
+              style={{
+                width: "100%",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+                borderRadius: "24px",
+              }}
+            >
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
@@ -298,7 +317,8 @@ export default function ChatButton() {
                 style={{
                   borderTopRightRadius: "24px",
                   borderBottomRightRadius: "24px",
-                  background: "linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)",
+                  background:
+                    "linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)",
                   border: "none",
                   padding: "0 24px",
                 }}

@@ -36,9 +36,8 @@ import {
   message,
   Descriptions,
 } from "antd";
-import { QRCodeSVG as QRCode } from "qrcode.react";
-
 import Loading from "../components/common/Loading";
+import PoiQrCard from "../components/common/PoiQrCard";
 import {
   getOwnerUpgradeRequests,
   getShopIntroReviews,
@@ -88,11 +87,6 @@ const COLORS = [
   "#f59e0b", // cam
 ];
 // Tạo URL chi tiết POI cho QR code
-const generatePoiDetailUrl = (poiId) => {
-  const baseUrl = window.location.origin;
-  return `${baseUrl}/poi/${poiId}`;
-};
-
 export default function AdminDashboardPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -402,8 +396,7 @@ const overviewChartData = [
     sections.find((section) => section.id === activeSection) ?? sections[0];
 
   // ================= HANDLERS =================
-  function handlePoiSubmit(event) {
-    event.preventDefault();
+  function handlePoiSubmit() {
     setFeedback("");
 
     const payload = {
@@ -465,12 +458,16 @@ const overviewChartData = [
       category: tour.category || "",
       description: tour.description?.vi || "",
     });
-    setSelectedPois(tour.steps?.map((s) => s.poiId) || []);
+    setSelectedPois(
+      (tour.steps ?? [])
+        .slice()
+        .sort((a, b) => a.order - b.order)
+        .map((step) => step.poiId),
+    );
     setEditTourModalVisible(true);
   }
 
-  function handleTourSubmit(event) {
-    event.preventDefault();
+  function handleTourSubmit() {
     setFeedback("");
 
     const payload = {
@@ -1634,19 +1631,14 @@ const overviewChartData = [
               <p className="admin-qr-description">
                 Quét mã QR này để xem thông tin chi tiết về quán trên ứng dụng
               </p>
-              <div className="admin-qr-container">
-                <QRCode
-                  value={generatePoiDetailUrl(poiDetailQuery.data.id)}
-                  size={256}
-                  level="H"
-                  includeMargin={true}
-                  renderAs="svg"
-                />
-                <div className="admin-qr-url">
-                  <Text type="secondary">URL:</Text>
-                  <code>{generatePoiDetailUrl(poiDetailQuery.data.id)}</code>
-                </div>
-              </div>
+              <PoiQrCard
+                poiId={poiDetailQuery.data.id}
+                poiName={
+                  poiDetailQuery.data.name?.vi ||
+                  poiDetailQuery.data.name?.en ||
+                  poiDetailQuery.data.shopName
+                }
+              />
             </div>
           </div>
         ) : (

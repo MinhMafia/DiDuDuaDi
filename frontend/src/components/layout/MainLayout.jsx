@@ -19,14 +19,15 @@ export default function MainLayout({ children }) {
   return (
     <div className="app-shell">
       <header className="app-header">
-        <div>
+        <div className="app-header__identity">
           <strong className="app-header__title">{t("appName")}</strong>
           <span className="app-header__meta">
             {currentUser
-              ? `${t(`auth.roles.${currentUser.role}`)} • ${currentUser.displayName}`
+              ? `${t(`auth.roles.${currentUser.role}`)} | ${currentUser.displayName}`
               : t("layout.tagline")}
           </span>
         </div>
+
         <div className="app-header__actions">
           <LanguageSwitcher />
           <button type="button" onClick={handleLogout} className="app-logout">
@@ -34,7 +35,8 @@ export default function MainLayout({ children }) {
           </button>
         </div>
       </header>
-      <main className="">{children}</main>
+
+      <main className="app-main">{children}</main>
       <BottomNav />
       <ChatButton />
     </div>

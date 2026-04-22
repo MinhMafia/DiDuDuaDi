@@ -429,24 +429,19 @@
 
 /* QR Code Section */
 .admin-qr-section {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-  border: 2px solid #0ea5e9;
-  border-radius: 16px;
-  padding: 24px;
-  text-align: center;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  text-align: left;
 }
 
 .admin-qr-section h4 {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0 0 8px;
-  color: #0369a1;
+  display: none;
 }
 
 .admin-qr-description {
-  font-size: 14px;
-  color: #0284c7;
-  margin: 0 0 20px;
+  display: none;
 }
 
 .admin-qr-container {

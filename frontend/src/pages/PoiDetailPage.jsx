@@ -1,18 +1,22 @@
-import { useParams, Link } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Button, Spin, Empty, Tag, Descriptions } from "antd";
-import { getPoiById } from "../services/analyticsService";
+import { Button, Descriptions, Empty, Spin, Tag } from "antd";
+import PoiQrCard from "../components/common/PoiQrCard";
+import { getPoiById } from "../services/poiService";
+import { getLocalizedValue } from "../utils/helpers";
 import "./PoiDetailPage.css";
 
 export default function PoiDetailPage() {
+  const navigate = useNavigate();
   const { id } = useParams();
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   const { data: poi, isLoading, error } = useQuery({
     queryKey: ["poi-public", id],
     queryFn: () => getPoiById(id),
-    select: (res) => res.data ?? null,
+    enabled: Boolean(id),
+    select: (response) => response.data ?? null,
   });
 
   if (isLoading) {
@@ -20,7 +24,7 @@ export default function PoiDetailPage() {
       <div className="poi-detail-page">
         <div className="poi-detail-loading">
           <Spin size="large" />
-          <p>Đang tải thông tin...</p>
+          <p>{t("poiDetail.loading")}</p>
         </div>
       </div>
     );
@@ -31,83 +35,134 @@ export default function PoiDetailPage() {
       <div className="poi-detail-page">
         <div className="poi-detail-error">
           <Empty
-            description="Không tìm thấy thông tin địa điểm"
+            description={t("poiDetail.notFound")}
             image={Empty.PRESENTED_IMAGE_SIMPLE}
           />
-          <Link to="/map">
-            <Button type="primary">Quay lại bản đồ</Button>
-          </Link>
+          <Button type="primary" onClick={() => navigate(-1)}>
+            {t("poiDetail.goBack")}
+          </Button>
         </div>
       </div>
     );
   }
 
-  const name = poi.name?.vi || poi.name?.en || poi.shopName || "N/A";
-  const description = poi.description?.vi || poi.description?.en || "Chưa có mô tả";
+  const name =
+    getLocalizedValue(poi.name, i18n.language) || poi.shopName || t("poiDetail.unknownName");
+  const description =
+    getLocalizedValue(poi.description, i18n.language) || t("map.noDescription");
   const category = poi.category || "street_food";
-  const address = poi.shopAddress || "Chưa cập nhật";
+  const address = poi.shopAddress || t("poiDetail.notUpdated");
   const menuItems = poi.menuItems || [];
+  const openingHours = poi.openingHours || t("poiDetail.notUpdated");
+  const phone = poi.phone || t("poiDetail.notUpdated");
+  const coordinates = poi.location
+    ? `${Number(poi.location.lat).toFixed(6)}, ${Number(poi.location.lng).toFixed(6)}`
+    : t("poiDetail.notUpdated");
 
   return (
     <div className="poi-detail-page">
       <div className="poi-detail-container">
         <header className="poi-detail-header">
-          <Link to="/map" className="poi-detail-back">
-            ← {t("map.title") || "Bản đồ"}
-          </Link>
-          <div className="poi-detail-header-content">
-            <h1>{name}</h1>
-            <Tag color="blue">{category}</Tag>
+          <button type="button" className="poi-detail-back" onClick={() => navigate(-1)}>
+            {t("poiDetail.backToPrevious")}
+          </button>
+
+          <div className="poi-detail-hero-card">
+            <div className="poi-detail-hero-copy">
+              <div className="poi-detail-header-content">
+                <div>
+                  <p className="poi-detail-kicker">{t("map.detailTitle")}</p>
+                  <h1>{name}</h1>
+                </div>
+                <Tag color="blue">{category}</Tag>
+              </div>
+
+              <p className="poi-detail-summary">{description}</p>
+
+              <div className="poi-detail-link-row">
+                <Link to="/login" className="poi-detail-inline-link">
+                  {t("poiDetail.loginHint")}
+                </Link>
+              </div>
+            </div>
+
+            {poi.imageUrl ? (
+              <div className="poi-detail-hero-media">
+                <img src={poi.imageUrl} alt={name} />
+              </div>
+            ) : null}
           </div>
         </header>
 
         <div className="poi-detail-content">
           <section className="poi-detail-section">
-            <h2>📍 Thông tin địa điểm</h2>
+            <h2>{t("poiDetail.shopInfoTitle")}</h2>
             <Descriptions bordered column={1}>
-              <Descriptions.Item label="Địa chỉ">{address}</Descriptions.Item>
-              <Descriptions.Item label="Vị trí">
-                {poi.lat && poi.lng
-                  ? `${Number(poi.lat).toFixed(6)}, ${Number(poi.lng).toFixed(6)}`
-                  : "Chưa cập nhật"}
+              <Descriptions.Item label={t("poiDetail.labels.address")}>
+                {address}
               </Descriptions.Item>
-              <Descriptions.Item label="Mô tả">{description}</Descriptions.Item>
+              <Descriptions.Item label={t("poiDetail.labels.coordinates")}>
+                {coordinates}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("map.labels.openingHours")}>
+                {openingHours}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("map.labels.phone")}>
+                {phone}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("poiDetail.labels.description")}>
+                {description}
+              </Descriptions.Item>
+              {poi.approvedIntroduction ? (
+                <Descriptions.Item label={t("poiDetail.labels.introduction")}>
+                  {poi.approvedIntroduction}
+                </Descriptions.Item>
+              ) : null}
             </Descriptions>
           </section>
 
-          {menuItems.length > 0 && (
+          <PoiQrCard poiId={poi.id || id} poiName={name} />
+
+          {menuItems.length > 0 ? (
             <section className="poi-detail-section">
-              <h2>🍜 Thực đơn ({menuItems.length} món)</h2>
+              <h2>{t("poiDetail.menuTitle", { count: menuItems.length })}</h2>
               <div className="poi-detail-menu">
                 {menuItems.map((item, index) => (
                   <div key={item.id || index} className="poi-menu-item">
-                    <div className="poi-menu-item-info">
-                      <h3>{item.name || "N/A"}</h3>
-                      {item.description && <p>{item.description}</p>}
+                    <div className="poi-menu-item-main">
+                      {item.imageUrl ? (
+                        <div className="poi-menu-item-media">
+                          <img src={item.imageUrl} alt={item.name || name} />
+                        </div>
+                      ) : null}
+
+                      <div className="poi-menu-item-info">
+                        <h3>{item.name || t("poiDetail.unknownDish")}</h3>
+                        {item.description ? <p>{item.description}</p> : null}
+                      </div>
                     </div>
-                    {item.price && (
+
+                    {item.price ? (
                       <div className="poi-menu-item-price">
                         <strong>
                           {new Intl.NumberFormat("vi-VN", {
                             style: "currency",
                             currency: "VND",
+                            maximumFractionDigits: 0,
                           }).format(item.price)}
                         </strong>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 ))}
               </div>
             </section>
-          )}
+          ) : null}
 
           <section className="poi-detail-section">
-            <h2>📝 Ghi chú</h2>
+            <h2>{t("poiDetail.noteTitle")}</h2>
             <div className="poi-detail-note">
-              <p>
-                Đây là thông tin công khai của địa điểm trên bản đồ DiDuDuaDi.
-                Quét mã QR tại quán để xác nhận thanh toán và nhận ưu đãi.
-              </p>
+              <p>{t("poiDetail.noteBody")}</p>
             </div>
           </section>
         </div>

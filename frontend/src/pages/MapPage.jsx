@@ -6,12 +6,14 @@ import SpeechGuidePlayer from "../components/audio/SpeechGuidePlayer";
 import PoiDetailSheet from "../components/map/PoiDetailSheet";
 import MapView from "../components/map/MapView";
 import Loading from "../components/common/Loading";
+import PoiQrCard from "../components/common/PoiQrCard";
 import useGeolocation from "../hooks/useGeolocation";
 import { SUPPORTED_LANGUAGES } from "../i18n";
 import { setAutoNarrateOnTouch, setAutoPlayAudio } from "../store/slices/appSlice";
 import { trackAudioPlay, trackPoiView } from "../services/analyticsService";
 import { getNearbyPois, getPois } from "../services/poiService";
 import { getDrivingRoute } from "../services/routeService";
+import { getTours } from "../services/tourService";
 import { translateText } from "../services/translateService";
 import { VINH_KHANH_CENTER } from "../utils/constants";
 import userService from "../services/userService";
@@ -19,6 +21,7 @@ import {
   calculateDistanceMeters,
   formatDistance,
   getLocalizedValue,
+  resolveBackendUrl,
 } from "../utils/helpers";
 import "./MapPage.css";
 
@@ -42,8 +45,13 @@ export default function MapPage() {
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [isPoiDetailOpen, setIsPoiDetailOpen] = useState(false);
   const [selectedPoiPlaybackKey, setSelectedPoiPlaybackKey] = useState("");
+  const [selectedTourId, setSelectedTourId] = useState("");
   const [poiSearchTerm, setPoiSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(max-width: 768px)").matches : false,
+  );
+  const [mobilePanel, setMobilePanel] = useState("map");
   const [mapCenter, setMapCenter] = useState(VINH_KHANH_CENTER);
   const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM);
   const [viewCenter, setViewCenter] = useState(null);
@@ -61,6 +69,12 @@ export default function MapPage() {
     select: (response) => response.data ?? [],
   });
 
+  const toursQuery = useQuery({
+    queryKey: ["tours"],
+    queryFn: getTours,
+    select: (response) => (Array.isArray(response) ? response : response?.data ?? []),
+  });
+
   const nearbyPoisQuery = useQuery({
     queryKey: ["pois", "nearby", effectiveLocation?.lat, effectiveLocation?.lng, radius],
     queryFn: () => getNearbyPois(effectiveLocation.lat, effectiveLocation.lng, radius),
@@ -68,7 +82,30 @@ export default function MapPage() {
     select: (response) => response.data ?? [],
   });
 
-  const rawVisiblePois = effectiveLocation ? nearbyPoisQuery.data ?? [] : allPoisQuery.data ?? [];
+  const allPois = allPoisQuery.data ?? [];
+  const tours = toursQuery.data ?? [];
+  const rawVisiblePois = effectiveLocation ? nearbyPoisQuery.data ?? [] : allPois;
+
+  const selectedTour = useMemo(
+    () => tours.find((tour) => tour.id === selectedTourId) ?? null,
+    [selectedTourId, tours],
+  );
+
+  const rawTourPois = useMemo(() => {
+    if (!selectedTour) return [];
+
+    const poiById = new Map(allPois.map((poi) => [poi.id, poi]));
+    return (selectedTour.steps ?? [])
+      .slice()
+      .sort((a, b) => a.order - b.order)
+      .map((step) => {
+        const poi = poiById.get(step.poiId);
+        return poi ? { ...poi, tourOrder: step.order } : null;
+      })
+      .filter(Boolean);
+  }, [allPois, selectedTour]);
+
+  const rawDisplayPois = selectedTour ? rawTourPois : rawVisiblePois;
 
   useEffect(() => {
     let isCanceled = false;
@@ -77,7 +114,7 @@ export default function MapPage() {
       const nextTranslatedContent = {};
 
       await Promise.all(
-        rawVisiblePois.map(async (poi) => {
+        rawDisplayPois.map(async (poi) => {
           const translatedEntry = {};
 
           if (shouldDynamicallyTranslate(poi.name, i18n.language)) {
@@ -112,7 +149,7 @@ export default function MapPage() {
       }
     }
 
-    if (!rawVisiblePois.length) {
+    if (!rawDisplayPois.length) {
       setTranslatedPoiContent({});
       return undefined;
     }
@@ -122,20 +159,21 @@ export default function MapPage() {
     return () => {
       isCanceled = true;
     };
-  }, [i18n.language, rawVisiblePois, speechLanguage]);
+  }, [i18n.language, rawDisplayPois, speechLanguage]);
 
-  const visiblePois = useMemo(
+  const displayPois = useMemo(
     () => {
-      const mapped = rawVisiblePois.map((poi) => {
+      const mapped = rawDisplayPois.map((poi) => {
         const translatedEntry = translatedPoiContent[poi.id] ?? {};
 
         return {
           ...poi,
-          audioUrl:
+          audioUrl: resolveBackendUrl(
             getLocalizedValue(poi.audioGuides, i18n.language) ||
-            getLocalizedValue(poi.audioUrl, i18n.language) ||
-            poi.audioUrl ||
-            "",
+              getLocalizedValue(poi.audioUrl, i18n.language) ||
+              poi.audioUrl ||
+              "",
+          ),
           displayDescription:
             translatedEntry.displayDescription ||
             getLocalizedValue(poi.description, i18n.language),
@@ -147,30 +185,34 @@ export default function MapPage() {
       });
 
       return mapped.sort((a, b) => {
+        if (selectedTour) {
+          return (a.tourOrder ?? 0) - (b.tourOrder ?? 0);
+        }
+
         if (a.isFavorite === b.isFavorite) return 0;
         return a.isFavorite ? -1 : 1;
       });
     },
-    [i18n.language, rawVisiblePois, translatedPoiContent],
+    [i18n.language, rawDisplayPois, selectedTour, translatedPoiContent],
   );
 
   const normalizedSearchTerm = normalizeForSearch(poiSearchTerm.trim());
   const poiSearchResults = useMemo(() => {
     if (!normalizedSearchTerm) return [];
 
-    return visiblePois
+    return displayPois
       .filter((poi) => {
         const name = normalizeForSearch(poi.displayName);
         const category = normalizeForSearch(poi.category);
         return name.includes(normalizedSearchTerm) || category.includes(normalizedSearchTerm);
       })
       .slice(0, 8);
-  }, [normalizedSearchTerm, visiblePois]);
+  }, [displayPois, normalizedSearchTerm]);
 
   useEffect(() => {
     if (!selectedPoi) return;
 
-    const matchedPoi = visiblePois.find((poi) => poi.id === selectedPoi.id);
+    const matchedPoi = displayPois.find((poi) => poi.id === selectedPoi.id);
     if (!matchedPoi) {
       setSelectedPoi(null);
       setSelectedPoiPlaybackKey("");
@@ -181,7 +223,17 @@ export default function MapPage() {
     if (matchedPoi !== selectedPoi) {
       setSelectedPoi(matchedPoi);
     }
-  }, [selectedPoi, visiblePois]);
+  }, [displayPois, selectedPoi]);
+
+  useEffect(() => {
+    if (!selectedTour || selectedPoi || !rawTourPois.length) {
+      return;
+    }
+
+    setSelectedPoi(rawTourPois[0]);
+    setMapCenter(rawTourPois[0].location);
+    setMapZoom(DEFAULT_MAP_ZOOM);
+  }, [rawTourPois, selectedPoi, selectedTour]);
 
   useEffect(() => {
     if (!selectedPoi || !selectedPoiPlaybackKey) return;
@@ -201,6 +253,23 @@ export default function MapPage() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSearchOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const syncViewport = (event) => {
+      setIsMobileViewport(event.matches);
+      if (!event.matches) {
+        setMobilePanel("map");
+      }
+    };
+
+    setIsMobileViewport(mediaQuery.matches);
+    mediaQuery.addEventListener("change", syncViewport);
+
+    return () => mediaQuery.removeEventListener("change", syncViewport);
+  }, []);
 
   useEffect(() => {
     if (!selectedPoi?.shopId) return;
@@ -238,13 +307,13 @@ export default function MapPage() {
   }, [effectiveLocation, selectedPoi]);
 
   const isLoading = allPoisQuery.isLoading || (effectiveLocation && nearbyPoisQuery.isLoading);
-  const queryError = allPoisQuery.error || nearbyPoisQuery.error;
+  const queryError = allPoisQuery.error || nearbyPoisQuery.error || toursQuery.error;
 
   const nearestPoi = useMemo(() => {
-    if (!effectiveLocation || !visiblePois.length) return null;
+    if (!effectiveLocation || !displayPois.length) return null;
     let minDistance = Infinity;
     let nearest = null;
-    for (const poi of visiblePois) {
+    for (const poi of displayPois) {
       const dist = calculateDistanceMeters(effectiveLocation, poi.location);
       if (dist < minDistance) {
         minDistance = dist;
@@ -252,7 +321,7 @@ export default function MapPage() {
       }
     }
     return nearest;
-  }, [effectiveLocation, visiblePois]) ?? (visiblePois[0] || null);
+  }, [displayPois, effectiveLocation]) ?? (displayPois[0] || null);
 
   const nearestPoiDistance =
     nearestPoi && effectiveLocation
@@ -349,9 +418,9 @@ export default function MapPage() {
   });
 
   function handleToggleFavorite(event, poi) {
-    event.stopPropagation(); // Ngăn việc bấm thả tim làm chọn luôn POI trên bản đồ
+    event.stopPropagation();
     if (!currentUser) {
-      alert(t("auth.loginRequired", "Bạn cần đăng nhập để sử dụng tính năng này."));
+      alert(t("auth.loginRequired"));
       return;
     }
     toggleFavoriteMutation.mutate({ poiId: poi.id, isFavorite: poi.isFavorite });
@@ -377,6 +446,10 @@ export default function MapPage() {
       }
     }
 
+    if (options.mobilePanel) {
+      setMobilePanel(options.mobilePanel);
+    }
+
     if (shouldNarrate) {
       setSelectedPoiPlaybackKey(buildPlaybackKey(poi.id, i18n.language));
     } else if (options.resetPlayback !== false) {
@@ -391,12 +464,53 @@ export default function MapPage() {
     setSelectedPoiPlaybackKey(buildPlaybackKey(poi.id, i18n.language));
   }
 
+  function handleSelectTour(event) {
+    const nextTourId = event.target.value;
+    setSelectedTourId(nextTourId);
+    setSelectedPoiPlaybackKey("");
+    setIsPoiDetailOpen(false);
+
+    if (!nextTourId) {
+      setSelectedPoi(null);
+      return;
+    }
+
+    const tour = tours.find((item) => item.id === nextTourId);
+    if (!tour) {
+      return;
+    }
+
+    const orderedTourStops = (tour.steps ?? [])
+      .slice()
+      .sort((a, b) => a.order - b.order)
+      .map((step) => allPois.find((poi) => poi.id === step.poiId))
+      .filter(Boolean);
+
+    const firstStop = orderedTourStops[0];
+    if (!firstStop) {
+      setSelectedPoi(null);
+      return;
+    }
+
+    setSelectedPoi(firstStop);
+    setMapCenter(firstStop.location);
+    setMapZoom(DEFAULT_MAP_ZOOM);
+    setMobilePanel("map");
+  }
+
+  function handleClearSelectedTour() {
+    setSelectedTourId("");
+    setSelectedPoi(null);
+    setSelectedPoiPlaybackKey("");
+  }
+
   function handleCenterOnUser() {
     if (!location) return;
     setDemoLocation(null);
     setSelectedPoi(null);
     setSelectedPoiPlaybackKey("");
     setIsPoiDetailOpen(false);
+    setMobilePanel("map");
     setMapCenter(location);
     setMapZoom(DEFAULT_MAP_ZOOM);
   }
@@ -406,6 +520,7 @@ export default function MapPage() {
     setSelectedPoi(null);
     setSelectedPoiPlaybackKey("");
     setIsPoiDetailOpen(false);
+    setMobilePanel("map");
     setMapCenter(VINH_KHANH_CENTER);
     setMapZoom(DEFAULT_MAP_ZOOM);
   }
@@ -423,11 +538,16 @@ export default function MapPage() {
   function handleSearchThisArea() {
     if (viewCenter) {
       setDemoLocation({ lat: viewCenter.lat, lng: viewCenter.lng });
+      setMobilePanel("map");
     }
   }
 
   function handleSelectSearchResult(poi) {
-    handleSelectPoi(poi, { touchTriggered: true, zoomToPoi: true });
+    handleSelectPoi(poi, {
+      touchTriggered: true,
+      zoomToPoi: true,
+      mobilePanel: "map",
+    });
     setPoiSearchTerm(poi.displayName || "");
     setIsSearchOpen(false);
   }
@@ -485,12 +605,46 @@ export default function MapPage() {
             <span className={`status-pill ${effectiveLocation ? "ok" : ""}`}>
               {demoLocation ? t("map.demoMode") : location ? t("map.gpsOn") : t("map.gpsWaiting")}
             </span>
-            <span className="status-pill">{t("map.poiCount", { count: visiblePois.length })}</span>
+            <span className="status-pill">{t("map.poiCount", { count: displayPois.length })}</span>
+            {selectedTour ? (
+              <span className="status-pill ok">
+                {t("map.tourActiveBadge", {
+                  name: getLocalizedValue(selectedTour.title, i18n.language),
+                })}
+              </span>
+            ) : null}
           </div>
         </header>
 
+        {isMobileViewport ? (
+          <div className="map-mobile-switch" role="tablist" aria-label={t("map.liveMap")}>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mobilePanel === "map"}
+              className={mobilePanel === "map" ? "active" : ""}
+              onClick={() => setMobilePanel("map")}
+            >
+              {t("nav.map")}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mobilePanel === "list"}
+              className={mobilePanel === "list" ? "active" : ""}
+              onClick={() => setMobilePanel("list")}
+            >
+              {t("map.nearbyTitle")}
+            </button>
+          </div>
+        ) : null}
+
         <div className="map-content-grid">
-          <div className="map-stage-card">
+          <div
+            className={`map-stage-card${
+              isMobileViewport && mobilePanel !== "map" ? " is-hidden-mobile" : ""
+            }`}
+          >
             <div className="map-toolbar">
               <label className="radius-control">
                 <span>{t("map.searchRadius", { radius })}</span>
@@ -525,7 +679,7 @@ export default function MapPage() {
                       aria-label={t("map.searchClear")}
                       title={t("map.searchClear")}
                     >
-                      ×
+                      {"\u00D7"}
                     </button>
                   ) : null}
                 </div>
@@ -590,9 +744,7 @@ export default function MapPage() {
                   }
                 />
                 <span>
-                  {t("map.autoNarrateOnTouch", {
-                    defaultValue: "Tự thuyết minh khi chạm POI hoặc mô tả",
-                  })}
+                  {t("map.autoNarrateOnTouch")}
                 </span>
               </label>
 
@@ -603,9 +755,7 @@ export default function MapPage() {
                   onChange={(event) => dispatch(setAutoPlayAudio(event.target.checked))}
                 />
                 <span>
-                  {t("map.autoNarrateNearby", {
-                    defaultValue: "Tự thuyết minh khi ở gần POI",
-                  })}
+                  {t("map.autoNarrateNearby")}
                 </span>
               </label>
             </div>
@@ -613,13 +763,13 @@ export default function MapPage() {
             <div className="map-canvas">
               {showSearchBtn ? (
                 <button className="search-area-btn" onClick={handleSearchThisArea} type="button">
-                  {t("map.searchThisArea", { defaultValue: "Tìm quanh khu vực này" })}
+                  {t("map.searchThisArea")}
                 </button>
               ) : null}
               <MapView
                 center={mapCenter}
                 zoom={mapZoom}
-                pois={visiblePois}
+                pois={displayPois}
                 selectedPoi={selectedPoi}
                 selectedPoiId={selectedPoi?.id}
                 selectedPoiDistanceLabel={
@@ -634,7 +784,12 @@ export default function MapPage() {
                   demoLocation ? t("map.demoLocationLabel") : t("map.userLocationLabel")
                 }
                 routePath={routePath}
-                onSelectPoi={(poi) => handleSelectPoi(poi, { touchTriggered: true })}
+                onSelectPoi={(poi) =>
+                  handleSelectPoi(poi, {
+                    touchTriggered: true,
+                    mobilePanel: "map",
+                  })
+                }
                 onMapMoveEnd={handleMapMoveEnd}
                 onMapLongPress={handleMapLongPress}
               />
@@ -653,9 +808,74 @@ export default function MapPage() {
             </div>
           </div>
 
-          <aside className="map-side-panel">
+          <aside
+            className={`map-side-panel${
+              isMobileViewport && mobilePanel !== "list" ? " is-hidden-mobile" : ""
+            }`}
+          >
             <article className="panel-card">
               <h2>{t("map.nearbyTitle")}</h2>
+              <div className="tour-picker-card">
+                <div className="tour-picker-head">
+                  <div>
+                    <strong>{t("map.tourTitle")}</strong>
+                    <p className="supporting-text">
+                      {selectedTour
+                        ? t("map.tourSelectedSummary", {
+                            count: rawTourPois.length,
+                            duration: selectedTour.estimatedDurationMinutes || rawTourPois.length * 20,
+                          })
+                        : t("map.tourHint")}
+                    </p>
+                  </div>
+                  {selectedTour ? (
+                    <button
+                      type="button"
+                      className="tour-clear-button"
+                      onClick={handleClearSelectedTour}
+                    >
+                      {t("map.tourClear")}
+                    </button>
+                  ) : null}
+                </div>
+
+                <select
+                  className="tour-select"
+                  value={selectedTourId}
+                  onChange={handleSelectTour}
+                  disabled={toursQuery.isLoading}
+                >
+                  <option value="">{t("map.tourAllOption")}</option>
+                  {tours.map((tour) => (
+                    <option key={tour.id} value={tour.id}>
+                      {getLocalizedValue(tour.title, i18n.language)}
+                    </option>
+                  ))}
+                </select>
+
+                {selectedTour ? (
+                  <div className="tour-step-list">
+                    {displayPois.map((poi) => (
+                      <button
+                        key={poi.id}
+                        type="button"
+                        className={`tour-step-chip ${selectedPoi?.id === poi.id ? "active" : ""}`}
+                        onClick={() =>
+                          handleSelectPoi(poi, {
+                            touchTriggered: true,
+                            mobilePanel: "map",
+                            zoomToPoi: true,
+                          })
+                        }
+                      >
+                        <span>{poi.tourOrder}</span>
+                        <strong>{poi.displayName}</strong>
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+
               {geoLoading ? <p className="supporting-text">{t("map.requestingLocation")}</p> : null}
               {geoError ? <p className="error-text">{geoError}</p> : null}
               {!geoError && effectiveLocation ? (
@@ -680,12 +900,14 @@ export default function MapPage() {
                 <p className="error-text">{queryError.message || t("map.loadError")}</p>
               ) : null}
 
-              {!isLoading && !queryError && visiblePois.length === 0 ? (
-                <p className="supporting-text">{t("map.emptyNearby")}</p>
+              {!isLoading && !queryError && displayPois.length === 0 ? (
+                <p className="supporting-text">
+                  {selectedTour ? t("map.tourEmpty") : t("map.emptyNearby")}
+                </p>
               ) : null}
 
               <div className="poi-list">
-                {visiblePois.map((poi) => {
+                {displayPois.map((poi) => {
                   const distance = effectiveLocation
                     ? calculateDistanceMeters(effectiveLocation, poi.location)
                     : null;
@@ -701,13 +923,18 @@ export default function MapPage() {
                         <div className="poi-card-info">
                           <strong>{poi.displayName}</strong>
                           <span className="poi-category">{poi.category}</span>
+                          {selectedTour ? (
+                            <span className="poi-tour-stop">
+                              {t("map.tourStopLabel", { order: poi.tourOrder })}
+                            </span>
+                          ) : null}
                         </div>
                         {(!currentUser || currentUser.role === "user") && (
                           <button
                             type="button"
                             className={`poi-favorite-btn ${poi.isFavorite ? "active" : ""}`}
                             onClick={(e) => handleToggleFavorite(e, poi)}
-                            title={poi.isFavorite ? t("favorites.remove", "Bỏ yêu thích") : t("favorites.add", "Thêm vào yêu thích")}
+                            title={poi.isFavorite ? t("favorites.remove") : t("favorites.add")}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
@@ -727,15 +954,31 @@ export default function MapPage() {
                 })}
               </div>
             </article>
+          </aside>
+        </div>
 
-            <article className="panel-card">
-              <h2>{t("map.selectedPoi")}</h2>
-              {!selectedPoi ? (
-                <p className="supporting-text">{t("map.selectHint")}</p>
-              ) : (
-                <div className="selected-poi">
-                  <strong>{selectedPoi.displayName}</strong>
-                  <span className="poi-category">{selectedPoi.category}</span>
+        <article className="panel-card map-detail-wide-card">
+          <h2>{t("map.selectedPoi")}</h2>
+          {!selectedPoi ? (
+            <p className="supporting-text">{t("map.selectHint")}</p>
+          ) : (
+            <div className="selected-poi selected-poi-wide">
+              <div className="selected-poi-main">
+                <div className="selected-poi-summary">
+                  <div className="selected-poi-head">
+                    <div>
+                      <strong>{selectedPoi.displayName}</strong>
+                      <span className="poi-category">{selectedPoi.category}</span>
+                    </div>
+                    <button
+                      type="button"
+                      className="map-detail-button"
+                      onClick={() => setIsPoiDetailOpen(true)}
+                    >
+                      {t("map.viewDetail")}
+                    </button>
+                  </div>
+
                   {autoNarrateOnTouch ? (
                     <button
                       type="button"
@@ -747,6 +990,7 @@ export default function MapPage() {
                   ) : (
                     <p>{selectedPoi.displayDescription || t("map.noDescription")}</p>
                   )}
+
                   {selectedPoi.displayIntroduction ? (
                     <p className="selected-poi-intro">{selectedPoi.displayIntroduction}</p>
                   ) : null}
@@ -776,54 +1020,51 @@ export default function MapPage() {
                       </p>
                     ) : null
                   ) : null}
-                  {selectedPoi.menuItems?.length ? (
-                    <div className="poi-menu-preview">
-                      <h3>{t("map.menuTitle")}</h3>
-                      <div className="poi-menu-list">
-                        {selectedPoi.menuItems.map((item) => (
-                          <article key={item.id} className="poi-menu-item">
-                            {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : null}
-                            <div>
-                              <strong>{item.name}</strong>
-                              <p>{item.description}</p>
-                              <span>
-                                {new Intl.NumberFormat("vi-VN", {
-                                  style: "currency",
-                                  currency: "VND",
-                                  maximumFractionDigits: 0,
-                                }).format(item.price || 0)}
-                              </span>
-                            </div>
-                          </article>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="map-detail-button"
-                    onClick={() => setIsPoiDetailOpen(true)}
-                  >
-                    {t("map.viewDetail")}
-                  </button>
-                  <SpeechGuidePlayer
-                    audioUrl={selectedPoi.audioUrl}
-                    onPlaybackStart={handleAudioPlaybackStart}
-                    playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
-                    speechLanguage={speechLanguage}
-                    speechText={selectedPoi.displayDescription}
-                    title={`${selectedPoi.displayName}${
-                      selectedPoiPlaybackKey
-                        ? ` (${t("audio.autoPlayReady")})`
-                        : ""
-                    }`}
-                    triggerAutoSpeak={Boolean(selectedPoiPlaybackKey)}
-                  />
                 </div>
-              )}
-            </article>
-          </aside>
-        </div>
+
+                <PoiQrCard poiId={selectedPoi.id} poiName={selectedPoi.displayName} compact />
+              </div>
+
+              <div className="selected-poi-extra">
+                {selectedPoi.menuItems?.length ? (
+                  <div className="poi-menu-preview">
+                    <h3>{t("map.menuTitle")}</h3>
+                    <div className="poi-menu-list">
+                      {selectedPoi.menuItems.map((item) => (
+                        <article key={item.id} className="poi-menu-item">
+                          {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : null}
+                          <div>
+                            <strong>{item.name}</strong>
+                            <p>{item.description}</p>
+                            <span>
+                              {new Intl.NumberFormat("vi-VN", {
+                                style: "currency",
+                                currency: "VND",
+                                maximumFractionDigits: 0,
+                              }).format(item.price || 0)}
+                            </span>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <SpeechGuidePlayer
+                  audioUrl={selectedPoi.audioUrl}
+                  onPlaybackStart={handleAudioPlaybackStart}
+                  playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
+                  speechLanguage={speechLanguage}
+                  speechText={selectedPoi.displayDescription}
+                  title={`${selectedPoi.displayName}${
+                    selectedPoiPlaybackKey ? ` (${t("audio.autoPlayReady")})` : ""
+                  }`}
+                  triggerAutoSpeak={Boolean(selectedPoiPlaybackKey)}
+                />
+              </div>
+            </div>
+          )}
+        </article>
       </div>
       {isPoiDetailOpen && selectedPoi ? (
         <PoiDetailSheet
