@@ -23,25 +23,21 @@ export default function App() {
       <Route path="/poi/:id" element={<PoiDetailPage />} />
 
       <Route
-        element={<ProtectedRoute allowedRoles={["user", "owner", "admin"]} />}
-      >
-        <Route
-          path="/"
-          element={
-            <MainLayout>
-              <Navigate to="/map" replace />
-            </MainLayout>
-          }
-        />
-        <Route
-          path="/map"
-          element={
-            <MainLayout>
-              <MapPage />
-            </MainLayout>
-          }
-        />
-      </Route>
+        path="/"
+        element={
+          <MainLayout>
+            <Navigate to="/map" replace />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/map"
+        element={
+          <MainLayout>
+            <MapPage />
+          </MainLayout>
+        }
+      />
 
       <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
         <Route
@@ -94,7 +90,7 @@ export default function App() {
         />
       </Route>
 
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/map" replace />} />
     </Routes>
   );
 }

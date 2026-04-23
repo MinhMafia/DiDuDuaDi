@@ -1,4 +1,12 @@
 const QR_BASE_URL_STORAGE_KEY = "didududadi.qrBaseUrl";
+const DEFAULT_PUBLIC_APP_URL = "https://di-du-dua-di.vercel.app";
+
+function isPrivateOrLocalBaseUrl(baseUrl) {
+  const normalizedBaseUrl = normalizePublicBaseUrl(baseUrl);
+  return /localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.|10\.|172\.(1[6-9]|2\d|3[0-1])\./i.test(
+    normalizedBaseUrl,
+  );
+}
 
 export function normalizePublicBaseUrl(value) {
   if (!value) return "";
@@ -17,14 +25,28 @@ export function getInitialPublicBaseUrl() {
   const configuredBaseUrl = normalizePublicBaseUrl(import.meta.env.VITE_PUBLIC_APP_URL);
 
   if (typeof window === "undefined") {
-    return configuredBaseUrl;
+    return configuredBaseUrl || DEFAULT_PUBLIC_APP_URL;
   }
+
+  const runtimeBaseUrl = normalizePublicBaseUrl(window.location.origin);
 
   const storedBaseUrl = normalizePublicBaseUrl(
     window.localStorage.getItem(QR_BASE_URL_STORAGE_KEY),
   );
 
-  return configuredBaseUrl || storedBaseUrl || normalizePublicBaseUrl(window.location.origin);
+  if (runtimeBaseUrl && !isPrivateOrLocalBaseUrl(runtimeBaseUrl)) {
+    return runtimeBaseUrl;
+  }
+
+  if (configuredBaseUrl && !isPrivateOrLocalBaseUrl(configuredBaseUrl)) {
+    return configuredBaseUrl;
+  }
+
+  if (storedBaseUrl && !isPrivateOrLocalBaseUrl(storedBaseUrl)) {
+    return storedBaseUrl;
+  }
+
+  return DEFAULT_PUBLIC_APP_URL;
 }
 
 export function persistPublicBaseUrl(value) {
@@ -46,6 +68,5 @@ export function buildPoiDetailUrl(poiId, baseUrl) {
 }
 
 export function isLocalBaseUrl(baseUrl) {
-  const normalizedBaseUrl = normalizePublicBaseUrl(baseUrl);
-  return /localhost|127\.0\.0\.1/i.test(normalizedBaseUrl);
+  return isPrivateOrLocalBaseUrl(baseUrl);
 }

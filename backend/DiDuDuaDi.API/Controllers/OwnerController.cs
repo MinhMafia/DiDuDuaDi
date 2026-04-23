@@ -187,26 +187,4 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
         return Ok(new ApiResponse<bool>(true, true, "Menu item deleted"));
     }
 
-    [HttpPost("claim-codes")]
-    public ActionResult<ApiResponse<ClaimCodeSummary>> CreateClaimCode([FromBody] CreateClaimCodeRequest request)
-    {
-        var username = User.FindFirstValue(ClaimTypes.Name);
-        if (string.IsNullOrWhiteSpace(username))
-        {
-            return BadRequest(new ApiResponse<ClaimCodeSummary>(null!, false, "Username is required"));
-        }
-
-        if (request.Amount < 0)
-        {
-            return BadRequest(new ApiResponse<ClaimCodeSummary>(null!, false, "Amount must be positive"));
-        }
-
-        var claimCode = ownerRepository.CreateClaimCode(username, request);
-        if (claimCode is null)
-        {
-            return NotFound(new ApiResponse<ClaimCodeSummary>(null!, false, "Owner shop not found"));
-        }
-
-        return Ok(new ApiResponse<ClaimCodeSummary>(claimCode, true, "Claim code created"));
-    }
 }

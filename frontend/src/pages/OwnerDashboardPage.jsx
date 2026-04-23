@@ -6,7 +6,6 @@ import { useSelector } from "react-redux";
 import Loading from "../components/common/Loading";
 import PoiQrCard from "../components/common/PoiQrCard";
 import {
-  createClaimCode,
   createMenuItem,
   deleteMenuItem,
   getOwnerDashboard,
@@ -45,12 +44,6 @@ const EMPTY_POI_FORM = {
   descriptionEn: "",
 };
 
-const EMPTY_CLAIM_CODE = {
-  amount: "",
-  note: "",
-  expireAfterHours: 24,
-};
-
 export default function OwnerDashboardPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -59,7 +52,6 @@ export default function OwnerDashboardPage() {
   const [profileForm, setProfileForm] = useState(EMPTY_PROFILE);
   const [menuForm, setMenuForm] = useState(EMPTY_MENU_ITEM);
   const [poiForm, setPoiForm] = useState(EMPTY_POI_FORM);
-  const [claimCodeForm, setClaimCodeForm] = useState(EMPTY_CLAIM_CODE);
   const [editingMenuItemId, setEditingMenuItemId] = useState(null);
   const [feedback, setFeedback] = useState("");
 
@@ -141,19 +133,8 @@ export default function OwnerDashboardPage() {
     },
   });
 
-  const claimCodeMutation = useMutation({
-    mutationFn: (payload) => createClaimCode(payload),
-    onSuccess: async (response) => {
-      const code = response.data?.code ? ` (${response.data.code})` : "";
-      setFeedback(`${response.message || t("owner.feedback.claimCreated")}${code}`);
-      setClaimCodeForm(EMPTY_CLAIM_CODE);
-      await invalidateDashboard();
-    },
-  });
-
   const dashboard = dashboardQuery.data;
   const menuItems = dashboard?.menuItems ?? [];
-  const claimCodes = dashboard?.recentClaimCodes ?? [];
   const stats = dashboard?.stats;
   const primaryPoi = dashboard?.primaryPoi;
   const primaryPoiId = primaryPoi?.poiId || primaryPoi?.id || "";
@@ -163,8 +144,6 @@ export default function OwnerDashboardPage() {
   const displayPrimaryPoiNameVi = getFriendlyDisplayName(primaryPoi?.nameVi || "");
   const primaryPoiCategoryLabel = translateOwnerCategory(t, primaryPoi?.category);
   const availableMenuCount = menuItems.filter((item) => item.isAvailable).length;
-  const todayClaimCodesCount = countTodayClaims(claimCodes);
-  const latestClaimCode = claimCodes[0];
   const heroSummaryText = getFriendlyOwnerSummary(
     dashboard?.approvedIntroduction ||
       dashboard?.pendingIntroduction ||
@@ -190,18 +169,25 @@ export default function OwnerDashboardPage() {
       icon: "02",
     },
     {
-      id: "claims",
-      label: t("owner.claimTitle"),
-      description: t("owner.claimSubtitle"),
-      badge: String(todayClaimCodesCount),
+      id: "profile",
+      label: t("owner.shopInfoTitle"),
+      description: t("owner.sections.profileDescription"),
+      badge: displayShopName || "--",
       icon: "03",
     },
     {
-      id: "settings",
-      label: t("owner.settingsTitle", "Cài đặt quán"),
-      description: t("owner.settingsSubtitle", "Cập nhật hồ sơ và thông tin hiển thị trên bản đồ."),
-      badge: displayShopName || "--",
+      id: "mapInfo",
+      label: t("owner.poiTitle"),
+      description: t("owner.poiSubtitle"),
+      badge: primaryPoiCategoryLabel || "--",
       icon: "04",
+    },
+    {
+      id: "qr",
+      label: t("qr.kicker"),
+      description: t("owner.sections.qrDescription"),
+      badge: primaryPoiId ? t("owner.sections.qrReady") : t("owner.sections.qrMissing"),
+      icon: "05",
     },
   ];
   const activeSectionConfig =
@@ -237,16 +223,6 @@ export default function OwnerDashboardPage() {
     createMenuMutation.mutate(payload);
   }
 
-  function handleClaimSubmit(event) {
-    event.preventDefault();
-    setFeedback("");
-    claimCodeMutation.mutate({
-      ...claimCodeForm,
-      amount: Number(claimCodeForm.amount || 0),
-      expireAfterHours: Number(claimCodeForm.expireAfterHours || 24),
-    });
-  }
-
   function startEditMenuItem(item) {
     setEditingMenuItemId(item.id);
     setActiveSection("menu");
@@ -275,7 +251,6 @@ export default function OwnerDashboardPage() {
       <div className="owner-overview">
         <div className="owner-metrics-row">
           <MetricCard label={t("owner.labels.menuCount")} value={availableMenuCount} hint={`${menuItems.length} ${t("owner.menuTitle").toLowerCase()}`} />
-          <MetricCard label={t("owner.stats.claimCodes")} value={todayClaimCodesCount} hint={t("owner.today", "Hôm nay")} />
           <MetricCard label={t("owner.stats.totalVisits")} value={stats?.totalVisitCount ?? 0} hint={t("owner.stats.todayVisits") + `: ${stats?.visitCountToday ?? 0}`} />
           <MetricCard label={t("owner.stats.audioPlays")} value={stats?.totalAudioPlayCount ?? 0} hint={t("owner.stats.todayAudio") + `: ${stats?.audioPlayCountToday ?? 0}`} />
         </div>
@@ -290,7 +265,7 @@ export default function OwnerDashboardPage() {
               <h2>{displayShopName || t("owner.noShop")}</h2>
               <p>{heroSummaryText}</p>
               <div className="owner-action-row">
-                <button type="button" className="owner-button" onClick={() => setActiveSection("settings")}>
+                <button type="button" className="owner-button" onClick={() => setActiveSection("profile")}>
                   {t("owner.edit")}
                 </button>
                 <Link className="owner-button secondary" to="/map">
@@ -298,48 +273,8 @@ export default function OwnerDashboardPage() {
                 </Link>
               </div>
             </div>
-            <ShopImage src={coverImage} label={displayShopName} />
-          </section>
-
-          <section className="owner-section-card owner-fast-payment">
-            <p className="owner-section-kicker">{t("owner.sections.claimKicker")}</p>
-            <h2>{t("owner.quickPayment", "Tạo mã nhanh")}</h2>
-            <p>{t("owner.quickPaymentHint", "Nhập số tiền, tạo mã và đọc ngay cho khách tại quầy.")}</p>
-            <QuickClaimForm
-              claimCodeForm={claimCodeForm}
-              isPending={claimCodeMutation.isPending}
-              onChange={setClaimCodeForm}
-              onSubmit={handleClaimSubmit}
-              t={t}
-            />
-            {latestClaimCode ? (
-              <div className="owner-latest-code">
-                <span>{t("owner.latestCode", "Mã gần nhất")}</span>
-                <strong>{latestClaimCode.code}</strong>
-              </div>
-            ) : null}
           </section>
         </div>
-
-        <section className="owner-section-card">
-          <div className="owner-section-head">
-            <div>
-              <p className="owner-section-kicker">{t("owner.sections.menuListKicker")}</p>
-              <h2>{t("owner.sections.menuList")}</h2>
-            </div>
-            <button type="button" className="owner-button secondary" onClick={() => setActiveSection("menu")}>
-              {t("owner.addMenu")}
-            </button>
-          </div>
-          <CompactMenuList
-            items={menuItems.slice(0, 5)}
-            emptyText={t("owner.empty.menu")}
-            onEdit={startEditMenuItem}
-            onToggle={handleToggleMenuAvailability}
-            t={t}
-            compact
-          />
-        </section>
       </div>
     );
   }
@@ -452,39 +387,7 @@ export default function OwnerDashboardPage() {
     );
   }
 
-  function renderClaimsPanel() {
-    return (
-      <div className="owner-payment-layout">
-        <section className="owner-section-card owner-payment-maker">
-          <p className="owner-section-kicker">{t("owner.sections.claimKicker")}</p>
-          <h2>{t("owner.claimTitle")}</h2>
-          <p>{t("owner.claimSubtitle")}</p>
-          <QuickClaimForm
-            claimCodeForm={claimCodeForm}
-            isPending={claimCodeMutation.isPending}
-            onChange={setClaimCodeForm}
-            onSubmit={handleClaimSubmit}
-            t={t}
-            large
-          />
-        </section>
-
-        <section className="owner-section-card">
-          <div className="owner-section-head">
-            <div>
-              <p className="owner-section-kicker">{t("owner.sections.claimHistoryKicker")}</p>
-              <h2>{t("owner.sections.claimHistory")}</h2>
-              <p>{t("owner.sections.claimHistoryDescription")}</p>
-            </div>
-            <span className="owner-count-pill">{claimCodes.length}</span>
-          </div>
-          <ClaimCodeList claimCodes={claimCodes} emptyText={t("owner.empty.claims")} t={t} />
-        </section>
-      </div>
-    );
-  }
-
-  function renderSettingsPanel() {
+  function renderProfilePanel() {
     return (
       <div className="owner-settings-layout">
         <section className="owner-section-card">
@@ -515,7 +418,13 @@ export default function OwnerDashboardPage() {
             </button>
           </form>
         </section>
+      </div>
+    );
+  }
 
+  function renderMapInfoPanel() {
+    return (
+      <div className="owner-settings-layout">
         <section className="owner-section-card">
           <div className="owner-section-head">
             <div>
@@ -540,12 +449,28 @@ export default function OwnerDashboardPage() {
               {poiMutation.isPending ? t("owner.saving") : t("owner.savePoi")}
             </button>
           </form>
+        </section>
+      </div>
+    );
+  }
+
+  function renderQrPanel() {
+    return (
+      <div className="owner-settings-layout">
+        <section className="owner-section-card">
+          <div className="owner-section-head">
+            <div>
+              <p className="owner-section-kicker">{t("qr.kicker")}</p>
+              <h2>{t("qr.title")}</h2>
+              <p>{t("qr.subtitle", { name: displayPrimaryPoiNameVi || displayShopName || t("qr.poiFallbackName") })}</p>
+            </div>
+          </div>
 
           {primaryPoiId ? (
-            <div className="owner-qr-inline">
-              <PoiQrCard poiId={primaryPoiId} poiName={displayPrimaryPoiNameVi || displayShopName} compact />
-            </div>
-          ) : null}
+            <PoiQrCard poiId={primaryPoiId} poiName={displayPrimaryPoiNameVi || displayShopName} />
+          ) : (
+            <p className="owner-empty-state">{t("owner.sections.qrMissingDescription")}</p>
+          )}
         </section>
       </div>
     );
@@ -554,8 +479,9 @@ export default function OwnerDashboardPage() {
   function renderActivePanel() {
     if (!dashboard) return null;
     if (activeSection === "menu") return renderMenuPanel();
-    if (activeSection === "claims") return renderClaimsPanel();
-    if (activeSection === "settings") return renderSettingsPanel();
+    if (activeSection === "profile") return renderProfilePanel();
+    if (activeSection === "mapInfo") return renderMapInfoPanel();
+    if (activeSection === "qr") return renderQrPanel();
     return renderOverviewPanel();
   }
 
@@ -586,63 +512,62 @@ export default function OwnerDashboardPage() {
   return (
     <section className="owner-page">
       <div className="owner-shell">
-        <aside className="owner-sidebar">
-          <div className="owner-brand-card">
-            <ShopImage src={coverImage} label={displayShopName} compact />
-            <div>
-              <p className="owner-kicker">{t("owner.badge")}</p>
-              <h1>{displayShopName || t("owner.noShop")}</h1>
+        <header className="owner-shop-header">
+          <ShopImage src={coverImage} label={displayShopName} compact />
+          <div className="owner-shop-header-copy">
+            <p className="owner-kicker">{t("owner.badge")}</p>
+            <h1>{displayShopName || t("owner.noShop")}</h1>
+            <p>{heroSummaryText}</p>
+            <div className="owner-shop-header-meta">
               {primaryPoiCategoryLabel ? <span className="owner-shop-meta">{primaryPoiCategoryLabel}</span> : null}
               <span className={`owner-status-pill owner-status-pill-${statusTone}`}>
                 {activeStatusLabel}
               </span>
             </div>
           </div>
-
-          <nav className="owner-nav">
-            {sections.map((section) => (
-              <button
-                key={section.id}
-                type="button"
-                className={`owner-nav-button${activeSection === section.id ? " active" : ""}`}
-                onClick={() => setActiveSection(section.id)}
-              >
-                <span className="owner-nav-index">{section.icon}</span>
-                <span className="owner-nav-copy">
-                  <strong>{section.label}</strong>
-                  <small>{section.description}</small>
-                </span>
-                <span className="owner-nav-badge">{section.badge}</span>
-              </button>
-            ))}
-          </nav>
-
-          <Link className="owner-button owner-sidebar-map" to="/map">
+          <Link className="owner-button secondary" to="/map">
             {t("owner.viewMap")}
           </Link>
-        </aside>
+        </header>
 
-        <main className="owner-main">
-          <header className="owner-main-header">
-            <div>
-              <p className="owner-section-kicker">{t("owner.badge")}</p>
-              <h2>{activeSectionConfig.label}</h2>
-              <p>{activeSectionConfig.description}</p>
-            </div>
-            <div className="owner-header-actions">
-              <span className="owner-content-tag">{activeSectionConfig.badge}</span>
-              {activeSection !== "claims" ? (
-                <button type="button" className="owner-button secondary" onClick={() => setActiveSection("claims")}>
-                  {t("owner.createClaim")}
+        <div className="owner-workspace">
+          <aside className="owner-sidebar">
+            <nav className="owner-nav">
+              {sections.map((section) => (
+                <button
+                  key={section.id}
+                  type="button"
+                  className={`owner-nav-button${activeSection === section.id ? " active" : ""}`}
+                  onClick={() => setActiveSection(section.id)}
+                >
+                  <span className="owner-nav-index">{section.icon}</span>
+                  <span className="owner-nav-copy">
+                    <strong>{section.label}</strong>
+                    <small>{section.description}</small>
+                  </span>
+                  <span className="owner-nav-badge">{section.badge}</span>
                 </button>
-              ) : null}
-            </div>
-          </header>
+              ))}
+            </nav>
+          </aside>
 
-          {feedback ? <div className="owner-feedback">{feedback}</div> : null}
+          <main className="owner-main">
+            <header className="owner-main-header">
+              <div>
+                <p className="owner-section-kicker">{t("owner.badge")}</p>
+                <h2>{activeSectionConfig.label}</h2>
+                <p>{activeSectionConfig.description}</p>
+              </div>
+              <div className="owner-header-actions">
+                <span className="owner-content-tag">{activeSectionConfig.badge}</span>
+              </div>
+            </header>
 
-          <div className="owner-stage">{renderActivePanel()}</div>
-        </main>
+            {feedback ? <div className="owner-feedback">{feedback}</div> : null}
+
+            <div className="owner-stage">{renderActivePanel()}</div>
+          </main>
+        </div>
       </div>
     </section>
   );
@@ -685,39 +610,6 @@ function ShopImage({ src, label, compact = false }) {
         <div className="owner-image-fallback">{buildInitials(label)}</div>
       )}
     </div>
-  );
-}
-
-function QuickClaimForm({ claimCodeForm, isPending, onChange, onSubmit, t, large = false }) {
-  return (
-    <form className={`owner-quick-claim${large ? " large" : ""}`} onSubmit={onSubmit}>
-      <div className="owner-form-grid two">
-        <FormInput
-          label={t("owner.fields.amount")}
-          type="number"
-          min="0"
-          step="1000"
-          value={claimCodeForm.amount}
-          onChange={(value) => onChange((prev) => ({ ...prev, amount: value }))}
-        />
-        <FormInput
-          label={t("owner.fields.expireAfterHours")}
-          type="number"
-          min="1"
-          max="72"
-          value={claimCodeForm.expireAfterHours}
-          onChange={(value) => onChange((prev) => ({ ...prev, expireAfterHours: value }))}
-        />
-      </div>
-      <FormInput
-        label={t("owner.fields.note")}
-        value={claimCodeForm.note}
-        onChange={(value) => onChange((prev) => ({ ...prev, note: value }))}
-      />
-      <button type="submit" className="owner-button owner-payment-button" disabled={isPending}>
-        {t("owner.createClaim")}
-      </button>
-    </form>
   );
 }
 
@@ -765,30 +657,6 @@ function CompactMenuList({ items, emptyText, onEdit, onDelete, onToggle, t, comp
   );
 }
 
-function ClaimCodeList({ claimCodes, emptyText, t }) {
-  if (!claimCodes.length) {
-    return <p className="owner-empty-state">{emptyText}</p>;
-  }
-
-  return (
-    <div className="owner-claim-list">
-      {claimCodes.map((claimCode) => (
-        <article key={claimCode.id} className="owner-claim-row">
-          <div>
-            <span className="owner-code-label">{claimCode.code}</span>
-            <p>
-              {t("owner.labels.issuedAt")}: {new Date(claimCode.issuedAt).toLocaleString()}
-              {claimCode.note ? ` - ${claimCode.note}` : ""}
-            </p>
-          </div>
-          <strong>{formatCurrency(claimCode.amount)}</strong>
-          <span className="owner-status-pill owner-status-pill-neutral">{claimCode.status}</span>
-        </article>
-      ))}
-    </div>
-  );
-}
-
 function buildMenuPayload(item) {
   return {
     name: item.name || "",
@@ -798,14 +666,6 @@ function buildMenuPayload(item) {
     isAvailable: Boolean(item.isAvailable),
     displayOrder: Number(item.displayOrder || 0),
   };
-}
-
-function countTodayClaims(claimCodes) {
-  const today = new Date().toDateString();
-  return claimCodes.filter((claimCode) => {
-    if (!claimCode.issuedAt) return false;
-    return new Date(claimCode.issuedAt).toDateString() === today;
-  }).length;
 }
 
 function getOwnerStatusTone(status) {

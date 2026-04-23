@@ -219,49 +219,6 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
         return connection.Execute(sql, new { MenuItemId = menuItemId, ShopId = shop.ShopId }) > 0;
     }
 
-    public ClaimCodeSummary? CreateClaimCode(string username, CreateClaimCodeRequest request)
-    {
-        using var connection = connectionFactory.CreateConnection();
-        var shop = GetShopRow(connection, username);
-        if (shop is null)
-        {
-            return null;
-        }
-
-        var code = $"VK{Random.Shared.Next(100000, 999999)}";
-
-        const string sql = """
-            INSERT INTO cash_claim_codes (
-                shop_id,
-                code,
-                amount,
-                status,
-                note,
-                expires_at
-            )
-            VALUES (
-                @ShopId,
-                @Code,
-                @Amount,
-                'issued',
-                @Note,
-                DATE_ADD(CURRENT_TIMESTAMP, INTERVAL @ExpireAfterHours HOUR)
-            );
-            """;
-
-        connection.Execute(sql, new
-        {
-            ShopId = shop.ShopId,
-            Code = code,
-            request.Amount,
-            request.Note,
-            request.ExpireAfterHours
-        });
-        var claimCodeId = connection.ExecuteScalar<long>("SELECT LAST_INSERT_ID();");
-
-        return GetClaimCode(connection, shop.ShopId, claimCodeId);
-    }
-
     public void UpsertPoiTranslation(Guid poiId, string languageCode, string name, string description, string? audioUrl)
     {
         using var connection = connectionFactory.CreateConnection();
@@ -493,24 +450,6 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
             LIMIT 1;
             """,
             new { MenuItemId = menuItemId, ShopId = shopId });
-
-    private static ClaimCodeSummary? GetClaimCode(System.Data.IDbConnection connection, Guid shopId, long claimCodeId) =>
-        connection.QuerySingleOrDefault<ClaimCodeSummary>(
-            """
-            SELECT
-                id AS Id,
-                code AS Code,
-                amount AS Amount,
-                status AS Status,
-                note AS Note,
-                issued_at AS IssuedAt,
-                expires_at AS ExpiresAt
-            FROM cash_claim_codes
-            WHERE id = @ClaimCodeId
-              AND shop_id = @ShopId
-            LIMIT 1;
-            """,
-            new { ClaimCodeId = claimCodeId, ShopId = shopId });
 
     private sealed class ShopRow
     {

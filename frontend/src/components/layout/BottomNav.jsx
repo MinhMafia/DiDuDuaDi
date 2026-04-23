@@ -23,6 +23,17 @@ export default function BottomNav() {
   return (
     <nav className="bottom-nav">
       <div className="bottom-nav__inner">
+        {!currentUser ? (
+          <>
+            <NavLink to="/map" className={linkClassName}>
+              {t("nav.map")}
+            </NavLink>
+            <NavLink to="/login" className={linkClassName}>
+              {t("auth.login")}
+            </NavLink>
+          </>
+        ) : null}
+
         {currentUser?.role === "user" ? (
           <>
             <NavLink to="/map" className={linkClassName}>

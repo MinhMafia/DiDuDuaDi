@@ -1,6 +1,7 @@
 using DiDuDuaDi.API.Models;
 using DiDuDuaDi.API.Repositories;
 using DiDuDuaDi.API.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Dapper;
@@ -44,6 +45,7 @@ public class POIsController(IPoiRepository repository, IDbConnectionFactory conn
     }
 
     [HttpPost]
+    [Authorize(Roles = "admin")]
     public ActionResult<ApiResponse<POI>> Create([FromBody] POI poi)
     {
         var result = repository.Add(poi);
@@ -51,6 +53,7 @@ public class POIsController(IPoiRepository repository, IDbConnectionFactory conn
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "admin")]
     public ActionResult<ApiResponse<POI?>> Update(Guid id, [FromBody] POI poi)
     {
         poi.Id = id;
@@ -61,6 +64,7 @@ public class POIsController(IPoiRepository repository, IDbConnectionFactory conn
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "admin")]
     public ActionResult<ApiResponse<bool>> Delete(Guid id)
     {
         var success = repository.Delete(id);
