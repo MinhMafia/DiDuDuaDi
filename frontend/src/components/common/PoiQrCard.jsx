@@ -10,7 +10,12 @@ import {
 } from "../../utils/publicPoiUrl";
 import "./PoiQrCard.css";
 
-export default function PoiQrCard({ poiId, poiName, compact = false }) {
+export default function PoiQrCard({
+  poiId,
+  poiName,
+  compact = false,
+  minimal = false,
+}) {
   const { t } = useTranslation();
   const [baseUrl, setBaseUrl] = useState(() => getInitialPublicBaseUrl());
   const [copied, setCopied] = useState(false);
@@ -57,14 +62,16 @@ export default function PoiQrCard({ poiId, poiName, compact = false }) {
   const resolvedBaseUrl = normalizePublicBaseUrl(baseUrl);
 
   return (
-    <section className={`poi-qr-card${compact ? " compact" : ""}`}>
-      <div className="poi-qr-card-head">
-        <div>
-          <p className="poi-qr-kicker">{t("qr.kicker")}</p>
-          <h3>{t("qr.title")}</h3>
-          <p>{t("qr.subtitle", { name: poiName || t("qr.poiFallbackName") })}</p>
+    <section className={`poi-qr-card${compact ? " compact" : ""}${minimal ? " minimal" : ""}`}>
+      {!minimal ? (
+        <div className="poi-qr-card-head">
+          <div>
+            <p className="poi-qr-kicker">{t("qr.kicker")}</p>
+            <h3>{t("qr.title")}</h3>
+            <p>{t("qr.subtitle", { name: poiName || t("qr.poiFallbackName") })}</p>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div className="poi-qr-body">
         <div className="poi-qr-code-wrap">
@@ -83,40 +90,44 @@ export default function PoiQrCard({ poiId, poiName, compact = false }) {
 
         <div className="poi-qr-content">
           <label className="poi-qr-field">
-            <span>{t("qr.baseUrlLabel")}</span>
-            <input
-              type="text"
-              value={baseUrl}
-              onChange={handleBaseUrlChange}
-              placeholder={t("qr.baseUrlPlaceholder")}
-            />
-          </label>
-
-          {isLocalBaseUrl(resolvedBaseUrl) ? (
-            <p className="poi-qr-hint">{t("qr.localHint")}</p>
-          ) : (
-            <p className="poi-qr-hint">{t("qr.readyHint")}</p>
-          )}
-
-          <label className="poi-qr-field">
             <span>{t("qr.detailLinkLabel")}</span>
             <textarea readOnly rows={compact ? 2 : 3} value={detailUrl} />
           </label>
 
-          <div className="poi-qr-actions">
-            <button type="button" className="poi-qr-button" onClick={handleCopyLink}>
-              {copied ? t("qr.copied") : t("qr.copy")}
-            </button>
-            <a
-              className="poi-qr-button secondary"
-              href={detailUrl || "#"}
-              target="_blank"
-              rel="noreferrer"
-              aria-disabled={!detailUrl}
-            >
-              {t("qr.open")}
-            </a>
-          </div>
+          {!minimal ? (
+            <>
+              <label className="poi-qr-field">
+                <span>{t("qr.baseUrlLabel")}</span>
+                <input
+                  type="text"
+                  value={baseUrl}
+                  onChange={handleBaseUrlChange}
+                  placeholder={t("qr.baseUrlPlaceholder")}
+                />
+              </label>
+
+              {isLocalBaseUrl(resolvedBaseUrl) ? (
+                <p className="poi-qr-hint">{t("qr.localHint")}</p>
+              ) : (
+                <p className="poi-qr-hint">{t("qr.readyHint")}</p>
+              )}
+
+              <div className="poi-qr-actions">
+                <button type="button" className="poi-qr-button" onClick={handleCopyLink}>
+                  {copied ? t("qr.copied") : t("qr.copy")}
+                </button>
+                <a
+                  className="poi-qr-button secondary"
+                  href={detailUrl || "#"}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-disabled={!detailUrl}
+                >
+                  {t("qr.open")}
+                </a>
+              </div>
+            </>
+          ) : null}
         </div>
       </div>
     </section>

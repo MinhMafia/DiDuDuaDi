@@ -89,6 +89,24 @@ export default function AudioGuidePlayer({ audioUrl, title }) {
     setProgress(nextProgress);
   }
 
+  function handleRewindFiveSeconds() {
+    const currentPlayer = playerRef.current;
+    if (!currentPlayer) return;
+
+    const currentProgress = Number(currentPlayer.seek() || 0);
+    const nextProgress = Math.max(0, currentProgress - 5);
+    currentPlayer.seek(nextProgress);
+    setProgress(nextProgress);
+  }
+
+  function handleStopPlayback() {
+    const currentPlayer = playerRef.current;
+    if (!currentPlayer) return;
+
+    currentPlayer.stop();
+    setProgress(0);
+  }
+
   const progressMax = duration || 1;
 
   return (
@@ -98,8 +116,32 @@ export default function AudioGuidePlayer({ audioUrl, title }) {
           <strong>{t("audio.title")}</strong>
           <p>{title || t("audio.noPoiSelected")}</p>
         </div>
-        <button type="button" onClick={togglePlayback} disabled={!audioUrl}>
+      </div>
+
+      <div className="audio-guide-controls">
+        <button
+          type="button"
+          className="audio-guide-control secondary"
+          onClick={handleRewindFiveSeconds}
+          disabled={!audioUrl}
+        >
+          {t("audio.rewind5")}
+        </button>
+        <button
+          type="button"
+          className="audio-guide-control primary"
+          onClick={togglePlayback}
+          disabled={!audioUrl}
+        >
           {isPlaying ? t("audio.pause") : t("audio.play")}
+        </button>
+        <button
+          type="button"
+          className="audio-guide-control secondary"
+          onClick={handleStopPlayback}
+          disabled={!audioUrl}
+        >
+          {t("audio.stop")}
         </button>
       </div>
 

@@ -26,6 +26,9 @@ import {
 import "./MapPage.css";
 
 const DEFAULT_RADIUS = 500;
+const RADIUS_OPTIONS = [50, 100, 200, 500];
+const ALL_RADIUS_OPTION = "all";
+const AUTO_NARRATE_NEARBY_DISTANCE_METERS = 35;
 const DEFAULT_MAP_ZOOM = 16;
 const SEARCH_FOCUS_ZOOM = 18;
 
@@ -40,7 +43,7 @@ export default function MapPage() {
   const autoFocusedPoiRef = useRef("");
   const trackedAudioRef = useRef("");
   const trackedPoiViewRef = useRef("");
-  const [radius, setRadius] = useState(DEFAULT_RADIUS);
+  const [radius, setRadius] = useState(String(DEFAULT_RADIUS));
   const [demoLocation, setDemoLocation] = useState(null);
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [isPoiDetailOpen, setIsPoiDetailOpen] = useState(false);
@@ -59,6 +62,8 @@ export default function MapPage() {
   const { error: geoError, isLoading: geoLoading, location } = useGeolocation();
   const effectiveLocation = demoLocation ?? location;
 
+  const numericRadius = radius === ALL_RADIUS_OPTION ? null : Number(radius);
+
   const speechLanguage =
     SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)?.speechLocale ||
     "vi-VN";
@@ -76,15 +81,22 @@ export default function MapPage() {
   });
 
   const nearbyPoisQuery = useQuery({
-    queryKey: ["pois", "nearby", effectiveLocation?.lat, effectiveLocation?.lng, radius],
-    queryFn: () => getNearbyPois(effectiveLocation.lat, effectiveLocation.lng, radius),
-    enabled: !!effectiveLocation,
+    queryKey: ["pois", "nearby", effectiveLocation?.lat, effectiveLocation?.lng, numericRadius],
+    queryFn: () => getNearbyPois(effectiveLocation.lat, effectiveLocation.lng, numericRadius),
+    enabled: Boolean(effectiveLocation && numericRadius),
     select: (response) => response.data ?? [],
   });
 
   const allPois = allPoisQuery.data ?? [];
   const tours = toursQuery.data ?? [];
-  const rawVisiblePois = effectiveLocation ? nearbyPoisQuery.data ?? [] : allPois;
+  const rawVisiblePois = effectiveLocation
+    ? numericRadius
+      ? nearbyPoisQuery.data ?? []
+      : allPois
+    : allPois;
+
+  const radiusLabel =
+    radius === ALL_RADIUS_OPTION ? t("map.radiusAllOption") : `${numericRadius}m`;
 
   const selectedTour = useMemo(
     () => tours.find((tour) => tour.id === selectedTourId) ?? null,
@@ -306,8 +318,9 @@ export default function MapPage() {
     return calculateDistanceMeters(effectiveLocation, selectedPoi.location);
   }, [effectiveLocation, selectedPoi]);
 
-  const isLoading = allPoisQuery.isLoading || (effectiveLocation && nearbyPoisQuery.isLoading);
-  const queryError = allPoisQuery.error || nearbyPoisQuery.error || toursQuery.error;
+  const isLoading =
+    allPoisQuery.isLoading || Boolean(effectiveLocation && numericRadius && nearbyPoisQuery.isLoading);
+  const queryError = allPoisQuery.error || (numericRadius ? nearbyPoisQuery.error : null) || toursQuery.error;
 
   const nearestPoi = useMemo(() => {
     if (!effectiveLocation || !displayPois.length) return null;
@@ -344,7 +357,12 @@ export default function MapPage() {
   const routePath = routeQuery.data?.coordinates ?? [];
 
   useEffect(() => {
-    if (!autoPlayAudio || !nearestPoi || !nearestPoiDistance || nearestPoiDistance > 35) {
+    if (
+      !autoPlayAudio ||
+      !nearestPoi ||
+      !nearestPoiDistance ||
+      nearestPoiDistance > AUTO_NARRATE_NEARBY_DISTANCE_METERS
+    ) {
       return;
     }
 
@@ -371,7 +389,7 @@ export default function MapPage() {
 
       // Snapshot the previous value of both queries
       const allPoisQueryKey = ["pois"];
-      const nearbyPoisQueryKey = ["pois", "nearby", effectiveLocation?.lat, effectiveLocation?.lng, radius];
+      const nearbyPoisQueryKey = ["pois", "nearby", effectiveLocation?.lat, effectiveLocation?.lng, numericRadius];
       
       const previousAllPois = queryClient.getQueryData(allPoisQueryKey);
       const previousNearbyPois = queryClient.getQueryData(nearbyPoisQueryKey);
@@ -399,7 +417,7 @@ export default function MapPage() {
 
       // Optimistically update to the new value
       queryClient.setQueryData(allPoisQueryKey, updatePoiInList);
-      if (effectiveLocation) {
+      if (effectiveLocation && numericRadius) {
           queryClient.setQueryData(nearbyPoisQueryKey, updatePoiInList);
       }
 
@@ -409,7 +427,9 @@ export default function MapPage() {
     // If the mutation fails, use the context returned from onMutate to roll back
     onError: (err, variables, context) => {
       queryClient.setQueryData(context.allPoisQueryKey, context.previousAllPois);
-      queryClient.setQueryData(context.nearbyPoisQueryKey, context.previousNearbyPois);
+      if (context?.nearbyPoisQueryKey) {
+        queryClient.setQueryData(context.nearbyPoisQueryKey, context.previousNearbyPois);
+      }
     },
     // Always refetch after error or success to ensure data is in sync with the server
     onSettled: () => {
@@ -647,15 +667,19 @@ export default function MapPage() {
           >
             <div className="map-toolbar">
               <label className="radius-control">
-                <span>{t("map.searchRadius", { radius })}</span>
-                <input
-                  type="range"
-                  min="100"
-                  max="1200"
-                  step="50"
+                <span>{t("map.searchRadius", { radiusLabel })}</span>
+                <select
+                  className="radius-select"
                   value={radius}
-                  onChange={(event) => setRadius(Number(event.target.value))}
-                />
+                  onChange={(event) => setRadius(event.target.value)}
+                >
+                  {RADIUS_OPTIONS.map((option) => (
+                    <option key={option} value={String(option)}>
+                      {option}m
+                    </option>
+                  ))}
+                  <option value={ALL_RADIUS_OPTION}>{t("map.radiusAllOption")}</option>
+                </select>
               </label>
 
               <div className="map-search" ref={searchContainerRef}>
@@ -703,16 +727,6 @@ export default function MapPage() {
                     )}
                   </div>
                 ) : null}
-              </div>
-
-              <div className="map-toolbar-text">
-                {effectiveLocation ? (
-                  <span>
-                    {effectiveLocation.lat.toFixed(5)}, {effectiveLocation.lng.toFixed(5)}
-                  </span>
-                ) : (
-                  <span>{t("map.usingDefaultCenter")}</span>
-                )}
               </div>
 
               <div className="map-action-group">
@@ -804,6 +818,16 @@ export default function MapPage() {
               </span>
               <span>
                 <strong>{t("map.legendSelected")}</strong>
+              </span>
+              <span className="map-location-note">
+                {effectiveLocation ? (
+                  <>
+                    <strong>{t("map.locationNote")}</strong>{" "}
+                    {effectiveLocation.lat.toFixed(5)}, {effectiveLocation.lng.toFixed(5)}
+                  </>
+                ) : (
+                  <strong>{t("map.usingDefaultCenter")}</strong>
+                )}
               </span>
             </div>
           </div>
@@ -964,6 +988,13 @@ export default function MapPage() {
           ) : (
             <div className="selected-poi selected-poi-wide">
               <div className="selected-poi-main">
+                {selectedPoi.imageUrl ? (
+                  <img
+                    className="selected-poi-image"
+                    src={selectedPoi.imageUrl}
+                    alt={selectedPoi.displayName}
+                  />
+                ) : null}
                 <div className="selected-poi-summary">
                   <div className="selected-poi-head">
                     <div>
@@ -1006,66 +1037,36 @@ export default function MapPage() {
                   ) : (
                     <p>{t("map.tapPoiHint")}</p>
                   )}
-                  {effectiveLocation && selectedPoi ? (
-                    routeQuery.isLoading ? (
-                      <p className="supporting-text">{t("map.routeLoading")}</p>
-                    ) : routeQuery.isError ? (
-                      <p className="error-text">{t("map.routeError")}</p>
-                    ) : routeQuery.data ? (
-                      <p className="supporting-text">
-                        {t("map.routeSummary", {
-                          distance: formatDistance(routeQuery.data.distanceMeters),
-                          minutes: Math.max(1, Math.round(routeQuery.data.durationSeconds / 60)),
-                        })}
-                      </p>
-                    ) : null
-                  ) : null}
                 </div>
 
-                <PoiQrCard poiId={selectedPoi.id} poiName={selectedPoi.displayName} compact />
-              </div>
-
-              <div className="selected-poi-extra">
-                {selectedPoi.menuItems?.length ? (
-                  <div className="poi-menu-preview">
-                    <h3>{t("map.menuTitle")}</h3>
-                    <div className="poi-menu-list">
-                      {selectedPoi.menuItems.map((item) => (
-                        <article key={item.id} className="poi-menu-item">
-                          {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : null}
-                          <div>
-                            <strong>{item.name}</strong>
-                            <p>{item.description}</p>
-                            <span>
-                              {new Intl.NumberFormat("vi-VN", {
-                                style: "currency",
-                                currency: "VND",
-                                maximumFractionDigits: 0,
-                              }).format(item.price || 0)}
-                            </span>
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-
-                <SpeechGuidePlayer
-                  audioUrl={selectedPoi.audioUrl}
-                  onPlaybackStart={handleAudioPlaybackStart}
-                  playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
-                  speechLanguage={speechLanguage}
-                  speechText={selectedPoi.displayDescription}
-                  title={`${selectedPoi.displayName}${
-                    selectedPoiPlaybackKey ? ` (${t("audio.autoPlayReady")})` : ""
-                  }`}
-                  triggerAutoSpeak={Boolean(selectedPoiPlaybackKey)}
+                <PoiQrCard
+                  poiId={selectedPoi.id}
+                  poiName={selectedPoi.displayName}
+                  compact
+                  minimal
                 />
               </div>
             </div>
           )}
         </article>
       </div>
+
+      {selectedPoi ? (
+        <div className="map-hidden-audio">
+          <SpeechGuidePlayer
+            audioUrl={selectedPoi.audioUrl}
+            onPlaybackStart={handleAudioPlaybackStart}
+            playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
+            speechLanguage={speechLanguage}
+            speechText={selectedPoi.displayDescription}
+            title={`${selectedPoi.displayName}${
+              selectedPoiPlaybackKey ? ` (${t("audio.autoPlayReady")})` : ""
+            }`}
+            triggerAutoSpeak={Boolean(selectedPoiPlaybackKey)}
+          />
+        </div>
+      ) : null}
+
       {isPoiDetailOpen && selectedPoi ? (
         <PoiDetailSheet
           poi={selectedPoi}

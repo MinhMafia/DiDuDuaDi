@@ -13,6 +13,11 @@
   padding: 16px;
 }
 
+.poi-qr-card.minimal {
+  gap: 12px;
+  padding: 14px;
+}
+
 .poi-qr-card-head h3 {
   margin: 0;
   color: #13263f;
@@ -60,6 +65,25 @@
 .poi-qr-content {
   display: grid;
   gap: 12px;
+}
+
+.poi-qr-card.minimal .poi-qr-body {
+  grid-template-columns: 132px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.poi-qr-card.minimal .poi-qr-code-wrap {
+  min-width: 0;
+  padding: 10px;
+}
+
+.poi-qr-card.minimal .poi-qr-content {
+  gap: 8px;
+}
+
+.poi-qr-card.minimal .poi-qr-field textarea {
+  min-height: 86px;
 }
 
 .poi-qr-field {
@@ -129,6 +153,10 @@
 
 @media (max-width: 720px) {
   .poi-qr-body {
+    grid-template-columns: 1fr;
+  }
+
+  .poi-qr-card.minimal .poi-qr-body {
     grid-template-columns: 1fr;
   }
 

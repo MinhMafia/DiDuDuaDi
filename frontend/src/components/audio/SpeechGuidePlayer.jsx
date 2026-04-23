@@ -144,6 +144,28 @@ export default function SpeechGuidePlayer({
     }
   }
 
+  function handleRewindFiveSeconds() {
+    const currentPlayer = playerRef.current;
+    if (!currentPlayer) return;
+
+    const currentProgress = Number(currentPlayer.seek() || 0);
+    const nextProgress = Math.max(0, currentProgress - 5);
+    currentPlayer.seek(nextProgress);
+    setProgress(nextProgress);
+  }
+
+  function handleStopPlayback() {
+    if (audioUrl) {
+      const currentPlayer = playerRef.current;
+      if (!currentPlayer) return;
+      currentPlayer.stop();
+      setProgress(0);
+      return;
+    }
+
+    stopSpeech();
+  }
+
   function handleSeek(event) {
     const currentPlayer = playerRef.current;
     if (!currentPlayer) return;
@@ -327,8 +349,21 @@ export default function SpeechGuidePlayer({
           <strong>{t("audio.title")}</strong>
           <p>{title || t("audio.noPoiSelected")}</p>
         </div>
+      </div>
+
+      <div className="audio-guide-controls">
         <button
           type="button"
+          className="audio-guide-control secondary"
+          onClick={handleRewindFiveSeconds}
+          disabled={!audioUrl || isTranslating}
+          title={!audioUrl ? t("audio.rewindRequiresAudioFile") : t("audio.rewind5")}
+        >
+          {t("audio.rewind5")}
+        </button>
+        <button
+          type="button"
+          className="audio-guide-control primary"
           onClick={togglePlayback}
           disabled={(!audioUrl && !speechText) || (isTranslating && !isPlaying)}
         >
@@ -337,6 +372,14 @@ export default function SpeechGuidePlayer({
             : isPlaying
               ? (isSpeechMode ? t("audio.stop") : t("audio.pause"))
               : t("audio.play")}
+        </button>
+        <button
+          type="button"
+          className="audio-guide-control secondary"
+          onClick={handleStopPlayback}
+          disabled={(!audioUrl && !speechText) || isTranslating}
+        >
+          {t("audio.stop")}
         </button>
       </div>
 
@@ -364,6 +407,10 @@ export default function SpeechGuidePlayer({
             ? t("audio.translatingHint", "Đang chuẩn bị giọng đọc cho ngôn ngữ bạn chọn.")
             : t("audio.ttsReady")}
         </p>
+      ) : null}
+
+      {!audioUrl && speechText ? (
+        <p className="audio-guide-note">{t("audio.seekUnavailable")}</p>
       ) : null}
 
       {!audioUrl && !speechText ? (
