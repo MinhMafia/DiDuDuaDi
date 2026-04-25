@@ -608,8 +608,13 @@ export default function MapPage() {
                 distance: formatDistance(routeQuery.data.distanceMeters),
                 minutes: Math.max(1, Math.round(routeQuery.data.durationSeconds / 60)),
               })
-            : ""
+          : ""
       : "";
+  const selectedPoiSpeechText = selectedPoi
+    ? [selectedPoi.displayDescription, selectedPoi.displayIntroduction]
+        .filter(Boolean)
+        .join(" ")
+    : "";
 
   return (
     <section className="map-page">
@@ -810,15 +815,6 @@ export default function MapPage() {
             </div>
 
             <div className="map-legend">
-              <span>
-                <strong>{t("map.legendYou")}</strong>
-              </span>
-              <span>
-                <strong>{t("map.legendPoi")}</strong>
-              </span>
-              <span>
-                <strong>{t("map.legendSelected")}</strong>
-              </span>
               <span className="map-location-note">
                 {effectiveLocation ? (
                   <>
@@ -828,6 +824,15 @@ export default function MapPage() {
                 ) : (
                   <strong>{t("map.usingDefaultCenter")}</strong>
                 )}
+              </span>
+              <span>
+                <strong>{t("map.legendYou")}</strong>
+              </span>
+              <span>
+                <strong>{t("map.legendPoi")}</strong>
+              </span>
+              <span>
+                <strong>{t("map.legendSelected")}</strong>
               </span>
             </div>
           </div>
@@ -1010,21 +1015,8 @@ export default function MapPage() {
                     </button>
                   </div>
 
-                  {autoNarrateOnTouch ? (
-                    <button
-                      type="button"
-                      className="poi-description-trigger"
-                      onClick={() => handleReplayNarration(selectedPoi)}
-                    >
-                      {selectedPoi.displayDescription || t("map.noDescription")}
-                    </button>
-                  ) : (
-                    <p>{selectedPoi.displayDescription || t("map.noDescription")}</p>
-                  )}
+                  <p>{selectedPoi.displayDescription || t("map.noDescription")}</p>
 
-                  {selectedPoi.displayIntroduction ? (
-                    <p className="selected-poi-intro">{selectedPoi.displayIntroduction}</p>
-                  ) : null}
                   {selectedPoi.shopAddress ? (
                     <p className="selected-poi-address">{selectedPoi.shopAddress}</p>
                   ) : null}
@@ -1037,6 +1029,18 @@ export default function MapPage() {
                   ) : (
                     <p>{t("map.tapPoiHint")}</p>
                   )}
+                  {!isPoiDetailOpen ? (
+                    <SpeechGuidePlayer
+                      audioUrl={selectedPoi.audioUrl}
+                      onPlaybackStart={handleAudioPlaybackStart}
+                      playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
+                      speechLanguage={speechLanguage}
+                      speechText={selectedPoiSpeechText}
+                      title={selectedPoi.displayName}
+                      triggerAutoSpeak={Boolean(selectedPoiPlaybackKey)}
+                      variant="compact"
+                    />
+                  ) : null}
                 </div>
 
                 <PoiQrCard
@@ -1051,22 +1055,6 @@ export default function MapPage() {
         </article>
       </div>
 
-      {selectedPoi ? (
-        <div className="map-hidden-audio">
-          <SpeechGuidePlayer
-            audioUrl={selectedPoi.audioUrl}
-            onPlaybackStart={handleAudioPlaybackStart}
-            playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
-            speechLanguage={speechLanguage}
-            speechText={selectedPoi.displayDescription}
-            title={`${selectedPoi.displayName}${
-              selectedPoiPlaybackKey ? ` (${t("audio.autoPlayReady")})` : ""
-            }`}
-            triggerAutoSpeak={Boolean(selectedPoiPlaybackKey)}
-          />
-        </div>
-      ) : null}
-
       {isPoiDetailOpen && selectedPoi ? (
         <PoiDetailSheet
           poi={selectedPoi}
@@ -1080,11 +1068,14 @@ export default function MapPage() {
           }
           routeSummary={detailRouteSummary}
           speechLanguage={speechLanguage}
-          onClose={() => setIsPoiDetailOpen(false)}
+          onClose={() => {
+            setIsPoiDetailOpen(false);
+            setSelectedPoiPlaybackKey("");
+          }}
           onNarrateRequest={() => handleReplayNarration(selectedPoi)}
           onPlaybackStart={handleAudioPlaybackStart}
           playbackKey={selectedPoiPlaybackKey || selectedPoi.id}
-          speechText={selectedPoi.displayDescription}
+          speechText={selectedPoiSpeechText}
           titleSuffix={selectedPoiPlaybackKey ? t("audio.autoPlayReady") : ""}
           triggerAutoSpeak={Boolean(selectedPoiPlaybackKey)}
         />

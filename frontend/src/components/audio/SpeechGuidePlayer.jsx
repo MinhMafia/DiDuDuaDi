@@ -11,6 +11,7 @@ export default function SpeechGuidePlayer({
   speechText,
   title,
   triggerAutoSpeak = false,
+  variant = "full",
 }) {
   const { t } = useTranslation();
   const playerRef = useRef(null);
@@ -144,12 +145,31 @@ export default function SpeechGuidePlayer({
     }
   }
 
+  function handleQuickToggle() {
+    if (isPlaying || isTranslating) {
+      handleStopPlayback();
+      return;
+    }
+
+    togglePlayback();
+  }
+
   function handleRewindFiveSeconds() {
     const currentPlayer = playerRef.current;
     if (!currentPlayer) return;
 
     const currentProgress = Number(currentPlayer.seek() || 0);
     const nextProgress = Math.max(0, currentProgress - 5);
+    currentPlayer.seek(nextProgress);
+    setProgress(nextProgress);
+  }
+
+  function handleForwardFiveSeconds() {
+    const currentPlayer = playerRef.current;
+    if (!currentPlayer) return;
+
+    const currentProgress = Number(currentPlayer.seek() || 0);
+    const nextProgress = Math.min(duration || currentProgress, currentProgress + 5);
     currentPlayer.seek(nextProgress);
     setProgress(nextProgress);
   }
@@ -188,8 +208,7 @@ export default function SpeechGuidePlayer({
       cloudTtsPlayerRef.current.cancel();
       cloudTtsPlayerRef.current = null;
     }
-    
-    // Prevent overlapping speech sessions
+
     const sessionId = ++speechSessionRef.current;
     const normalizedLanguage = speechLanguage.toLowerCase();
     const isVietnamese = normalizedLanguage.startsWith("vi");
@@ -200,16 +219,14 @@ export default function SpeechGuidePlayer({
       try {
         finalSpeechText = await translateText(speechText, speechLanguage);
       } catch (err) {
-        console.error("Translation fail in SpeechGuidePlayer:", err);
+        console.error("Translation failed in SpeechGuidePlayer:", err);
       }
     }
-    
-    // Exit if user stopped or triggered another session during translation
+
     if (speechSessionRef.current !== sessionId) return;
 
     setIsTranslating(false);
 
-    // Improved voice scoring
     const getVoiceScore = (voice) => {
       let score = 0;
       const lang = voice.lang.toLowerCase();
@@ -233,8 +250,7 @@ export default function SpeechGuidePlayer({
       .map((voice) => ({ voice, score: getVoiceScore(voice) }))
       .filter((voiceMatch) => voiceMatch.score > 0)
       .sort((a, b) => b.score - a.score)[0];
-    const shouldPreferCloudTts =
-      isVietnamese || !matchingVoiceWithScore?.voice;
+    const shouldPreferCloudTts = isVietnamese || !matchingVoiceWithScore?.voice;
 
     const speakWithBrowserTts = () => {
       if (!canUseSpeechSynthesis) {
@@ -287,7 +303,6 @@ export default function SpeechGuidePlayer({
       return;
     }
 
-    // Prefer cloud TTS when the browser does not have a matching voice for the selected language.
     if (shouldPreferCloudTts) {
       cloudTtsPlayerRef.current = playCloudTts(finalSpeechText, speechLanguage, {
         onPlay: () => {
@@ -340,7 +355,39 @@ export default function SpeechGuidePlayer({
     window.speechSynthesis.cancel();
   }
 
+  const hasNarration = Boolean(audioUrl || speechText);
   const progressMax = duration || 1;
+  const modeLabel = audioUrl
+    ? t("audio.fileMode")
+    : speechText
+      ? t("audio.ttsMode")
+      : t("audio.unavailable");
+  const modeClassName = audioUrl ? "is-file" : speechText ? "is-tts" : "is-off";
+  const compactButtonLabel = isTranslating
+    ? t("audio.translating")
+    : isPlaying
+      ? t("audio.quickStop")
+      : t("audio.quickPlay");
+  const primaryButtonLabel = isTranslating
+    ? t("audio.translating")
+    : isPlaying
+      ? (isSpeechMode ? t("audio.stop") : t("audio.pause"))
+      : t("audio.play");
+
+  if (variant === "compact") {
+    return (
+      <div className="audio-guide-compact" role="group" aria-label={t("audio.title")}>
+        <button
+          type="button"
+          className={`audio-guide-compact-button${isPlaying ? " is-active" : ""}`}
+          onClick={handleQuickToggle}
+          disabled={!hasNarration || (isTranslating && !isPlaying)}
+        >
+          {compactButtonLabel}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <section className="audio-guide-card">
@@ -349,6 +396,29 @@ export default function SpeechGuidePlayer({
           <strong>{t("audio.title")}</strong>
           <p>{title || t("audio.noPoiSelected")}</p>
         </div>
+        <span className={`audio-guide-mode-pill ${modeClassName}`}>{modeLabel}</span>
+      </div>
+
+      <div className="audio-guide-timeline">
+        <div className="audio-guide-meta">
+          <span className="audio-guide-time">{formatTime(progress)}</span>
+          <span className="audio-guide-time">
+            {audioUrl ? formatTime(duration) : t("audio.liveMode")}
+          </span>
+        </div>
+
+        {audioUrl ? (
+          <input
+            type="range"
+            min="0"
+            max={progressMax}
+            step="0.1"
+            value={progress}
+            onChange={handleSeek}
+          />
+        ) : (
+          <input type="range" min="0" max="1" value="0" readOnly disabled />
+        )}
       </div>
 
       <div className="audio-guide-controls">
@@ -365,56 +435,39 @@ export default function SpeechGuidePlayer({
           type="button"
           className="audio-guide-control primary"
           onClick={togglePlayback}
-          disabled={(!audioUrl && !speechText) || (isTranslating && !isPlaying)}
+          disabled={!hasNarration || (isTranslating && !isPlaying)}
         >
-          {isTranslating
-            ? t("audio.translating", "Dịch...")
-            : isPlaying
-              ? (isSpeechMode ? t("audio.stop") : t("audio.pause"))
-              : t("audio.play")}
+          {primaryButtonLabel}
+        </button>
+        <button
+          type="button"
+          className="audio-guide-control secondary"
+          onClick={handleForwardFiveSeconds}
+          disabled={!audioUrl || isTranslating}
+          title={!audioUrl ? t("audio.forwardRequiresAudioFile") : t("audio.forward5")}
+        >
+          {t("audio.forward5")}
         </button>
         <button
           type="button"
           className="audio-guide-control secondary"
           onClick={handleStopPlayback}
-          disabled={(!audioUrl && !speechText) || isTranslating}
+          disabled={!hasNarration || isTranslating}
         >
           {t("audio.stop")}
         </button>
       </div>
 
-      {audioUrl ? (
-        <>
-          <input
-            type="range"
-            min="0"
-            max={progressMax}
-            step="0.1"
-            value={progress}
-            onChange={handleSeek}
-          />
-
-          <div className="audio-guide-meta">
-            <span>{formatTime(progress)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
-        </>
-      ) : null}
+      {audioUrl ? <p className="audio-guide-note">{t("audio.seekHint")}</p> : null}
 
       {!audioUrl && speechText ? (
-        <p className="supporting-text">
-          {isTranslating
-            ? t("audio.translatingHint", "Đang chuẩn bị giọng đọc cho ngôn ngữ bạn chọn.")
-            : t("audio.ttsReady")}
+        <p className="audio-guide-note">
+          {isTranslating ? t("audio.translatingHint") : t("audio.seekUnavailable")}
         </p>
       ) : null}
 
-      {!audioUrl && speechText ? (
-        <p className="audio-guide-note">{t("audio.seekUnavailable")}</p>
-      ) : null}
-
       {!audioUrl && !speechText ? (
-        <p className="supporting-text">{t("audio.unavailable")}</p>
+        <p className="audio-guide-note">{t("audio.unavailable")}</p>
       ) : null}
     </section>
   );

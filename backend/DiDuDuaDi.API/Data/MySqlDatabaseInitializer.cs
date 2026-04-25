@@ -768,25 +768,25 @@ public class MySqlDatabaseInitializer(
                 name = CASE id
                     WHEN '44444444-4444-4444-4444-444444444441' THEN 'Oc Thao - Vinh Khanh'
                     WHEN '44444444-4444-4444-4444-444444444442' THEN 'Banh Trang Nuong Win'
-                    WHEN '77777777-7777-7777-7777-777777777777' THEN 'Bo La Lot Chi Ba Demo'
+                    WHEN '77777777-7777-7777-7777-777777777777' THEN 'Bò Lá Lốt Chị Ba Demo'
                     ELSE name
                 END,
                 description = CASE id
-                    WHEN '44444444-4444-4444-4444-444444444441' THEN 'Quan oc quen tren duong Vinh Khanh, dong khach tu chieu toi. Khong gian gian di, len mon nhanh va hop di nhom nho.'
-                    WHEN '44444444-4444-4444-4444-444444444442' THEN 'Diem an vat nho tren duong Vinh Khanh, phu hop ghe nhanh buoi xep. Banh trang nuong lam tai cho, de an va de mang di.'
-                    WHEN '77777777-7777-7777-7777-777777777777' THEN 'Quan demo danh cho luong chu quan, mo phong mot diem nuong binh dan tren pho am thuc.'
+                    WHEN '44444444-4444-4444-4444-444444444441' THEN 'Quán ốc quen trên đường Vĩnh Khánh, đông khách từ chiều tới. Không gian giản dị, lên món nhanh và hợp đi nhóm nhỏ.'
+                    WHEN '44444444-4444-4444-4444-444444444442' THEN 'Điểm ăn vặt nhỏ trên đường Vĩnh Khánh, phù hợp ghé nhanh buổi xế. Bánh tráng nướng làm tại chỗ, dễ ăn và dễ mang đi.'
+                    WHEN '77777777-7777-7777-7777-777777777777' THEN 'Quán demo dành cho luồng chủ quán, mô phỏng một điểm nướng bình dân trên phố ẩm thực.'
                     ELSE description
                 END,
                 approved_intro = CASE id
-                    WHEN '44444444-4444-4444-4444-444444444441' THEN 'Oc Thao duoc biet den la mot diem hen binh dan o khu Vinh Khanh, thuong nhon nhip vao buoi toi. Khach hay goi nhieu mon oc xao, nuong va ngoi lai lai rai cung ban be.'
-                    WHEN '44444444-4444-4444-4444-444444444442' THEN 'Banh Trang Nuong Win co kieu quan an vat gon nhe, phu hop cho khach muon doi mon sau khi di mot vong pho oc. Mon nuong duoc lam tai cho nen mui thom va de an khi con nong.'
-                    WHEN '77777777-7777-7777-7777-777777777777' THEN 'Day la quan demo de ban thu tinh nang quan ly chu quan. Noi dung, menu va thong tin hien thi tren ban do deu co the sua truc tiep.'
+                    WHEN '44444444-4444-4444-4444-444444444441' THEN 'Ốc Thảo được biết đến là một điểm hẹn bình dân ở khu Vĩnh Khánh, thường nhộn nhịp vào buổi tối. Khách hay gọi nhiều món ốc xào, nướng và ngồi lại lai rai cùng bạn bè.'
+                    WHEN '44444444-4444-4444-4444-444444444442' THEN 'Bánh Tráng Nướng Win có kiểu quán ăn vặt gọn nhẹ, phù hợp cho khách muốn đổi món sau khi đi một vòng phố ốc. Món nướng được làm tại chỗ nên mùi thơm và dễ ăn khi còn nóng.'
+                    WHEN '77777777-7777-7777-7777-777777777777' THEN 'Đây là quán demo để bạn thử tính năng quản lý chủ quán. Nội dung, menu và thông tin hiển thị trên bản đồ đều có thể sửa trực tiếp.'
                     ELSE approved_intro
                 END,
                 address_line = CASE id
-                    WHEN '44444444-4444-4444-4444-444444444441' THEN '212 Vinh Khanh, Phuong 10, Quan 4, TP. Ho Chi Minh'
-                    WHEN '44444444-4444-4444-4444-444444444442' THEN '150/38 Vinh Khanh, Phuong 10, Quan 4, TP. Ho Chi Minh'
-                    WHEN '77777777-7777-7777-7777-777777777777' THEN '129 Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh'
+                    WHEN '44444444-4444-4444-4444-444444444441' THEN '212 Vĩnh Khánh, Phường 10, Quận 4, TP. Hồ Chí Minh'
+                    WHEN '44444444-4444-4444-4444-444444444442' THEN '150/38 Vĩnh Khánh, Phường 10, Quận 4, TP. Hồ Chí Minh'
+                    WHEN '77777777-7777-7777-7777-777777777777' THEN '129 Vĩnh Khánh, Phường 8, Quận 4, TP. Hồ Chí Minh'
                     ELSE address_line
                 END,
                 opening_hours = CASE id
@@ -852,6 +852,85 @@ public class MySqlDatabaseInitializer(
                 '55555555-5555-5555-5555-555555555554'
             )
             AND language_code IN ('vi', 'en');
+            """);
+
+        connection.Execute(
+            """
+            UPDATE poi_translations
+            SET
+                name = CASE
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Ốc Thảo - Vĩnh Khánh'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Bánh Tráng Nướng Win'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Ốc Loan - Vĩnh Khánh'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Trà Viên Quán - Vĩnh Khánh'
+                    ELSE name
+                END,
+                short_description = CASE
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Quán ốc đông khách về đêm trên phố Vĩnh Khánh.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Quán bánh tráng nướng gọn nhẹ, dễ ghé nhanh.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Điểm ốc quen cho nhóm bạn muốn ngồi lai rai.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Quán nước và ăn vặt nhỏ để dừng chân.'
+                    ELSE short_description
+                END,
+                description = CASE
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN 'Ốc Thảo nằm trên tuyến phố ẩm thực Vĩnh Khánh, thường nhộn nhịp từ cuối chiều đến khuya. Quầy bếp mở, món ra đều tay, hợp cho khách muốn thử kiểu ăn tối bình dân của khu Quận 4.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN 'Bánh Tráng Nướng Win là điểm ăn vặt dễ ghé khi đi quanh khu Vĩnh Khánh. Quán nhỏ, lên món nhanh, hợp với khách muốn thử bánh tráng nướng nhiều topping mà không cần ngồi lâu.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN 'Ốc Loan ở số 129 Vĩnh Khánh là một điểm hẹn quen của khu phố ốc. Khách thường ghé theo nhóm nhỏ, gọi vài món xào nướng và ngồi lại tới muộn trong không khí rất đời thường của Quận 4.'
+                    WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN 'Trà Viên Quán là điểm dừng chân nhẹ ở khu Vĩnh Khánh, hợp để gọi một ly trà mát lạnh hoặc ăn vặt nhanh trước khi đi tiếp sang các quán ốc xung quanh.'
+                    ELSE description
+                END
+            WHERE poi_id IN (
+                '55555555-5555-5555-5555-555555555551',
+                '55555555-5555-5555-5555-555555555552',
+                '55555555-5555-5555-5555-555555555553',
+                '55555555-5555-5555-5555-555555555554'
+            )
+            AND language_code = 'vi';
+            """);
+
+        connection.Execute(
+            """
+            UPDATE shops
+            SET
+                name = CASE
+                    WHEN id = '44444444-4444-4444-4444-444444444441' THEN 'Ốc Thảo - Vĩnh Khánh'
+                    WHEN id = '44444444-4444-4444-4444-444444444442' THEN 'Bánh Tráng Nướng Win'
+                    WHEN id = '77777777-7777-7777-7777-777777777777' THEN 'Bò Lá Lốt Chị Ba Demo'
+                    WHEN id = '44444444-4444-4444-4444-444444444443' THEN 'Ốc Vũ - Vĩnh Khánh'
+                    WHEN id = '44444444-4444-4444-4444-444444444444' THEN 'Ốc Cúc - Vĩnh Khánh'
+                    ELSE name
+                END,
+                description = CASE
+                    WHEN id = '44444444-4444-4444-4444-444444444441' THEN 'Quán ốc quen trên đường Vĩnh Khánh, đông khách từ chiều tới. Không gian giản dị, lên món nhanh và hợp đi nhóm nhỏ.'
+                    WHEN id = '44444444-4444-4444-4444-444444444442' THEN 'Điểm ăn vặt nhỏ trên đường Vĩnh Khánh, phù hợp ghé nhanh buổi xế. Bánh tráng nướng làm tại chỗ, dễ ăn và dễ mang đi.'
+                    WHEN id = '77777777-7777-7777-7777-777777777777' THEN 'Quán demo dành cho luồng chủ quán, mô phỏng một điểm nướng bình dân trên phố ẩm thực.'
+                    WHEN id = '44444444-4444-4444-4444-444444444443' THEN 'Quán ốc quen thuộc ở đầu đường Vĩnh Khánh, hợp cho nhóm bạn muốn ăn tối gọn mà nhiều món.'
+                    WHEN id = '44444444-4444-4444-4444-444444444444' THEN 'Quán ốc nhỏ, phù hợp cho khách muốn ghé nhanh và thử vài món nướng quen thuộc của phố Vĩnh Khánh.'
+                    ELSE description
+                END,
+                approved_intro = CASE
+                    WHEN id = '44444444-4444-4444-4444-444444444441' THEN 'Ốc Thảo được biết đến là một điểm hẹn bình dân ở khu Vĩnh Khánh, thường nhộn nhịp vào buổi tối. Khách hay gọi nhiều món ốc xào, nướng và ngồi lại lai rai cùng bạn bè.'
+                    WHEN id = '44444444-4444-4444-4444-444444444442' THEN 'Bánh Tráng Nướng Win có kiểu quán ăn vặt gọn nhẹ, phù hợp cho khách muốn đổi món sau khi đi một vòng phố ốc. Món nướng được làm tại chỗ nên mùi thơm và dễ ăn khi còn nóng.'
+                    WHEN id = '77777777-7777-7777-7777-777777777777' THEN 'Đây là quán demo để bạn thử tính năng quản lý chủ quán. Nội dung, menu và thông tin hiển thị trên bản đồ đều có thể sửa trực tiếp.'
+                    WHEN id = '44444444-4444-4444-4444-444444444443' THEN 'Ốc Vũ thường đông vào buổi tối, thực đơn có nhiều món ốc xào và nướng để chia nhau theo nhóm. Không gian bình dân và lên món khá nhanh.'
+                    WHEN id = '44444444-4444-4444-4444-444444444444' THEN 'Ốc Cúc thường được nhắc đến nhờ các món hàu nướng, sò điệp mỡ hành và nghêu hấp. Quán nhỏ nhưng gọn, hợp cho buổi ăn tối không quá cầu kỳ.'
+                    ELSE approved_intro
+                END,
+                address_line = CASE
+                    WHEN id = '44444444-4444-4444-4444-444444444441' THEN '212 Vĩnh Khánh, Phường 10, Quận 4, TP. Hồ Chí Minh'
+                    WHEN id = '44444444-4444-4444-4444-444444444442' THEN '150/38 Vĩnh Khánh, Phường 10, Quận 4, TP. Hồ Chí Minh'
+                    WHEN id = '77777777-7777-7777-7777-777777777777' THEN '129 Vĩnh Khánh, Phường 8, Quận 4, TP. Hồ Chí Minh'
+                    WHEN id = '44444444-4444-4444-4444-444444444443' THEN '37 Vĩnh Khánh, Phường 8, Quận 4, TP. Hồ Chí Minh'
+                    WHEN id = '44444444-4444-4444-4444-444444444444' THEN '128 Bis Vĩnh Khánh, Phường 8, Quận 4, TP. Hồ Chí Minh'
+                    ELSE address_line
+                END
+            WHERE id IN (
+                '44444444-4444-4444-4444-444444444441',
+                '44444444-4444-4444-4444-444444444442',
+                '77777777-7777-7777-7777-777777777777',
+                '44444444-4444-4444-4444-444444444443',
+                '44444444-4444-4444-4444-444444444444'
+            );
             """);
 
         RefreshMenuItem(
@@ -1051,9 +1130,9 @@ public class MySqlDatabaseInitializer(
             "44444444-4444-4444-4444-444444444443",
             "Oc Vu - Vinh Khanh",
             "oc-vu-vinh-khanh",
-            "Quan oc quen thuoc o dau duong Vinh Khanh, hop cho nhom ban muon an toi gon ma nhieu mon.",
-            "Oc Vu thuong dong vao buoi toi, thuc don co nhieu mon oc xao va nuong de chia nhau theo nhom. Khong gian binh dan va len mon kha nhanh.",
-            "37 Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh",
+            "Quán ốc quen thuộc ở đầu đường Vĩnh Khánh, hợp cho nhóm bạn muốn ăn tối gọn mà nhiều món.",
+            "Ốc Vũ thường đông vào buổi tối, thực đơn có nhiều món ốc xào và nướng để chia nhau theo nhóm. Không gian bình dân và lên món khá nhanh.",
+            "37 Vĩnh Khánh, Phường 8, Quận 4, TP. Hồ Chí Minh",
             10.75894000m,
             106.70272000m,
             "15:00 - 22:00",
@@ -1065,9 +1144,9 @@ public class MySqlDatabaseInitializer(
             "44444444-4444-4444-4444-444444444444",
             "Oc Cuc - Vinh Khanh",
             "oc-cuc-vinh-khanh",
-            "Quan oc nho, phu hop cho khach muon ghe nhanh va thu vai mon nuong quen thuoc cua pho Vinh Khanh.",
+            "Quán ốc nhỏ, phù hợp cho khách muốn ghé nhanh và thử vài món nướng quen thuộc của phố Vĩnh Khánh.",
             "Oc Cuc thuong duoc nhac den nhờ cac mon hau nuong, so diep mo hanh va ngheu hap. Quan nho nhung gon, hop cho buoi an toi khong qua cau ky.",
-            "128 Bis Vinh Khanh, Phuong 8, Quan 4, TP. Ho Chi Minh",
+            "128 Bis Vĩnh Khánh, Phường 8, Quận 4, TP. Hồ Chí Minh",
             10.75842000m,
             106.70306000m,
             "15:30 - 22:00",
@@ -1082,9 +1161,9 @@ public class MySqlDatabaseInitializer(
             10.75894000m,
             106.70272000m,
             "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80",
-            "Oc Vu - Vinh Khanh",
-            "Quan oc quen cho nhom ban muon ngoi an toi.",
-            "Quan oc co nhieu mon xao bo, xao rau muong va hai san nuong de goi chung. Neu muon thu khong khi pho oc Vinh Khanh theo kieu binh dan, day la diem dung kha de tiep can.",
+            "Ốc Vũ - Vĩnh Khánh",
+            "Quán ốc quen cho nhóm bạn muốn ngồi ăn tối.",
+            "Quán ốc có nhiều món xào bơ, xào rau muống và hải sản nướng để gọi chung. Nếu muốn thử không khí phố ốc Vĩnh Khánh theo kiểu bình dân, đây là điểm dừng khá dễ tiếp cận.",
             "Oc Vu - Vinh Khanh",
             "A familiar shellfish stop for small groups.",
             "Oc Vu is a casual seafood stop where visitors often share stir-fried and grilled dishes. It gives a straightforward taste of the lively Vinh Khanh shellfish street.");
@@ -1097,9 +1176,9 @@ public class MySqlDatabaseInitializer(
             10.75842000m,
             106.70306000m,
             "https://images.unsplash.com/photo-1559847844-5315695dadae?auto=format&fit=crop&w=900&q=80",
-            "Oc Cuc - Vinh Khanh",
-            "Diem dung gon nhe de thu cac mon oc nuong quen thuoc.",
-            "Oc Cuc co menu gon hon nhung de chon mon, thuong hop voi khach muon ghe nhanh de an hau nuong, so diep mo hanh hay ngheu hap sa. Quan nam ngay tren tuyen pho am thuc nen rat tien khi di bo.",
+            "Ốc Cúc - Vĩnh Khánh",
+            "Điểm dừng gọn nhẹ để thử các món ốc nướng quen thuộc.",
+            "Ốc Cúc có menu gọn hơn nhưng dễ chọn món, thường hợp với khách muốn ghé nhanh để ăn hàu nướng, sò điệp mỡ hành hay nghêu hấp sả. Quán nằm ngay trên tuyến phố ẩm thực nên rất tiện khi đi bộ.",
             "Oc Cuc - Vinh Khanh",
             "A compact stop known for grilled shellfish.",
             "Oc Cuc keeps a shorter, easy-to-order menu focused on grilled oysters, scallops with scallion oil, and lemongrass clams. It is convenient for a short stop while walking through the food street.");

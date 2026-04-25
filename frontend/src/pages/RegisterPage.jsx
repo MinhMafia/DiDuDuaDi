@@ -67,8 +67,8 @@ export default function RegisterPage() {
   return (
     <AuthShell
       badge={t("appName")}
-      title={t("auth.register")}
-      subtitle={t("auth.registerTitle")}
+      title={t("auth.registerTitle")}
+      subtitle={t("auth.registerSubtitle")}
       footerText={t("auth.haveAccount")}
       footerLinkLabel={t("auth.goLogin")}
       footerLinkTo="/login"

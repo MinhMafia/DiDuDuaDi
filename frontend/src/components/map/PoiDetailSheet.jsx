@@ -99,7 +99,13 @@ export default function PoiDetailSheet({
             )}
           </section>
 
-          <section className="poi-detail-section">
+          <section className="poi-detail-section poi-detail-audio-section">
+            <div className="poi-detail-audio-head">
+              <div>
+                <h3>{t("audio.title")}</h3>
+                <p className="supporting-text">{t("audio.detailHint")}</p>
+              </div>
+            </div>
             <SpeechGuidePlayer
               audioUrl={poi.audioUrl}
               onPlaybackStart={onPlaybackStart}
@@ -108,6 +114,7 @@ export default function PoiDetailSheet({
               speechText={speechText}
               title={`${poi.displayName}${titleSuffix ? ` (${titleSuffix})` : ""}`}
               triggerAutoSpeak={triggerAutoSpeak}
+              variant="full"
             />
           </section>
         </div>

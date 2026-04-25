@@ -21,6 +21,8 @@
 }
 
 .bottom-nav__link {
+  appearance: none;
+  background: transparent;
   color: #334155;
   text-decoration: none;
   font-weight: 700;
@@ -34,11 +36,16 @@
   transition: all 0.2s ease;
   border: 2px solid transparent;
   gap: 2px;
+  font: inherit;
 }
 
 .bottom-nav__link:hover {
   background: #f8fafc;
   transform: translateY(-2px);
+}
+
+.bottom-nav__link-button {
+  cursor: pointer;
 }
 
 .bottom-nav__link--active {

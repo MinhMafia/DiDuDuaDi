@@ -20,6 +20,10 @@ export default function BottomNav() {
   const isAdminDashboardActive =
     currentUser?.role === "admin" && location.pathname === "/admin";
 
+  function handleGuestCooperateClick() {
+    alert(t("auth.loginRequired"));
+  }
+
   return (
     <nav className="bottom-nav">
       <div className="bottom-nav__inner">
@@ -28,9 +32,13 @@ export default function BottomNav() {
             <NavLink to="/map" className={linkClassName}>
               {t("nav.map")}
             </NavLink>
-            <NavLink to="/login" className={linkClassName}>
-              {t("auth.login")}
-            </NavLink>
+            <button
+              type="button"
+              className="bottom-nav__link bottom-nav__link-button"
+              onClick={handleGuestCooperateClick}
+            >
+              {t("nav.cooperate")}
+            </button>
           </>
         ) : null}
 
