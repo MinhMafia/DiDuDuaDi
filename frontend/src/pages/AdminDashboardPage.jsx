@@ -17,7 +17,7 @@ import {
   UserOutlined,
   FileTextOutlined,
   EnvironmentOutlined,
-  RocketOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { Card } from "antd";
 import {
@@ -54,6 +54,7 @@ import {
 import {
   getTopShops,
   getTopPois,
+  getActiveVisitorsCount,
   getPois,
   createPoi,
   updatePoi,
@@ -209,6 +210,12 @@ export default function AdminDashboardPage() {
     },
   });
 
+  const activeVisitorsQuery = useQuery({
+    queryKey: ["activeVisitors", 5],
+    queryFn: () => getActiveVisitorsCount(5),
+    refetchInterval: 60_000,
+  });
+
   // Query lấy chi tiết POI
   const poiDetailQuery = useQuery({
     queryKey: ["poi-detail", selectedPoiId],
@@ -314,6 +321,7 @@ export default function AdminDashboardPage() {
   const pendingIntroCount = pendingIntroReviewsQuery.data?.length ?? 0;
   const totalPois = poisQuery.data?.length ?? 0;
   const totalTours = foodToursQuery.data?.length ?? 0;
+  const activeVisitorsCount = activeVisitorsQuery.data ?? 0;
 const overviewChartData = [
   {
     name: "Owner",
@@ -328,8 +336,8 @@ const overviewChartData = [
     value: totalPois,
   },
   {
-    name: "Tour",
-    value: totalTours,
+    name: "Live",
+    value: activeVisitorsCount,
   },
 ];
   // ================= SECTIONS =================
@@ -565,11 +573,11 @@ const overviewChartData = [
   <Card className="stat-card stat-green">
     <div className="stat-content">
       <div className="stat-icon">
-        <RocketOutlined />
+        <TeamOutlined />
       </div>
       <div>
-        <h2>{totalTours}</h2>
-        <p>Tour du lịch đã tạo</p>
+        <h2>{activeVisitorsCount}</h2>
+        <p>Đang truy cập trong 5 phút</p>
       </div>
     </div>
   </Card>

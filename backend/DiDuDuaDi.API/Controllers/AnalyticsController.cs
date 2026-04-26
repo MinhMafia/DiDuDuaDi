@@ -53,5 +53,18 @@ public class AnalyticsController(IAnalyticsRepository analyticsRepository) : Con
         var data = analyticsRepository.GetTopPois(days, limit, metric);
         return Ok(new ApiResponse<IReadOnlyList<TopPoiSummary>>(data));
     }
+
+    [HttpGet("active-visitors")]
+    [Authorize(Roles = "admin")]
+    public ActionResult<ApiResponse<int>> GetActiveVisitors([FromQuery] int minutes = 5)
+    {
+        if (minutes <= 0 || minutes > 120)
+        {
+            return BadRequest(new ApiResponse<int>(0, false, "Minutes must be between 1 and 120."));
+        }
+
+        var count = analyticsRepository.GetActiveVisitorsCount(minutes);
+        return Ok(new ApiResponse<int>(count));
+    }
 }
 

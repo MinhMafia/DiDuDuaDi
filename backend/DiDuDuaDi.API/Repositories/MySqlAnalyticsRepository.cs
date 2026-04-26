@@ -78,6 +78,28 @@ public class MySqlAnalyticsRepository(IDbConnectionFactory connectionFactory) : 
         return true;
     }
 
+    public int GetActiveVisitorsCount(int minutes = 5)
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        const string query = """
+            SELECT COUNT(*)
+            FROM (
+                SELECT created_at
+                FROM shop_visit_events
+                WHERE created_at >= DATE_SUB(NOW(), INTERVAL @Minutes MINUTE)
+
+                UNION ALL
+
+                SELECT created_at
+                FROM audio_play_events
+                WHERE created_at >= DATE_SUB(NOW(), INTERVAL @Minutes MINUTE)
+            ) AS recent_activity;
+            """;
+
+        return connection.QuerySingle<int>(query, new { Minutes = minutes });
+    }
+
     private sealed class PoiShopRow
     {
         public Guid PoiId { get; init; }

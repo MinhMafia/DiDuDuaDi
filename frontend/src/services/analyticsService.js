@@ -10,6 +10,11 @@ export const getTopPois = (days = 30, limit = 10, metric = "visits") =>
     .get("/analytics/top-pois", { params: { days, limit, metric } })
     .then((r) => r.data);
 
+export const getActiveVisitorsCount = (minutes = 5) =>
+  apiClient
+    .get("/analytics/active-visitors", { params: { minutes } })
+    .then((r) => r.data.data ?? 0);
+
 // POI for manage
 export const getPois = (params) =>
   apiClient.get("/pois", { params }).then((r) => r.data);
