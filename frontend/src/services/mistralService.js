@@ -1,22 +1,22 @@
-import apiClient from "./apiClient";
+import axios from "axios";
 
 export const askMistral = async (messages) => {
-  try {
-    const response = await apiClient.post("/ai/chat", {
+  const response = await axios.post(
+    "https://api.mistral.ai/v1/chat/completions",
+    {
+      model: "mistral-medium-latest",
       messages: messages.map((msg) => ({
-        role: msg.role,
-        text: msg.text,
+        role: msg.role === "assistant" ? "assistant" : "user",
+        content: msg.text,
       })),
-    });
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${import.meta.env.VITE_MISTRAL_API_KEY}`,
+      },
+    }
+  );
 
-    return response.data?.data?.reply ?? "";
-  } catch (error) {
-    const serverMessage =
-      error?.response?.data?.message ||
-      error?.response?.data?.Message ||
-      error?.message ||
-      "Unable to reach AI assistant.";
-
-    throw new Error(serverMessage);
-  }
+  return response.data.choices[0]?.message?.content;
 };
