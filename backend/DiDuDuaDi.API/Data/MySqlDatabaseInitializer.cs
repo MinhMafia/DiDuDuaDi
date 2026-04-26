@@ -22,6 +22,7 @@ public class MySqlDatabaseInitializer(
         EnsureCashClaimCodesTable(connection, databaseName);
         EnsureShopVisitEventsTable(connection, databaseName);
         EnsureAudioPlayEventsTable(connection, databaseName);
+        EnsureVisitorActivityEventsTable(connection, databaseName);
         EnsureOwnerUpgradeRequestsTable(connection, databaseName);
         EnsureOwnerUpgradeLocationColumns(connection, databaseName);
         EnsureOwnerReviewColumns(connection, databaseName);
@@ -703,6 +704,29 @@ public class MySqlDatabaseInitializer(
                 CONSTRAINT fk_audio_play_events_poi_id
                     FOREIGN KEY (poi_id) REFERENCES pois (id)
                     ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            """);
+    }
+
+    private void EnsureVisitorActivityEventsTable(System.Data.IDbConnection connection, string databaseName)
+    {
+        if (TableExists(connection, databaseName, "visitor_activity_events"))
+        {
+            return;
+        }
+
+        logger.LogInformation("Creating missing table: visitor_activity_events");
+        connection.Execute(
+            """
+            CREATE TABLE visitor_activity_events (
+                id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                session_key VARCHAR(80) NOT NULL,
+                source VARCHAR(50) NOT NULL DEFAULT 'map',
+                page VARCHAR(50) NOT NULL DEFAULT 'map',
+                created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (id),
+                KEY idx_visitor_activity_events_session_created_at (session_key, created_at),
+                KEY idx_visitor_activity_events_created_at (created_at)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
             """);
     }

@@ -11,7 +11,12 @@ import useDeviceHeading from "../hooks/useDeviceHeading";
 import useGeolocation from "../hooks/useGeolocation";
 import { SUPPORTED_LANGUAGES } from "../i18n";
 import { setAutoNarrateOnTouch, setAutoPlayAudio } from "../store/slices/appSlice";
-import { trackAudioPlay, trackPoiView } from "../services/analyticsService";
+import {
+  getVisitorSessionKey,
+  trackAudioPlay,
+  trackPoiView,
+  trackVisitorHeartbeat,
+} from "../services/analyticsService";
 import { getNearbyPois, getPois } from "../services/poiService";
 import { getDrivingRoute } from "../services/routeService";
 import { getTours } from "../services/tourService";
@@ -319,6 +324,22 @@ export default function MapPage() {
       stopDeviceHeading();
     }
   }, [demoLocation, isDeviceHeadingListening, stopDeviceHeading]);
+
+  useEffect(() => {
+    const sessionKey = getVisitorSessionKey();
+
+    const sendHeartbeat = () =>
+      trackVisitorHeartbeat({
+        sessionKey,
+        source: demoLocation ? "demo-map" : "map",
+        page: "map",
+      }).catch(() => {});
+
+    sendHeartbeat();
+    const intervalId = window.setInterval(sendHeartbeat, 60_000);
+
+    return () => window.clearInterval(intervalId);
+  }, [demoLocation]);
 
   useEffect(() => {
     if (!selectedPoi?.shopId) return;

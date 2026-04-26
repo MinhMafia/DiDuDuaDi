@@ -226,6 +226,17 @@ CREATE TABLE IF NOT EXISTS audio_play_events (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS visitor_activity_events (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    session_key VARCHAR(80) NOT NULL,
+    source VARCHAR(50) NOT NULL DEFAULT 'map',
+    page VARCHAR(50) NOT NULL DEFAULT 'map',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_visitor_activity_events_session_created_at (session_key, created_at),
+    KEY idx_visitor_activity_events_created_at (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS owner_upgrade_requests (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     account_id CHAR(36) NOT NULL,

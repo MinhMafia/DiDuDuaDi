@@ -10,6 +10,13 @@ namespace DiDuDuaDi.API.Controllers;
 [Route("api/[controller]")]
 public class AnalyticsController(IAnalyticsRepository analyticsRepository) : ControllerBase
 {
+    [HttpPost("visitor-heartbeat")]
+    public ActionResult<ApiResponse<bool>> TrackVisitorHeartbeat([FromBody] TrackVisitorHeartbeatRequest request)
+    {
+        var tracked = analyticsRepository.TrackVisitorHeartbeat(request.SessionKey, request.Source, request.Page);
+        return Ok(new ApiResponse<bool>(tracked, tracked, tracked ? "Visitor heartbeat tracked" : "Invalid session key"));
+    }
+
     [HttpPost("poi-view")]
     public ActionResult<ApiResponse<bool>> TrackPoiView([FromBody] TrackPoiEventRequest request)
     {
@@ -64,6 +71,14 @@ public class AnalyticsController(IAnalyticsRepository analyticsRepository) : Con
         }
 
         var count = analyticsRepository.GetActiveVisitorsCount(minutes);
+        return Ok(new ApiResponse<int>(count));
+    }
+
+    [HttpGet("total-visitors")]
+    [Authorize(Roles = "admin")]
+    public ActionResult<ApiResponse<int>> GetTotalVisitors()
+    {
+        var count = analyticsRepository.GetTotalVisitorsCount();
         return Ok(new ApiResponse<int>(count));
     }
 }

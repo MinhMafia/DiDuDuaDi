@@ -55,6 +55,7 @@ import {
   getTopShops,
   getTopPois,
   getActiveVisitorsCount,
+  getTotalVisitorsCount,
   getPois,
   createPoi,
   updatePoi,
@@ -216,6 +217,12 @@ export default function AdminDashboardPage() {
     refetchInterval: 60_000,
   });
 
+  const totalVisitorsQuery = useQuery({
+    queryKey: ["totalVisitors"],
+    queryFn: getTotalVisitorsCount,
+    refetchInterval: 60_000,
+  });
+
   // Query lấy chi tiết POI
   const poiDetailQuery = useQuery({
     queryKey: ["poi-detail", selectedPoiId],
@@ -322,6 +329,7 @@ export default function AdminDashboardPage() {
   const totalPois = poisQuery.data?.length ?? 0;
   const totalTours = foodToursQuery.data?.length ?? 0;
   const activeVisitorsCount = activeVisitorsQuery.data ?? 0;
+  const totalVisitorsCount = totalVisitorsQuery.data ?? 0;
 const overviewChartData = [
   {
     name: "Owner",
@@ -338,6 +346,10 @@ const overviewChartData = [
   {
     name: "Live",
     value: activeVisitorsCount,
+  },
+  {
+    name: "Total",
+    value: totalVisitorsCount,
   },
 ];
   // ================= SECTIONS =================
@@ -578,6 +590,18 @@ const overviewChartData = [
       <div>
         <h2>{activeVisitorsCount}</h2>
         <p>Đang truy cập trong 5 phút</p>
+      </div>
+    </div>
+  </Card>
+
+  <Card className="stat-card stat-green">
+    <div className="stat-content">
+      <div className="stat-icon">
+        <TeamOutlined />
+      </div>
+      <div>
+        <h2>{totalVisitorsCount}</h2>
+        <p>Tổng người đã từng truy cập</p>
       </div>
     </div>
   </Card>

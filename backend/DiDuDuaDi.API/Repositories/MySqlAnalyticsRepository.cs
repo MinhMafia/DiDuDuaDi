@@ -8,6 +8,29 @@ namespace DiDuDuaDi.API.Repositories;
 
 public class MySqlAnalyticsRepository(IDbConnectionFactory connectionFactory) : IAnalyticsRepository
 {
+    public bool TrackVisitorHeartbeat(string sessionKey, string? source, string? page)
+    {
+        if (string.IsNullOrWhiteSpace(sessionKey))
+        {
+            return false;
+        }
+
+        using var connection = connectionFactory.CreateConnection();
+        connection.Execute(
+            """
+            INSERT INTO visitor_activity_events (session_key, source, page)
+            VALUES (@SessionKey, @Source, @Page);
+            """,
+            new
+            {
+                SessionKey = sessionKey.Trim(),
+                Source = string.IsNullOrWhiteSpace(source) ? "map" : source,
+                Page = string.IsNullOrWhiteSpace(page) ? "map" : page
+            });
+
+        return true;
+    }
+
     public bool TrackPoiView(Guid poiId, string? languageCode, string? source)
     {
         using var connection = connectionFactory.CreateConnection();
@@ -83,21 +106,24 @@ public class MySqlAnalyticsRepository(IDbConnectionFactory connectionFactory) : 
         using var connection = connectionFactory.CreateConnection();
 
         const string query = """
-            SELECT COUNT(*)
-            FROM (
-                SELECT created_at
-                FROM shop_visit_events
-                WHERE created_at >= DATE_SUB(NOW(), INTERVAL @Minutes MINUTE)
-
-                UNION ALL
-
-                SELECT created_at
-                FROM audio_play_events
-                WHERE created_at >= DATE_SUB(NOW(), INTERVAL @Minutes MINUTE)
-            ) AS recent_activity;
+            SELECT COUNT(DISTINCT session_key)
+            FROM visitor_activity_events
+            WHERE created_at >= DATE_SUB(NOW(), INTERVAL @Minutes MINUTE);
             """;
 
         return connection.QuerySingle<int>(query, new { Minutes = minutes });
+    }
+
+    public int GetTotalVisitorsCount()
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        const string query = """
+            SELECT COUNT(DISTINCT session_key)
+            FROM visitor_activity_events;
+            """;
+
+        return connection.QuerySingle<int>(query);
     }
 
     private sealed class PoiShopRow
