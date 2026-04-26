@@ -30,6 +30,7 @@ public class MySqlDatabaseInitializer(
         EnsureAdminDemoSeed(connection);
         RefreshTouristDemoSeed(connection);
         EnsureAdditionalTouristPois(connection);
+        EnsureDemoPoiAudioUrls(connection);
         EnsureDemoTours(connection);
     }
 
@@ -356,6 +357,41 @@ public class MySqlDatabaseInitializer(
                 ImageUrl = imageUrl,
                 DisplayOrder = displayOrder
             });
+    }
+
+    private void EnsureDemoPoiAudioUrls(System.Data.IDbConnection connection)
+    {
+        connection.Execute(
+            """
+            UPDATE poi_translations
+            SET audio_url = CASE
+                WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'vi' THEN '/audios/pois/55555555-5555-5555-5555-555555555551_vi.mp3'
+                WHEN poi_id = '55555555-5555-5555-5555-555555555551' AND language_code = 'en' THEN '/audios/pois/55555555-5555-5555-5555-555555555551_en.mp3'
+                WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'vi' THEN '/audios/pois/55555555-5555-5555-5555-555555555552_vi.mp3'
+                WHEN poi_id = '55555555-5555-5555-5555-555555555552' AND language_code = 'en' THEN '/audios/pois/55555555-5555-5555-5555-555555555552_en.mp3'
+                WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'vi' THEN '/audios/pois/55555555-5555-5555-5555-555555555553_vi.mp3'
+                WHEN poi_id = '55555555-5555-5555-5555-555555555553' AND language_code = 'en' THEN '/audios/pois/55555555-5555-5555-5555-555555555553_en.mp3'
+                WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'vi' THEN '/audios/pois/55555555-5555-5555-5555-555555555554_vi.mp3'
+                WHEN poi_id = '55555555-5555-5555-5555-555555555554' AND language_code = 'en' THEN '/audios/pois/55555555-5555-5555-5555-555555555554_en.mp3'
+                WHEN poi_id = '88888888-8888-8888-8888-888888888888' AND language_code = 'vi' THEN '/audios/pois/88888888-8888-8888-8888-888888888888_vi.mp3'
+                WHEN poi_id = '88888888-8888-8888-8888-888888888888' AND language_code = 'en' THEN '/audios/pois/88888888-8888-8888-8888-888888888888_en.mp3'
+                WHEN poi_id = '99999999-9999-9999-9999-999999999991' AND language_code = 'vi' THEN '/audios/pois/99999999-9999-9999-9999-999999999991_vi.mp3'
+                WHEN poi_id = '99999999-9999-9999-9999-999999999991' AND language_code = 'en' THEN '/audios/pois/99999999-9999-9999-9999-999999999991_en.mp3'
+                WHEN poi_id = '99999999-9999-9999-9999-999999999992' AND language_code = 'vi' THEN '/audios/pois/99999999-9999-9999-9999-999999999992_vi.mp3'
+                WHEN poi_id = '99999999-9999-9999-9999-999999999992' AND language_code = 'en' THEN '/audios/pois/99999999-9999-9999-9999-999999999992_en.mp3'
+                ELSE audio_url
+            END
+            WHERE poi_id IN (
+                '55555555-5555-5555-5555-555555555551',
+                '55555555-5555-5555-5555-555555555552',
+                '55555555-5555-5555-5555-555555555553',
+                '55555555-5555-5555-5555-555555555554',
+                '88888888-8888-8888-8888-888888888888',
+                '99999999-9999-9999-9999-999999999991',
+                '99999999-9999-9999-9999-999999999992'
+            )
+            AND language_code IN ('vi', 'en');
+            """);
     }
 
     private void EnsureShopOwnerColumns(System.Data.IDbConnection connection, string databaseName)

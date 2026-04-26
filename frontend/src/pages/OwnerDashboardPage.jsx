@@ -159,40 +159,37 @@ export default function OwnerDashboardPage() {
       label: t("owner.sections.overview"),
       description: t("owner.sections.overviewDescription"),
       badge: activeStatusLabel,
-      icon: "01",
+      icon: "overview",
     },
     {
       id: "menu",
       label: t("owner.menuTitle"),
       description: t("owner.menuSubtitle"),
       badge: `${availableMenuCount}/${menuItems.length}`,
-      icon: "02",
+      icon: "menu",
     },
     {
       id: "profile",
       label: t("owner.shopInfoTitle"),
       description: t("owner.sections.profileDescription"),
       badge: displayShopName || "--",
-      icon: "03",
+      icon: "profile",
     },
     {
       id: "mapInfo",
       label: t("owner.poiTitle"),
       description: t("owner.poiSubtitle"),
-      badge: primaryPoiCategoryLabel || "--",
-      icon: "04",
+      badge: displayPrimaryPoiNameVi || "--",
+      icon: "map",
     },
     {
       id: "qr",
       label: t("qr.kicker"),
       description: t("owner.sections.qrDescription"),
       badge: primaryPoiId ? t("owner.sections.qrReady") : t("owner.sections.qrMissing"),
-      icon: "05",
+      icon: "qr",
     },
   ];
-  const activeSectionConfig =
-    sections.find((section) => section.id === activeSection) || sections[0];
-
   function handleProfileSubmit(event) {
     event.preventDefault();
     setFeedback("");
@@ -264,6 +261,20 @@ export default function OwnerDashboardPage() {
               <p className="owner-section-kicker">{t("owner.shopInfoTitle")}</p>
               <h2>{displayShopName || t("owner.noShop")}</h2>
               <p>{heroSummaryText}</p>
+              <dl className="owner-profile-facts">
+                <div>
+                  <dt>{t("owner.fields.address")}</dt>
+                  <dd>{dashboard.addressLine || t("owner.summaryUnavailable")}</dd>
+                </div>
+                <div>
+                  <dt>{t("owner.fields.hours")}</dt>
+                  <dd>{dashboard.openingHours || t("owner.summaryUnavailable")}</dd>
+                </div>
+                <div>
+                  <dt>{t("owner.fields.phone")}</dt>
+                  <dd>{dashboard.phone || t("owner.summaryUnavailable")}</dd>
+                </div>
+              </dl>
               <div className="owner-action-row">
                 <button type="button" className="owner-button" onClick={() => setActiveSection("profile")}>
                   {t("owner.edit")}
@@ -272,6 +283,9 @@ export default function OwnerDashboardPage() {
                   {t("owner.viewMap")}
                 </Link>
               </div>
+            </div>
+            <div className="owner-spotlight-side">
+              <ShopImage src={coverImage} label={displayShopName} />
             </div>
           </section>
         </div>
@@ -525,9 +539,6 @@ export default function OwnerDashboardPage() {
               </span>
             </div>
           </div>
-          <Link className="owner-button secondary" to="/map">
-            {t("owner.viewMap")}
-          </Link>
         </header>
 
         <div className="owner-workspace">
@@ -540,7 +551,9 @@ export default function OwnerDashboardPage() {
                   className={`owner-nav-button${activeSection === section.id ? " active" : ""}`}
                   onClick={() => setActiveSection(section.id)}
                 >
-                  <span className="owner-nav-index">{section.icon}</span>
+                  <span className="owner-nav-index" aria-hidden="true">
+                    <OwnerSectionIcon type={section.icon} />
+                  </span>
                   <span className="owner-nav-copy">
                     <strong>{section.label}</strong>
                     <small>{section.description}</small>
@@ -552,17 +565,6 @@ export default function OwnerDashboardPage() {
           </aside>
 
           <main className="owner-main">
-            <header className="owner-main-header">
-              <div>
-                <p className="owner-section-kicker">{t("owner.badge")}</p>
-                <h2>{activeSectionConfig.label}</h2>
-                <p>{activeSectionConfig.description}</p>
-              </div>
-              <div className="owner-header-actions">
-                <span className="owner-content-tag">{activeSectionConfig.badge}</span>
-              </div>
-            </header>
-
             {feedback ? <div className="owner-feedback">{feedback}</div> : null}
 
             <div className="owner-stage">{renderActivePanel()}</div>
@@ -598,6 +600,59 @@ function MetricCard({ label, value, hint }) {
       <strong>{value}</strong>
       {hint ? <small>{hint}</small> : null}
     </article>
+  );
+}
+
+function OwnerSectionIcon({ type }) {
+  if (type === "overview") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 12 12 4l9 8" />
+        <path d="M5 10v10h14V10" />
+        <path d="M9 20v-6h6v6" />
+      </svg>
+    );
+  }
+
+  if (type === "menu") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M8 6h13" />
+        <path d="M8 12h13" />
+        <path d="M8 18h13" />
+        <path d="M3 6h.01" />
+        <path d="M3 12h.01" />
+        <path d="M3 18h.01" />
+      </svg>
+    );
+  }
+
+  if (type === "profile") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20 21a8 8 0 0 0-16 0" />
+        <circle cx="12" cy="8" r="5" />
+      </svg>
+    );
+  }
+
+  if (type === "map") {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2V6z" />
+        <path d="M9 4v14" />
+        <path d="M15 6v14" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h10l6 6v10H4z" />
+      <path d="M14 4v6h6" />
+      <path d="M8 14h8" />
+      <path d="M8 18h5" />
+    </svg>
   );
 }
 

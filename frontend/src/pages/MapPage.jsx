@@ -7,6 +7,7 @@ import PoiDetailSheet from "../components/map/PoiDetailSheet";
 import MapView from "../components/map/MapView";
 import Loading from "../components/common/Loading";
 import PoiQrCard from "../components/common/PoiQrCard";
+import useDeviceHeading from "../hooks/useDeviceHeading";
 import useGeolocation from "../hooks/useGeolocation";
 import { SUPPORTED_LANGUAGES } from "../i18n";
 import { setAutoNarrateOnTouch, setAutoPlayAudio } from "../store/slices/appSlice";
@@ -16,6 +17,7 @@ import { getDrivingRoute } from "../services/routeService";
 import { getTours } from "../services/tourService";
 import { translateText } from "../services/translateService";
 import { VINH_KHANH_CENTER } from "../utils/constants";
+import { describeNetwork, getNetworkSnapshot } from "../utils/deviceStatus";
 import userService from "../services/userService";
 import {
   calculateDistanceMeters,
@@ -57,9 +59,19 @@ export default function MapPage() {
   const [mobilePanel, setMobilePanel] = useState("map");
   const [mapCenter, setMapCenter] = useState(VINH_KHANH_CENTER);
   const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM);
+  const [networkSnapshot, setNetworkSnapshot] = useState(() => getNetworkSnapshot());
   const [viewCenter, setViewCenter] = useState(null);
   const [translatedPoiContent, setTranslatedPoiContent] = useState({});
   const { error: geoError, isLoading: geoLoading, location } = useGeolocation();
+  const {
+    error: deviceHeadingError,
+    heading: deviceHeading,
+    isListening: isDeviceHeadingListening,
+    isSupported: isDeviceHeadingSupported,
+    permissionState: deviceHeadingPermissionState,
+    requestHeading: requestDeviceHeading,
+    stopHeading: stopDeviceHeading,
+  } = useDeviceHeading();
   const effectiveLocation = demoLocation ?? location;
 
   const numericRadius = radius === ALL_RADIUS_OPTION ? null : Number(radius);
@@ -282,6 +294,31 @@ export default function MapPage() {
 
     return () => mediaQuery.removeEventListener("change", syncViewport);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const connection =
+      navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const syncNetworkStatus = () => setNetworkSnapshot(getNetworkSnapshot());
+
+    syncNetworkStatus();
+    window.addEventListener("online", syncNetworkStatus);
+    window.addEventListener("offline", syncNetworkStatus);
+    connection?.addEventListener?.("change", syncNetworkStatus);
+
+    return () => {
+      window.removeEventListener("online", syncNetworkStatus);
+      window.removeEventListener("offline", syncNetworkStatus);
+      connection?.removeEventListener?.("change", syncNetworkStatus);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (demoLocation && isDeviceHeadingListening) {
+      stopDeviceHeading();
+    }
+  }, [demoLocation, isDeviceHeadingListening, stopDeviceHeading]);
 
   useEffect(() => {
     if (!selectedPoi?.shopId) return;
@@ -577,6 +614,15 @@ export default function MapPage() {
     setIsSearchOpen(false);
   }
 
+  function handleToggleDeviceHeading() {
+    if (isDeviceHeadingListening) {
+      stopDeviceHeading();
+      return;
+    }
+
+    requestDeviceHeading();
+  }
+
   const distanceToViewCenter =
     viewCenter && effectiveLocation ? calculateDistanceMeters(effectiveLocation, viewCenter) : 0;
   const showSearchBtn = distanceToViewCenter > 50;
@@ -615,6 +661,22 @@ export default function MapPage() {
         .filter(Boolean)
         .join(" ")
     : "";
+  const networkPresentation = describeNetwork(networkSnapshot, t);
+  const deviceHeadingDegrees = Number.isFinite(deviceHeading) ? Math.round(deviceHeading) : null;
+  const canShowRealHeading = Boolean(location) && !demoLocation;
+  const isDeviceHeadingActive =
+    isDeviceHeadingListening && canShowRealHeading && Number.isFinite(deviceHeadingDegrees);
+  const deviceHeadingPresentation = getDeviceHeadingPresentation({
+    degrees: deviceHeadingDegrees,
+    error: deviceHeadingError,
+    hasLocation: Boolean(location),
+    isActive: isDeviceHeadingActive,
+    isDemoMode: Boolean(demoLocation),
+    isListening: isDeviceHeadingListening,
+    isSupported: isDeviceHeadingSupported,
+    permissionState: deviceHeadingPermissionState,
+    t,
+  });
 
   return (
     <section className="map-page">
@@ -629,6 +691,12 @@ export default function MapPage() {
           <div className="status-row">
             <span className={`status-pill ${effectiveLocation ? "ok" : ""}`}>
               {demoLocation ? t("map.demoMode") : location ? t("map.gpsOn") : t("map.gpsWaiting")}
+            </span>
+            <span
+              className={`status-pill network ${networkPresentation.toneClass}`}
+              title={networkPresentation.hint}
+            >
+              {networkPresentation.label}
             </span>
             <span className="status-pill">{t("map.poiCount", { count: displayPois.length })}</span>
             {selectedTour ? (
@@ -785,12 +853,34 @@ export default function MapPage() {
                   {t("map.searchThisArea")}
                 </button>
               ) : null}
+              <div className={`map-heading-control ${deviceHeadingPresentation.toneClass}`}>
+                <button
+                  type="button"
+                  className={`map-heading-button ${isDeviceHeadingActive ? "active" : ""}`}
+                  disabled={deviceHeadingPresentation.disabled}
+                  onClick={handleToggleDeviceHeading}
+                  aria-pressed={isDeviceHeadingListening}
+                  title={deviceHeadingPresentation.note}
+                  style={
+                    isDeviceHeadingActive
+                      ? { "--device-heading-deg": `${deviceHeadingDegrees}deg` }
+                      : undefined
+                  }
+                >
+                  <span className="map-heading-icon" aria-hidden="true" />
+                  <span>{deviceHeadingPresentation.label}</span>
+                </button>
+                {deviceHeadingPresentation.note ? (
+                  <span className="map-heading-note">{deviceHeadingPresentation.note}</span>
+                ) : null}
+              </div>
               <MapView
                 center={mapCenter}
                 zoom={mapZoom}
                 pois={displayPois}
                 selectedPoi={selectedPoi}
                 selectedPoiId={selectedPoi?.id}
+                showUserHeading={isDeviceHeadingActive}
                 selectedPoiDistanceLabel={
                   selectedPoiDistance
                     ? t("map.distanceFromYou", {
@@ -798,6 +888,7 @@ export default function MapPage() {
                       })
                     : ""
                 }
+                userHeading={deviceHeading}
                 userLocation={effectiveLocation}
                 userLocationLabel={
                   demoLocation ? t("map.demoLocationLabel") : t("map.userLocationLabel")
@@ -1133,4 +1224,102 @@ async function safeTranslate(text, targetLanguage) {
 
 function buildPlaybackKey(poiId, language) {
   return `${poiId}-${language}-${Date.now()}`;
+}
+
+function getDeviceHeadingPresentation({
+  degrees,
+  error,
+  hasLocation,
+  isActive,
+  isDemoMode,
+  isListening,
+  isSupported,
+  permissionState,
+  t,
+}) {
+  if (!isSupported) {
+    return {
+      disabled: true,
+      label: t("map.headingUnsupportedShort"),
+      note: t("map.headingUnsupported"),
+      toneClass: "is-off",
+    };
+  }
+
+  if (!hasLocation) {
+    return {
+      disabled: true,
+      label: t("map.headingEnable"),
+      note: t("map.headingRequiresLocation"),
+      toneClass: "is-off",
+    };
+  }
+
+  if (isDemoMode) {
+    return {
+      disabled: true,
+      label: t("map.headingEnable"),
+      note: t("map.headingDemoHint"),
+      toneClass: "is-mid",
+    };
+  }
+
+  if (isActive && Number.isFinite(degrees)) {
+    return {
+      disabled: false,
+      label: t("map.headingLabel", { degrees }),
+      note: t("map.headingFacing", { direction: getHeadingDirectionLabel(degrees, t) }),
+      toneClass: "is-good",
+    };
+  }
+
+  if (permissionState === "denied" || error === "denied") {
+    return {
+      disabled: false,
+      label: t("map.headingEnable"),
+      note: t("map.headingPermissionDenied"),
+      toneClass: "is-warn",
+    };
+  }
+
+  if (permissionState === "unsupported" || error === "unsupported") {
+    return {
+      disabled: true,
+      label: t("map.headingUnsupportedShort"),
+      note: t("map.headingUnsupported"),
+      toneClass: "is-off",
+    };
+  }
+
+  if (isListening) {
+    return {
+      disabled: false,
+      label: t("map.headingWaiting"),
+      note: t("map.headingWaitingHint"),
+      toneClass: "is-mid",
+    };
+  }
+
+  return {
+    disabled: false,
+    label: t("map.headingEnable"),
+    note: t("map.headingHint"),
+    toneClass: "is-mid",
+  };
+}
+
+function getHeadingDirectionLabel(degrees, t) {
+  const directions = [
+    t("map.headingNorth"),
+    t("map.headingNorthEast"),
+    t("map.headingEast"),
+    t("map.headingSouthEast"),
+    t("map.headingSouth"),
+    t("map.headingSouthWest"),
+    t("map.headingWest"),
+    t("map.headingNorthWest"),
+  ];
+  const normalizedDegrees = ((degrees % 360) + 360) % 360;
+  const index = Math.round(normalizedDegrees / 45) % directions.length;
+  return directions[index];
 }

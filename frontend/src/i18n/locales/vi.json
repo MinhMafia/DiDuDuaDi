@@ -77,6 +77,25 @@
     "userLocationLabel": "Vị trí hiện tại của bạn",
     "demoLocationLabel": "Vị trí demo tại phố ẩm thực Vĩnh Khánh",
     "demoHint": "Đang dùng vị trí demo để bạn xem nhanh các quán ở phố ẩm thực Vĩnh Khánh.",
+    "headingEnable": "Bật hướng thiết bị",
+    "headingLabel": "Hướng {{degrees}}°",
+    "headingHint": "Cho phép cảm biến để xem hướng bạn đang quay mặt.",
+    "headingFacing": "Đang quay về hướng {{direction}}.",
+    "headingWaiting": "Đang dò hướng...",
+    "headingWaitingHint": "Giữ điện thoại thẳng vài giây để la bàn ổn định.",
+    "headingPermissionDenied": "Bạn cần cho phép cảm biến chuyển động để xem hướng quay.",
+    "headingRequiresLocation": "Bật GPS để hiển thị hướng trên bản đồ.",
+    "headingDemoHint": "Tắt vị trí demo để xem hướng thật của thiết bị.",
+    "headingUnsupported": "Thiết bị hoặc trình duyệt chưa hỗ trợ la bàn.",
+    "headingUnsupportedShort": "Không có la bàn",
+    "headingNorth": "Bắc",
+    "headingNorthEast": "Đông Bắc",
+    "headingEast": "Đông",
+    "headingSouthEast": "Đông Nam",
+    "headingSouth": "Nam",
+    "headingSouthWest": "Tây Nam",
+    "headingWest": "Tây",
+    "headingNorthWest": "Tây Bắc",
     "nearestPoi": "Điểm gần nhất lúc này là {{name}}, cách bạn khoảng {{distance}}.",
     "nearbyTitle": "Điểm gần bạn",
     "loadError": "Không tải được dữ liệu POI.",
@@ -153,6 +172,28 @@
     "fileMode": "File audio",
     "ttsMode": "Giọng đọc AI",
     "liveMode": "Đang đọc trực tiếp",
+    "networkTitle": "Internet",
+    "networkStrong": "Mạng mạnh",
+    "networkMedium": "Mạng vừa",
+    "networkWeak": "Mạng yếu",
+    "networkOffline": "Mất kết nối",
+    "networkOfflineHint": "Thiết bị đang offline, audio mới có thể không tải được.",
+    "networkFallbackHint": "Trình duyệt không trả thông số mạng, nhưng thiết bị đang online.",
+    "downlinkHint": "{{speed}} Mbps",
+    "dataSaverOn": "Đang bật tiết kiệm dữ liệu",
+    "accessTitle": "Quyền nghe",
+    "accessReady": "Âm thanh sẵn sàng",
+    "accessReadyHint": "Trình duyệt đã cho phép phát âm thanh trong tab này.",
+    "accessBlocked": "Cần bấm bật",
+    "accessBlockedHint": "Trình duyệt đang chặn tự phát. Hãy bấm nút bên dưới rồi phát lại.",
+    "accessUnknown": "Chưa kiểm tra",
+    "accessUnknownHint": "Bấm kiểm tra để xác nhận trình duyệt đã mở khóa âm thanh.",
+    "accessChecking": "Đang kiểm tra...",
+    "accessCheckingHint": "Đang thử phát một đoạn âm thanh rất nhỏ để mở khóa trình duyệt.",
+    "accessFailed": "Không kiểm tra được",
+    "accessFailedHint": "Trình duyệt không phản hồi kiểm tra âm thanh. Hãy thử phát lại hoặc tải lại trang.",
+    "accessAction": "Kiểm tra / bật âm thanh",
+    "permissionNote": "Nghe âm thanh không có popup xin quyền riêng như vị trí. Trình duyệt chỉ yêu cầu người dùng bấm một lần để cho phép phát trong tab hiện tại.",
     "unavailable": "POI này chưa có file audio. Khi backend bổ sung audio URL, player này sẽ dùng được ngay.",
     "noPoiSelected": "Chọn một điểm để xem audio guide.",
     "autoPlayReady": "sẵn sàng tự động phát"
@@ -270,14 +311,9 @@
     "poiSubtitle": "Tên quán và phần giới thiệu này sẽ hiện khi khách bấm vào quán trên bản đồ.",
     "menuTitle": "Quản lý thực đơn",
     "menuSubtitle": "Các món đang bật sẽ hiện cho khách khi họ xem quán của bạn.",
-    "claimTitle": "Mã thanh toán tiền mặt",
-    "claimSubtitle": "Tạo mã để xác nhận khách đã thanh toán tại quán.",
     "settingsTitle": "Cài đặt quán",
     "settingsSubtitle": "Cập nhật hồ sơ quán và thông tin hiển thị trên bản đồ.",
     "today": "Hôm nay",
-    "quickPayment": "Tạo mã nhanh",
-    "quickPaymentHint": "Nhập số tiền, tạo mã và đọc ngay cho khách tại quầy.",
-    "latestCode": "Mã gần nhất",
     "viewMap": "Xem bản đồ quán",
     "summaryFallback": "Thêm vài dòng giới thiệu ngắn để khách hiểu quán của bạn hơn.",
     "summaryUnavailable": "Chưa cập nhật",
@@ -286,7 +322,6 @@
     "addMenu": "Thêm món",
     "updateMenu": "Cập nhật món",
     "cancelEdit": "Hủy sửa",
-    "createClaim": "Tạo claim code",
     "available": "Đang hiện",
     "hidden": "Đang ẩn",
     "edit": "Sửa",
@@ -296,13 +331,11 @@
       "poiSaved": "Đã cập nhật thông tin hiển thị trên bản đồ.",
       "menuCreated": "Đã thêm món mới.",
       "menuUpdated": "Đã cập nhật món.",
-      "menuDeleted": "Đã xóa món.",
-      "claimCreated": "Đã tạo claim code mới"
+      "menuDeleted": "Đã xóa món."
     },
     "stats": {
       "totalVisits": "Lượt xem quán",
       "audioPlays": "Lượt phát thuyết minh",
-      "claimCodes": "Mã đã tạo",
       "todayVisits": "Lượt xem hôm nay",
       "todayAudio": "Audio hôm nay"
     },
@@ -312,7 +345,6 @@
       "pending": "Đang chờ duyệt",
       "notSubmitted": "Chưa gửi duyệt"
     },
-
     "labels": {
       "issuedAt": "Tạo lúc",
       "menuCount": "Món đang có"
@@ -327,8 +359,7 @@
       "drinks": "Đồ uống"
     },
     "empty": {
-      "menu": "Chưa có món nào trong thực đơn. Hãy thêm món đầu tiên cho quán của bạn.",
-      "claims": "Chưa có mã thanh toán nào được tạo gần đây."
+      "menu": "Chưa có món nào trong thực đơn. Hãy thêm món đầu tiên cho quán của bạn."
     },
     "sections": {
       "overviewKicker": "Nhìn nhanh",
@@ -346,11 +377,7 @@
       "editMenu": "Chỉnh sửa món ăn",
       "menuListKicker": "Món đang hiện",
       "menuList": "Món hiện tại",
-      "menuListDescription": "Đây là những món khách đang nhìn thấy khi mở quán của bạn.",
-      "claimKicker": "Thanh toán tiền mặt",
-      "claimHistoryKicker": "Mã gần đây",
-      "claimHistory": "Mã đã tạo gần đây",
-      "claimHistoryDescription": "Xem lại các mã gần đây khi cần đối chiếu với khách."
+      "menuListDescription": "Đây là những món khách đang nhìn thấy khi mở quán của bạn."
     },
     "fields": {
       "shopName": "Tên quán",
