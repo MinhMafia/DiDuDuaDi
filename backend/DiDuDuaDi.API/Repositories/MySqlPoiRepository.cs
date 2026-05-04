@@ -6,27 +6,27 @@ namespace DiDuDuaDi.API.Repositories;
 
 public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRepository
 {
-    public IReadOnlyList<POI> GetAll()
+    public IReadOnlyList<POI> GetAll(Guid? accountId = null)
     {
         using var connection = connectionFactory.CreateConnection();
-        var rows = connection.Query<PoiTranslationRow>(GetBaseQuery());
+        var rows = connection.Query<PoiTranslationRow>(GetBaseQuery(), new { AccountId = accountId });
         return MapPois(rows, GetMenuItemsByShop(connection));
     }
 
-    public IReadOnlyList<POI> GetNearby(double lat, double lng, double radiusMeters)
+    public IReadOnlyList<POI> GetNearby(double lat, double lng, double radiusMeters, Guid? accountId = null)
     {
-        var pois = GetAll();
+        var pois = GetAll(accountId);
 
         return pois
             .Where(poi => DistanceMeters(lat, lng, poi.Location.Lat, poi.Location.Lng) <= radiusMeters)
             .ToList();
     }
 
-    public POI? GetById(Guid id)
+    public POI? GetById(Guid id, Guid? accountId = null)
     {
         using var connection = connectionFactory.CreateConnection();
         var query = GetBaseQuery().Replace("WHERE p.is_active = 1", "WHERE p.is_active = 1 AND p.id = @Id");
-        var rows = connection.Query<PoiTranslationRow>(query, new { Id = id });
+        var rows = connection.Query<PoiTranslationRow>(query, new { Id = id, AccountId = accountId });
         return MapPois(rows, GetMenuItemsByShop(connection)).FirstOrDefault();
     }
 
@@ -137,10 +137,12 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
                 pt.language_code AS LanguageCode,
                 pt.name AS Name,
             pt.description AS Description,
-            pt.audio_url AS AudioUrl
+            pt.audio_url AS AudioUrl,
+            IF(uf.account_id IS NOT NULL, 1, 0) AS IsFavoriteInt
         FROM pois p
         LEFT JOIN shops s ON s.id = p.shop_id
         LEFT JOIN poi_translations pt ON pt.poi_id = p.id
+        LEFT JOIN user_favorites uf ON uf.poi_id = p.id AND uf.account_id = @AccountId
         WHERE p.is_active = 1
         ORDER BY p.created_at ASC, pt.language_code ASC;
         """;
@@ -167,7 +169,8 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
                     Category = row.Category,
                     Location = new GeoPoint((double)row.Latitude, (double)row.Longitude),
                     Radius = row.Radius,
-                    ImageUrl = row.ImageUrl
+                    ImageUrl = row.ImageUrl,
+                    IsFavorite = row.IsFavoriteInt == 1
                 };
 
                 if (row.ShopId.HasValue && menuItemsByShop.TryGetValue(row.ShopId.Value, out var menuItems))
@@ -264,6 +267,7 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
         public string? Name { get; init; }
         public string? Description { get; init; }
         public string? AudioUrl { get; init; }
+        public int IsFavoriteInt { get; init; }
     }
 
     private sealed class MenuItemRow

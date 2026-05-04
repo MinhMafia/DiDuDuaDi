@@ -7,6 +7,9 @@
   "nav": {
     "home": "Accueil",
     "map": "Carte",
+    "cooperate": "Devenir propriétaire",
+    "owner": "Propriétaire",
+    "admin": "Admin",
     "routes": "Itinéraires",
     "settings": "Paramètres"
   },
@@ -103,6 +106,204 @@
     "subtitle": "Posez des questions sur les restaurants de démonstration de Vinh Khanh",
     "welcome": "Bonjour. Vous pouvez demander quoi manger, quels restaurants de démonstration apparaissent sur la carte, ou mentionner le nom d'un restaurant pour obtenir une courte explication.",
     "placeholder": "Posez une question sur la nourriture, les restaurants ou la carte...",
-    "send": "Envoyer"
+    "send": "Envoyer",
+    "close": "Fermer",
+    "fabLabel": "IA"
+  },
+  "home": {
+    "title": "Panneau de test système DiDuDuaDi",
+    "subtitle": "Interface de base pour tester si le frontend est connecté au backend et aux API de données exemples.",
+    "healthNotChecked": "Non vérifié",
+    "healthConnected": "Backend connecté",
+    "healthFailed": "Échec de la connexion",
+    "connectError": "Impossible de se connecter au backend",
+    "poiApiError": "Impossible d'appeler l'API POIs",
+    "nearbyApiError": "Impossible d'appeler l'API Nearby",
+    "errorLabel": "Erreur",
+    "loading": "Chargement des données...",
+    "nearbyTitle": "POI à proximité",
+    "emptyNearby": "Aucune donnée. Cliquez sur \"Tester l'API Nearby\" pour voir les résultats.",
+    "labels": {
+      "backendStatus": "Statut du backend",
+      "serverTime": "Heure du serveur",
+      "totalPoi": "Total des POI"
+    },
+    "actions": {
+      "testHealth": "Tester l'API Health",
+      "testPois": "Tester l'API POIs",
+      "testNearby": "Tester l'API Nearby"
+    },
+    "fields": {
+      "lat": "Latitude",
+      "lng": "Longitude",
+      "radius": "Rayon (m)"
+    }
+  },
+  "routes": {
+    "placeholder": "La page des itinéraires sera complétée à l'étape suivante."
+  },
+  "common": {
+    "loading": "Chargement...",
+    "unexpectedErrorTitle": "La page a rencontré une erreur",
+    "unexpectedErrorDescription": "Veuillez recharger la page ou vous reconnecter pour continuer."
+  },
+  "collaboration": {
+    "title": "Collaborez avec nous",
+    "subtitle": "Remplissez les informations de votre établissement pour demander une mise à niveau d'utilisateur vers propriétaire. L'administrateur approuvera avant d'accorder les droits.",
+    "currentUser": "Compte actuel",
+    "submit": "Soumettre la demande de propriétaire",
+    "submitting": "Envoi en cours...",
+    "success": "Demande de propriétaire soumise avec succès.",
+    "error": "Impossible de soumettre la demande.",
+    "fields": {
+      "shopName": "Nom de l'établissement",
+      "address": "Adresse à Vinh Khanh",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "idCardImageUrl": "URL de l'image de la carte d'identité",
+      "businessLicenseImageUrl": "URL de l'image du permis d'exploitation (optionnel)",
+      "note": "Note"
+    }
+  },
+  "owner": {
+    "badge": "Espace propriétaire",
+    "title": "Tableau de bord propriétaire",
+    "subtitle": "Gérez le menu, le contenu d'introduction, les codes de réclamation et les statistiques pour que l'application touristique affiche des informations plus riches sur l'établissement.",
+    "noShop": "Aucun établissement lié pour le moment",
+    "error": "Impossible de charger les données du tableau de bord propriétaire.",
+    "statsTitle": "Statistiques rapides",
+    "shopInfoTitle": "Profil et introduction de l'établissement",
+    "poiTitle": "Contenu POI sur la carte",
+    "poiSubtitle": "Le nom et la description ci-dessous sont ce que les visiteurs verront lorsqu'ils ouvriront votre établissement sur la carte.",
+    "menuTitle": "Gestion du menu",
+    "menuSubtitle": "Les plats activés ici seront affichés aux visiteurs lorsqu'ils ouvriront votre POI sur la carte.",
+    "claimTitle": "Codes de réclamation en espèces",
+    "claimSubtitle": "Générez des codes d'activation pour les clients qui paient en espèces au restaurant.",
+    "viewMap": "Ouvrir la vue carte",
+    "summaryFallback": "Complétez les informations de votre établissement pour que les touristes voient le profil complet.",
+    "summaryUnavailable": "Pas encore mis à jour",
+    "saveProfile": "Enregistrer le profil",
+    "saving": "Enregistrement...",
+    "addMenu": "Ajouter un plat",
+    "updateMenu": "Mettre à jour le plat",
+    "cancelEdit": "Annuler la modification",
+    "createClaim": "Créer un code de réclamation",
+    "available": "Visible",
+    "hidden": "Masqué",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "feedback": {
+      "saved": "Profil de l'établissement mis à jour.",
+      "poiSaved": "Contenu POI mis à jour sur la carte.",
+      "menuCreated": "Nouveau plat ajouté.",
+      "menuUpdated": "Plat mis à jour.",
+      "menuDeleted": "Plat supprimé.",
+      "claimCreated": "Code de réclamation créé"
+    },
+    "stats": {
+      "totalVisits": "Visites POI",
+      "audioPlays": "Lectures audio",
+      "claimCodes": "Codes de réclamation créés",
+      "todayVisits": "Visites aujourd'hui",
+      "todayAudio": "Audio aujourd'hui"
+    },
+    "status": {
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "pending": "En attente",
+      "notSubmitted": "Non soumis"
+    },
+    "labels": {
+      "issuedAt": "Créé le",
+      "menuCount": "Nombre de plats actuels"
+    },
+    "empty": {
+      "menu": "Aucun plat dans le menu pour le moment. Ajoutez le premier plat pour votre restaurant.",
+      "claims": "Aucun code de réclamation n'a été créé récemment."
+    },
+    "sections": {
+      "overviewKicker": "Aperçu de l'activité",
+      "overview": "Aperçu de l'établissement",
+      "performanceKicker": "Performance de l'application",
+      "profileKicker": "Profil principal de l'établissement",
+      "profileDescription": "Mettez à jour le profil visible de l'établissement et le brouillon d'introduction qui sera examiné par l'administrateur.",
+      "mapKicker": "Ce que les touristes voient sur la carte",
+      "menuKicker": "Éditeur de menu",
+      "editMenu": "Modifier l'élément du menu",
+      "menuListKicker": "Actuellement visible",
+      "menuList": "Menu actuel",
+      "menuListDescription": "Ce sont les plats que les touristes voient actuellement lorsqu'ils ouvrent votre POI.",
+      "claimKicker": "Paiements en espèces",
+      "claimHistoryKicker": "Suivi des codes émis",
+      "claimHistory": "Codes de réclamation récents",
+      "claimHistoryDescription": "Vérifiez rapidement les codes récemment émis lorsque les clients arrivent au restaurant."
+    },
+    "fields": {
+      "shopName": "Nom de l'établissement",
+      "address": "Adresse",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "description": "Description courte actuelle",
+      "pendingIntro": "Brouillon d'introduction en attente d'examen par l'administrateur",
+      "hours": "Heures d'ouverture",
+      "phone": "Numéro de téléphone",
+      "imageUrl": "URL de l'image",
+      "menuName": "Nom du plat",
+      "poiCategory": "Catégorie du lieu",
+      "poiNameVi": "Nom du POI (vietnamien)",
+      "poiNameEn": "Nom du POI (anglais)",
+      "poiDescriptionVi": "Description du POI (vietnamien)",
+      "poiDescriptionEn": "Description du POI (anglais)",
+      "menuDescription": "Description du plat",
+      "price": "Prix",
+      "order": "Ordre d'affichage",
+      "available": "Visible pour les visiteurs",
+      "amount": "Montant",
+      "expireAfterHours": "Expire après (heures)",
+      "note": "Note"
+    },
+    "savePoi": "Enregistrer le contenu POI"
+  },
+  "admin": {
+    "title": "Tableau de bord administrateur",
+    "subtitle": "Examinez les demandes des propriétaires, modérez le contenu des établissements et suivez l'historique récent de modération.",
+    "ownerRequestsTitle": "Demandes de mise à niveau propriétaire",
+    "ownerRequestsSubtitle": "Examinez les soumissions des utilisateurs et approuvez ou rejetez les demandes pour devenir propriétaire.",
+    "shopIntroTitle": "Introductions d'établissement en attente",
+    "shopIntroSubtitle": "Examinez les brouillons d'introduction avant qu'ils n'apparaissent aux touristes sur la carte et le guide audio.",
+    "reviewHistoryTitle": "Historique récent d'examen",
+    "reviewHistorySubtitle": "Suivez les demandes traitées pour faciliter la révision des décisions et des notes de modération.",
+    "ownerHistoryTitle": "Historique des demandes propriétaires",
+    "shopIntroHistoryTitle": "Historique d'examen des introductions",
+    "labels": {
+      "user": "Utilisateur",
+      "owner": "Propriétaire",
+      "address": "Adresse",
+      "idCard": "Carte d'identité",
+      "businessLicense": "Permis d'exploitation",
+      "note": "Note",
+      "reviewNote": "Note d'examen",
+      "latestReviewNote": "Dernière note d'examen",
+      "currentContent": "Contenu actuel",
+      "pendingContent": "Contenu soumis",
+      "noContent": "Aucun contenu pour le moment."
+    },
+    "status": {
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "pending": "En attente"
+    },
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "approveContent": "Approuver le contenu",
+    "processing": "Traitement...",
+    "reviewNotePlaceholder": "Entrez une note d'approbation ou un motif de rejet",
+    "loadOwnerRequestsError": "Impossible de charger les demandes des propriétaires.",
+    "loadShopIntrosError": "Impossible de charger les brouillons d'introduction.",
+    "loadHistoryError": "Impossible de charger l'historique d'examen.",
+    "emptyPendingOwnerRequests": "Il n'y a aucune demande propriétaire en attente.",
+    "emptyPendingShopIntros": "Il n'y a aucune introduction en attente.",
+    "emptyOwnerHistory": "Aucun historique de demande propriétaire pour le moment.",
+    "emptyShopIntroHistory": "Aucun historique d'examen d'introduction pour le moment."
   }
 }

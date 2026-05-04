@@ -4,13 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import Loading from "../components/common/Loading";
+import PoiQrCard from "../components/common/PoiQrCard";
 import {
-  createClaimCode,
   createMenuItem,
   deleteMenuItem,
   getOwnerDashboard,
-  updatePoiContent,
   updateMenuItem,
+  updatePoiContent,
   updateShopProfile,
 } from "../services/ownerService";
 import "./OwnerDashboardPage.css";
@@ -44,12 +44,6 @@ const EMPTY_POI_FORM = {
   descriptionEn: "",
 };
 
-const EMPTY_CLAIM_CODE = {
-  amount: "",
-  note: "",
-  expireAfterHours: 24,
-};
-
 export default function OwnerDashboardPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -58,7 +52,6 @@ export default function OwnerDashboardPage() {
   const [profileForm, setProfileForm] = useState(EMPTY_PROFILE);
   const [menuForm, setMenuForm] = useState(EMPTY_MENU_ITEM);
   const [poiForm, setPoiForm] = useState(EMPTY_POI_FORM);
-  const [claimCodeForm, setClaimCodeForm] = useState(EMPTY_CLAIM_CODE);
   const [editingMenuItemId, setEditingMenuItemId] = useState(null);
   const [feedback, setFeedback] = useState("");
 
@@ -71,7 +64,7 @@ export default function OwnerDashboardPage() {
 
   useEffect(() => {
     if (!dashboardQuery.data) return;
-console.log(dashboardQuery.data)
+
     setProfileForm({
       shopName: dashboardQuery.data.shopName || "",
       description: dashboardQuery.data.description || "",
@@ -114,14 +107,6 @@ console.log(dashboardQuery.data)
     },
   });
 
-  const poiMutation = useMutation({
-    mutationFn: (payload) => updatePoiContent(payload),
-    onSuccess: async (response) => {
-      setFeedback(response.message || t("owner.feedback.poiSaved"));
-      await invalidateDashboard();
-    },
-  });
-
   const updateMenuMutation = useMutation({
     mutationFn: ({ menuItemId, payload }) => updateMenuItem(menuItemId, payload),
     onSuccess: async (response) => {
@@ -140,64 +125,73 @@ console.log(dashboardQuery.data)
     },
   });
 
-  const claimCodeMutation = useMutation({
-    mutationFn: (payload) => createClaimCode(payload),
+  const poiMutation = useMutation({
+    mutationFn: (payload) => updatePoiContent(payload),
     onSuccess: async (response) => {
-      const code = response.data?.code ? ` (${response.data.code})` : "";
-      setFeedback(`${response.message || t("owner.feedback.claimCreated")}${code}`);
-      setClaimCodeForm(EMPTY_CLAIM_CODE);
+      setFeedback(response.message || t("owner.feedback.poiSaved"));
       await invalidateDashboard();
     },
   });
 
   const dashboard = dashboardQuery.data;
   const menuItems = dashboard?.menuItems ?? [];
-  const claimCodes = dashboard?.recentClaimCodes ?? [];
   const stats = dashboard?.stats;
+  const primaryPoi = dashboard?.primaryPoi;
+  const primaryPoiId = primaryPoi?.poiId || primaryPoi?.id || "";
   const statusTone = getOwnerStatusTone(dashboard?.introReviewStatus);
   const activeStatusLabel = translateOwnerStatus(t, dashboard?.introReviewStatus);
-  const primaryPoi = dashboard?.primaryPoi;
+  const displayShopName = getFriendlyDisplayName(dashboard?.shopName || "");
+  const displayPrimaryPoiNameVi = getFriendlyDisplayName(primaryPoi?.nameVi || "");
+  const primaryPoiCategoryLabel = translateOwnerCategory(t, primaryPoi?.category);
+  const availableMenuCount = menuItems.filter((item) => item.isAvailable).length;
+  const heroSummaryText = getFriendlyOwnerSummary(
+    dashboard?.approvedIntroduction ||
+      dashboard?.pendingIntroduction ||
+      dashboard?.description,
+    t("owner.summaryFallback"),
+  );
+  const coverImage =
+    dashboard?.imageUrl || menuItems.find((item) => item.imageUrl)?.imageUrl || "";
 
   const sections = [
     {
       id: "overview",
       label: t("owner.sections.overview"),
-      kicker: t("owner.sections.overviewKicker"),
-      description: t("owner.subtitle"),
+      description: t("owner.sections.overviewDescription"),
       badge: activeStatusLabel,
-    },
-    {
-      id: "profile",
-      label: t("owner.shopInfoTitle"),
-      kicker: t("owner.sections.profileKicker"),
-      description: t("owner.sections.profileDescription"),
-      badge: dashboard?.shopName || t("owner.summaryUnavailable"),
-    },
-    {
-      id: "poi",
-      label: t("owner.poiTitle"),
-      kicker: t("owner.sections.mapKicker"),
-      description: t("owner.poiSubtitle"),
-      badge: primaryPoi?.category || t("owner.summaryUnavailable"),
+      icon: "01",
     },
     {
       id: "menu",
       label: t("owner.menuTitle"),
-      kicker: t("owner.sections.menuKicker"),
       description: t("owner.menuSubtitle"),
-      badge: `${menuItems.length}`,
+      badge: `${availableMenuCount}/${menuItems.length}`,
+      icon: "02",
     },
     {
-      id: "claims",
-      label: t("owner.claimTitle"),
-      kicker: t("owner.sections.claimKicker"),
-      description: t("owner.claimSubtitle"),
-      badge: `${claimCodes.length}`,
+      id: "profile",
+      label: t("owner.shopInfoTitle"),
+      description: t("owner.sections.profileDescription"),
+      badge: displayShopName || "--",
+      icon: "03",
+    },
+    {
+      id: "mapInfo",
+      label: t("owner.poiTitle"),
+      description: t("owner.poiSubtitle"),
+      badge: primaryPoiCategoryLabel || "--",
+      icon: "04",
+    },
+    {
+      id: "qr",
+      label: t("qr.kicker"),
+      description: t("owner.sections.qrDescription"),
+      badge: primaryPoiId ? t("owner.sections.qrReady") : t("owner.sections.qrMissing"),
+      icon: "05",
     },
   ];
-
-  const activeSectionMeta =
-    sections.find((section) => section.id === activeSection) ?? sections[0];
+  const activeSectionConfig =
+    sections.find((section) => section.id === activeSection) || sections[0];
 
   function handleProfileSubmit(event) {
     event.preventDefault();
@@ -209,15 +203,17 @@ console.log(dashboardQuery.data)
     });
   }
 
+  function handlePoiSubmit(event) {
+    event.preventDefault();
+    setFeedback("");
+    poiMutation.mutate(poiForm);
+  }
+
   function handleMenuSubmit(event) {
     event.preventDefault();
     setFeedback("");
 
-    const payload = {
-      ...menuForm,
-      price: Number(menuForm.price || 0),
-      displayOrder: Number(menuForm.displayOrder || 0),
-    };
+    const payload = buildMenuPayload(menuForm);
 
     if (editingMenuItemId) {
       updateMenuMutation.mutate({ menuItemId: editingMenuItemId, payload });
@@ -225,26 +221,6 @@ console.log(dashboardQuery.data)
     }
 
     createMenuMutation.mutate(payload);
-  }
-
-  function handlePoiSubmit(event) {
-    event.preventDefault();
-    setFeedback("");
-    poiMutation.mutate(poiForm);
-  }
-
-  function handleClaimSubmit(event) {
-    event.preventDefault();
-    setFeedback("");
-    claimCodeMutation.mutate({
-      ...claimCodeForm,
-      amount: Number(claimCodeForm.amount || 0),
-      expireAfterHours: Number(claimCodeForm.expireAfterHours || 24),
-    });
-  }
-
-  function handleDeleteMenuItem(menuItemId) {
-    deleteMenuMutation.mutate(menuItemId);
   }
 
   function startEditMenuItem(item) {
@@ -260,453 +236,101 @@ console.log(dashboardQuery.data)
     });
   }
 
+  function handleToggleMenuAvailability(item) {
+    updateMenuMutation.mutate({
+      menuItemId: item.id,
+      payload: buildMenuPayload({
+        ...item,
+        isAvailable: !item.isAvailable,
+      }),
+    });
+  }
+
   function renderOverviewPanel() {
     return (
-      <div className="owner-stage-stack">
-        <article className="owner-card owner-stage-card">
-          <div className="owner-stage-head">
-            <div>
-              <p className="owner-section-kicker">{activeSectionMeta.kicker}</p>
-              <h2>{activeSectionMeta.label}</h2>
-              <p>{activeSectionMeta.description}</p>
-            </div>
-
-            <div className="owner-stage-actions">
-              <button
-                type="button"
-                className="owner-button secondary"
-                onClick={() => setActiveSection("profile")}
-              >
-                {t("owner.shopInfoTitle")}
-              </button>
-              <button
-                type="button"
-                className="owner-button secondary"
-                onClick={() => setActiveSection("menu")}
-              >
-                {t("owner.menuTitle")}
-              </button>
-              <button
-                type="button"
-                className="owner-button secondary"
-                onClick={() => setActiveSection("claims")}
-              >
-                {t("owner.claimTitle")}
-              </button>
-            </div>
-          </div>
-
-          <div className="owner-stats-grid owner-stats-grid-wide">
-            <StatCard label={t("owner.stats.totalVisits")} value={stats?.totalVisitCount ?? 0} />
-            <StatCard label={t("owner.stats.audioPlays")} value={stats?.totalAudioPlayCount ?? 0} />
-            <StatCard label={t("owner.stats.claimCodes")} value={stats?.claimCodesIssuedCount ?? 0} />
-            <StatCard label={t("owner.stats.todayVisits")} value={stats?.visitCountToday ?? 0} />
-            <StatCard label={t("owner.stats.todayAudio")} value={stats?.audioPlayCountToday ?? 0} />
-          </div>
-        </article>
+      <div className="owner-overview">
+        <div className="owner-metrics-row">
+          <MetricCard label={t("owner.labels.menuCount")} value={availableMenuCount} hint={`${menuItems.length} ${t("owner.menuTitle").toLowerCase()}`} />
+          <MetricCard label={t("owner.stats.totalVisits")} value={stats?.totalVisitCount ?? 0} hint={t("owner.stats.todayVisits") + `: ${stats?.visitCountToday ?? 0}`} />
+          <MetricCard label={t("owner.stats.audioPlays")} value={stats?.totalAudioPlayCount ?? 0} hint={t("owner.stats.todayAudio") + `: ${stats?.audioPlayCountToday ?? 0}`} />
+        </div>
 
         <div className="owner-overview-grid">
-          <article className="owner-card owner-overview-card">
-            <div className="owner-card-head">
-              <div>
-                <p className="owner-section-kicker">{t("owner.sections.profileKicker")}</p>
-                <h2>{t("owner.sections.overview")}</h2>
-              </div>
-            </div>
-
-            <div className="owner-summary-list">
-              <SummaryRow label={t("owner.fields.shopName")} value={dashboard.shopName} />
-              <SummaryRow
-                label={t("owner.fields.address")}
-                value={dashboard.addressLine || t("owner.summaryUnavailable")}
-              />
-              <SummaryRow
-                label={t("owner.fields.hours")}
-                value={dashboard.openingHours || t("owner.summaryUnavailable")}
-              />
-              <SummaryRow
-                label={t("owner.fields.phone")}
-                value={dashboard.phone || t("owner.summaryUnavailable")}
-              />
-            </div>
-          </article>
-
-          <article className="owner-card owner-overview-card">
-            <div className="owner-card-head">
-              <div>
-                <p className="owner-section-kicker">{t("owner.sections.mapKicker")}</p>
-                <h2>{t("owner.poiTitle")}</h2>
-              </div>
-              <div className={`owner-status-pill owner-status-pill-${statusTone}`}>
+          <section className="owner-section-card owner-shop-spotlight">
+            <div className="owner-spotlight-copy">
+              <span className={`owner-status-pill owner-status-pill-${statusTone}`}>
                 {activeStatusLabel}
+              </span>
+              <p className="owner-section-kicker">{t("owner.shopInfoTitle")}</p>
+              <h2>{displayShopName || t("owner.noShop")}</h2>
+              <p>{heroSummaryText}</p>
+              <div className="owner-action-row">
+                <button type="button" className="owner-button" onClick={() => setActiveSection("profile")}>
+                  {t("owner.edit")}
+                </button>
+                <Link className="owner-button secondary" to="/map">
+                  {t("owner.viewMap")}
+                </Link>
               </div>
             </div>
-
-            <div className="owner-overview-list">
-              <SummaryRow
-                label={t("owner.fields.poiCategory")}
-                value={primaryPoi?.category || t("owner.summaryUnavailable")}
-              />
-              <SummaryRow
-                label={t("owner.fields.poiNameVi")}
-                value={primaryPoi?.nameVi || t("owner.summaryUnavailable")}
-              />
-              <p className="owner-surface-note">
-                {dashboard.pendingIntroduction || dashboard.approvedIntroduction || t("owner.summaryFallback")}
-              </p>
-            </div>
-          </article>
-
-          <article className="owner-card owner-overview-card">
-            <div className="owner-card-head">
-              <div>
-                <p className="owner-section-kicker">{t("owner.sections.menuListKicker")}</p>
-                <h2>{t("owner.sections.menuList")}</h2>
-                <p>{t("owner.sections.menuListDescription")}</p>
-              </div>
-              <button
-                type="button"
-                className="owner-button secondary"
-                onClick={() => setActiveSection("menu")}
-              >
-                {t("owner.menuTitle")}
-              </button>
-            </div>
-
-            <div className="owner-mini-list">
-              {menuItems.length === 0 ? (
-                <p className="owner-empty-state">{t("owner.empty.menu")}</p>
-              ) : (
-                menuItems.slice(0, 3).map((item) => (
-                  <div key={item.id} className="owner-mini-row">
-                    <div>
-                      <strong>{item.name}</strong>
-                      <span>{item.description || t("owner.summaryUnavailable")}</span>
-                    </div>
-                    <span>{formatCurrency(item.price)}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </article>
-
-          <article className="owner-card owner-overview-card">
-            <div className="owner-card-head">
-              <div>
-                <p className="owner-section-kicker">{t("owner.sections.claimHistoryKicker")}</p>
-                <h2>{t("owner.sections.claimHistory")}</h2>
-                <p>{t("owner.sections.claimHistoryDescription")}</p>
-              </div>
-              <button
-                type="button"
-                className="owner-button secondary"
-                onClick={() => setActiveSection("claims")}
-              >
-                {t("owner.claimTitle")}
-              </button>
-            </div>
-
-            <div className="owner-mini-list">
-              {claimCodes.length === 0 ? (
-                <p className="owner-empty-state">{t("owner.empty.claims")}</p>
-              ) : (
-                claimCodes.slice(0, 3).map((claimCode) => (
-                  <div key={claimCode.id} className="owner-mini-row">
-                    <div>
-                      <strong>{claimCode.code}</strong>
-                      <span>{claimCode.note || t("owner.summaryUnavailable")}</span>
-                    </div>
-                    <span>{formatCurrency(claimCode.amount)}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </article>
+          </section>
         </div>
       </div>
     );
   }
 
-  function renderProfilePanel() {
-    return (
-      <article className="owner-card owner-stage-card">
-        <div className="owner-stage-head">
-          <div>
-            <p className="owner-section-kicker">{t("owner.sections.profileKicker")}</p>
-            <h2>{t("owner.shopInfoTitle")}</h2>
-            <p>{t("owner.sections.profileDescription")}</p>
-          </div>
-          <div className={`owner-status-pill owner-status-pill-${statusTone}`}>
-            {translateOwnerStatus(t, dashboard.introReviewStatus)}
-          </div>
-        </div>
-
-        <form className="owner-form" onSubmit={handleProfileSubmit}>
-          <div className="owner-inline-grid">
-            <label>
-              <span>{t("owner.fields.shopName")}</span>
-              <input
-                value={profileForm.shopName}
-                onChange={(event) =>
-                  setProfileForm((prev) => ({ ...prev, shopName: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>{t("owner.fields.phone")}</span>
-              <input
-                value={profileForm.phone}
-                onChange={(event) =>
-                  setProfileForm((prev) => ({ ...prev, phone: event.target.value }))
-                }
-              />
-            </label>
-          </div>
-
-          <label>
-            <span>{t("owner.fields.address")}</span>
-            <input
-              value={profileForm.addressLine}
-              onChange={(event) =>
-                setProfileForm((prev) => ({ ...prev, addressLine: event.target.value }))
-              }
-            />
-          </label>
-
-          <div className="owner-inline-grid owner-inline-grid-3">
-            <label>
-              <span>{t("owner.fields.latitude")}</span>
-              <input
-                type="number"
-                step="0.000001"
-                value={profileForm.latitude}
-                onChange={(event) =>
-                  setProfileForm((prev) => ({ ...prev, latitude: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>{t("owner.fields.longitude")}</span>
-              <input
-                type="number"
-                step="0.000001"
-                value={profileForm.longitude}
-                onChange={(event) =>
-                  setProfileForm((prev) => ({ ...prev, longitude: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>{t("owner.fields.hours")}</span>
-              <input
-                value={profileForm.openingHours}
-                onChange={(event) =>
-                  setProfileForm((prev) => ({ ...prev, openingHours: event.target.value }))
-                }
-              />
-            </label>
-          </div>
-
-          <label>
-            <span>{t("owner.fields.imageUrl")}</span>
-            <input
-              value={profileForm.imageUrl}
-              onChange={(event) =>
-                setProfileForm((prev) => ({ ...prev, imageUrl: event.target.value }))
-              }
-            />
-          </label>
-
-          <label>
-            <span>{t("owner.fields.description")}</span>
-            <textarea
-              rows="3"
-              value={profileForm.description}
-              onChange={(event) =>
-                setProfileForm((prev) => ({ ...prev, description: event.target.value }))
-              }
-            />
-          </label>
-
-          <label>
-            <span>{t("owner.fields.pendingIntro")}</span>
-            <textarea
-              rows="5"
-              value={profileForm.pendingIntroduction}
-              onChange={(event) =>
-                setProfileForm((prev) => ({
-                  ...prev,
-                  pendingIntroduction: event.target.value,
-                }))
-              }
-            />
-          </label>
-
-          <button
-            type="submit"
-            className="owner-button"
-            disabled={profileMutation.isPending}
-          >
-            {profileMutation.isPending ? t("owner.saving") : t("owner.saveProfile")}
-          </button>
-        </form>
-      </article>
-    );
-  }
-
-  function renderPoiPanel() {
-    return (
-      <article className="owner-card owner-stage-card">
-        <div className="owner-stage-head">
-          <div>
-            <p className="owner-section-kicker">{t("owner.sections.mapKicker")}</p>
-            <h2>{t("owner.poiTitle")}</h2>
-            <p>{t("owner.poiSubtitle")}</p>
-          </div>
-        </div>
-
-        <form className="owner-form" onSubmit={handlePoiSubmit}>
-          <label>
-            <span>{t("owner.fields.poiCategory")}</span>
-            <input
-              value={poiForm.category}
-              onChange={(event) =>
-                setPoiForm((prev) => ({ ...prev, category: event.target.value }))
-              }
-            />
-          </label>
-
-          <div className="owner-inline-grid">
-            <label>
-              <span>{t("owner.fields.poiNameVi")}</span>
-              <input
-                value={poiForm.nameVi}
-                onChange={(event) =>
-                  setPoiForm((prev) => ({ ...prev, nameVi: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>{t("owner.fields.poiNameEn")}</span>
-              <input
-                value={poiForm.nameEn}
-                onChange={(event) =>
-                  setPoiForm((prev) => ({ ...prev, nameEn: event.target.value }))
-                }
-              />
-            </label>
-          </div>
-
-          <div className="owner-inline-grid">
-            <label>
-              <span>{t("owner.fields.poiDescriptionVi")}</span>
-              <textarea
-                rows="5"
-                value={poiForm.descriptionVi}
-                onChange={(event) =>
-                  setPoiForm((prev) => ({ ...prev, descriptionVi: event.target.value }))
-                }
-              />
-            </label>
-            <label>
-              <span>{t("owner.fields.poiDescriptionEn")}</span>
-              <textarea
-                rows="5"
-                value={poiForm.descriptionEn}
-                onChange={(event) =>
-                  setPoiForm((prev) => ({ ...prev, descriptionEn: event.target.value }))
-                }
-              />
-            </label>
-          </div>
-
-          <button
-            type="submit"
-            className="owner-button"
-            disabled={poiMutation.isPending}
-          >
-            {poiMutation.isPending ? t("owner.saving") : t("owner.savePoi")}
-          </button>
-        </form>
-      </article>
-    );
-  }
-
   function renderMenuPanel() {
     return (
-      <div className="owner-stage-stack">
-        <article className="owner-card owner-stage-card">
-          <div className="owner-stage-head">
+      <div className="owner-menu-layout">
+        <section className="owner-section-card owner-menu-editor">
+          <div className="owner-section-head">
             <div>
               <p className="owner-section-kicker">{t("owner.sections.menuKicker")}</p>
-              <h2>{editingMenuItemId ? t("owner.sections.editMenu") : t("owner.menuTitle")}</h2>
+              <h2>{editingMenuItemId ? t("owner.sections.editMenu") : t("owner.addMenu")}</h2>
               <p>{t("owner.menuSubtitle")}</p>
             </div>
           </div>
 
           <form className="owner-form" onSubmit={handleMenuSubmit}>
-            <div className="owner-inline-grid">
-              <label>
-                <span>{t("owner.fields.menuName")}</span>
-                <input
-                  value={menuForm.name}
-                  onChange={(event) =>
-                    setMenuForm((prev) => ({ ...prev, name: event.target.value }))
-                  }
-                />
-              </label>
-              <label>
-                <span>{t("owner.fields.price")}</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="1000"
-                  value={menuForm.price}
-                  onChange={(event) =>
-                    setMenuForm((prev) => ({ ...prev, price: event.target.value }))
-                  }
-                />
-              </label>
-            </div>
-
-            <label>
-              <span>{t("owner.fields.menuDescription")}</span>
-              <textarea
-                rows="3"
-                value={menuForm.description}
-                onChange={(event) =>
-                  setMenuForm((prev) => ({ ...prev, description: event.target.value }))
-                }
+            <div className="owner-form-grid two">
+              <FormInput
+                label={t("owner.fields.menuName")}
+                value={menuForm.name}
+                onChange={(value) => setMenuForm((prev) => ({ ...prev, name: value }))}
               />
-            </label>
-
-            <div className="owner-inline-grid">
-              <label>
-                <span>{t("owner.fields.imageUrl")}</span>
-                <input
-                  value={menuForm.imageUrl}
-                  onChange={(event) =>
-                    setMenuForm((prev) => ({ ...prev, imageUrl: event.target.value }))
-                  }
-                />
-              </label>
-              <label>
-                <span>{t("owner.fields.order")}</span>
-                <input
-                  type="number"
-                  min="0"
-                  value={menuForm.displayOrder}
-                  onChange={(event) =>
-                    setMenuForm((prev) => ({
-                      ...prev,
-                      displayOrder: event.target.value,
-                    }))
-                  }
-                />
-              </label>
+              <FormInput
+                label={t("owner.fields.price")}
+                type="number"
+                min="0"
+                step="1000"
+                value={menuForm.price}
+                onChange={(value) => setMenuForm((prev) => ({ ...prev, price: value }))}
+              />
             </div>
 
-            <label className="owner-checkbox">
+            <FormTextArea
+              label={t("owner.fields.menuDescription")}
+              rows="3"
+              value={menuForm.description}
+              onChange={(value) => setMenuForm((prev) => ({ ...prev, description: value }))}
+            />
+
+            <div className="owner-form-grid two">
+              <FormInput
+                label={t("owner.fields.imageUrl")}
+                value={menuForm.imageUrl}
+                onChange={(value) => setMenuForm((prev) => ({ ...prev, imageUrl: value }))}
+              />
+              <FormInput
+                label={t("owner.fields.order")}
+                type="number"
+                min="0"
+                value={menuForm.displayOrder}
+                onChange={(value) => setMenuForm((prev) => ({ ...prev, displayOrder: value }))}
+              />
+            </div>
+
+            <label className="owner-switch-line">
               <input
                 type="checkbox"
                 checked={menuForm.isAvailable}
@@ -717,7 +341,7 @@ console.log(dashboardQuery.data)
               <span>{t("owner.fields.available")}</span>
             </label>
 
-            <div className="owner-form-actions">
+            <div className="owner-action-row">
               <button
                 type="submit"
                 className="owner-button"
@@ -739,247 +363,309 @@ console.log(dashboardQuery.data)
               ) : null}
             </div>
           </form>
-        </article>
+        </section>
 
-        <article className="owner-card owner-stage-card">
-          <div className="owner-card-head">
+        <section className="owner-section-card">
+          <div className="owner-section-head">
             <div>
               <p className="owner-section-kicker">{t("owner.sections.menuListKicker")}</p>
               <h2>{t("owner.sections.menuList")}</h2>
               <p>{t("owner.sections.menuListDescription")}</p>
             </div>
+            <span className="owner-count-pill">{availableMenuCount}/{menuItems.length}</span>
           </div>
-
-          <div className="owner-menu-list">
-            {menuItems.length === 0 ? (
-              <p className="owner-empty-state">{t("owner.empty.menu")}</p>
-            ) : null}
-
-            {menuItems.map((item) => (
-              <article key={item.id} className="owner-menu-card">
-                <div>
-                  <strong>{item.name}</strong>
-                  <p>{item.description}</p>
-                </div>
-                <div className="owner-menu-meta">
-                  <span>{formatCurrency(item.price)}</span>
-                  <span>{item.isAvailable ? t("owner.available") : t("owner.hidden")}</span>
-                </div>
-                <div className="owner-form-actions">
-                  <button
-                    type="button"
-                    className="owner-button secondary"
-                    onClick={() => startEditMenuItem(item)}
-                  >
-                    {t("owner.edit")}
-                  </button>
-                  <button
-                    type="button"
-                    className="owner-button danger"
-                    onClick={() => handleDeleteMenuItem(item.id)}
-                  >
-                    {t("owner.delete")}
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
-        </article>
+          <CompactMenuList
+            items={menuItems}
+            emptyText={t("owner.empty.menu")}
+            onEdit={startEditMenuItem}
+            onDelete={(id) => deleteMenuMutation.mutate(id)}
+            onToggle={handleToggleMenuAvailability}
+            t={t}
+          />
+        </section>
       </div>
     );
   }
 
-  function renderClaimsPanel() {
+  function renderProfilePanel() {
     return (
-      <div className="owner-stage-stack">
-        <article className="owner-card owner-stage-card">
-          <div className="owner-stage-head">
+      <div className="owner-settings-layout">
+        <section className="owner-section-card">
+          <div className="owner-section-head">
             <div>
-              <p className="owner-section-kicker">{t("owner.sections.claimKicker")}</p>
-              <h2>{t("owner.claimTitle")}</h2>
-              <p>{t("owner.claimSubtitle")}</p>
+              <p className="owner-section-kicker">{t("owner.sections.profileKicker")}</p>
+              <h2>{t("owner.shopInfoTitle")}</h2>
+              <p>{t("owner.sections.profileDescription")}</p>
             </div>
           </div>
 
-          <form className="owner-form" onSubmit={handleClaimSubmit}>
-            <div className="owner-inline-grid">
-              <label>
-                <span>{t("owner.fields.amount")}</span>
-                <input
-                  type="number"
-                  min="0"
-                  step="1000"
-                  value={claimCodeForm.amount}
-                  onChange={(event) =>
-                    setClaimCodeForm((prev) => ({ ...prev, amount: event.target.value }))
-                  }
-                />
-              </label>
-              <label>
-                <span>{t("owner.fields.expireAfterHours")}</span>
-                <input
-                  type="number"
-                  min="1"
-                  max="72"
-                  value={claimCodeForm.expireAfterHours}
-                  onChange={(event) =>
-                    setClaimCodeForm((prev) => ({
-                      ...prev,
-                      expireAfterHours: event.target.value,
-                    }))
-                  }
-                />
-              </label>
+          <form className="owner-form" onSubmit={handleProfileSubmit}>
+            <div className="owner-form-grid two">
+              <FormInput label={t("owner.fields.shopName")} value={profileForm.shopName} onChange={(value) => setProfileForm((prev) => ({ ...prev, shopName: value }))} />
+              <FormInput label={t("owner.fields.phone")} value={profileForm.phone} onChange={(value) => setProfileForm((prev) => ({ ...prev, phone: value }))} />
             </div>
-
-            <label>
-              <span>{t("owner.fields.note")}</span>
-              <input
-                value={claimCodeForm.note}
-                onChange={(event) =>
-                  setClaimCodeForm((prev) => ({ ...prev, note: event.target.value }))
-                }
-              />
-            </label>
-
-            <button
-              type="submit"
-              className="owner-button"
-              disabled={claimCodeMutation.isPending}
-            >
-              {t("owner.createClaim")}
+            <FormInput label={t("owner.fields.address")} value={profileForm.addressLine} onChange={(value) => setProfileForm((prev) => ({ ...prev, addressLine: value }))} />
+            <div className="owner-form-grid three">
+              <FormInput label={t("owner.fields.latitude")} type="number" step="0.000001" value={profileForm.latitude} onChange={(value) => setProfileForm((prev) => ({ ...prev, latitude: value }))} />
+              <FormInput label={t("owner.fields.longitude")} type="number" step="0.000001" value={profileForm.longitude} onChange={(value) => setProfileForm((prev) => ({ ...prev, longitude: value }))} />
+              <FormInput label={t("owner.fields.hours")} value={profileForm.openingHours} onChange={(value) => setProfileForm((prev) => ({ ...prev, openingHours: value }))} />
+            </div>
+            <FormInput label={t("owner.fields.imageUrl")} value={profileForm.imageUrl} onChange={(value) => setProfileForm((prev) => ({ ...prev, imageUrl: value }))} />
+            <FormTextArea label={t("owner.fields.description")} rows="3" value={profileForm.description} onChange={(value) => setProfileForm((prev) => ({ ...prev, description: value }))} />
+            <FormTextArea label={t("owner.fields.pendingIntro")} rows="5" value={profileForm.pendingIntroduction} onChange={(value) => setProfileForm((prev) => ({ ...prev, pendingIntroduction: value }))} />
+            <button type="submit" className="owner-button" disabled={profileMutation.isPending}>
+              {profileMutation.isPending ? t("owner.saving") : t("owner.saveProfile")}
             </button>
           </form>
-        </article>
+        </section>
+      </div>
+    );
+  }
 
-        <article className="owner-card owner-stage-card">
-          <div className="owner-card-head">
+  function renderMapInfoPanel() {
+    return (
+      <div className="owner-settings-layout">
+        <section className="owner-section-card">
+          <div className="owner-section-head">
             <div>
-              <p className="owner-section-kicker">{t("owner.sections.claimHistoryKicker")}</p>
-              <h2>{t("owner.sections.claimHistory")}</h2>
-              <p>{t("owner.sections.claimHistoryDescription")}</p>
+              <p className="owner-section-kicker">{t("owner.sections.mapKicker")}</p>
+              <h2>{t("owner.poiTitle")}</h2>
+              <p>{t("owner.poiSubtitle")}</p>
+            </div>
+            <span className={`owner-status-pill owner-status-pill-${statusTone}`}>{activeStatusLabel}</span>
+          </div>
+
+          <form className="owner-form" onSubmit={handlePoiSubmit}>
+            <FormInput label={t("owner.fields.poiCategory")} value={poiForm.category} onChange={(value) => setPoiForm((prev) => ({ ...prev, category: value }))} />
+            <div className="owner-form-grid two">
+              <FormInput label={t("owner.fields.poiNameVi")} value={poiForm.nameVi} onChange={(value) => setPoiForm((prev) => ({ ...prev, nameVi: value }))} />
+              <FormInput label={t("owner.fields.poiNameEn")} value={poiForm.nameEn} onChange={(value) => setPoiForm((prev) => ({ ...prev, nameEn: value }))} />
+            </div>
+            <div className="owner-form-grid two">
+              <FormTextArea label={t("owner.fields.poiDescriptionVi")} rows="5" value={poiForm.descriptionVi} onChange={(value) => setPoiForm((prev) => ({ ...prev, descriptionVi: value }))} />
+              <FormTextArea label={t("owner.fields.poiDescriptionEn")} rows="5" value={poiForm.descriptionEn} onChange={(value) => setPoiForm((prev) => ({ ...prev, descriptionEn: value }))} />
+            </div>
+            <button type="submit" className="owner-button" disabled={poiMutation.isPending}>
+              {poiMutation.isPending ? t("owner.saving") : t("owner.savePoi")}
+            </button>
+          </form>
+        </section>
+      </div>
+    );
+  }
+
+  function renderQrPanel() {
+    return (
+      <div className="owner-settings-layout">
+        <section className="owner-section-card">
+          <div className="owner-section-head">
+            <div>
+              <p className="owner-section-kicker">{t("qr.kicker")}</p>
+              <h2>{t("qr.title")}</h2>
+              <p>{t("qr.subtitle", { name: displayPrimaryPoiNameVi || displayShopName || t("qr.poiFallbackName") })}</p>
             </div>
           </div>
 
-          <div className="owner-claim-list">
-            {claimCodes.length === 0 ? (
-              <p className="owner-empty-state">{t("owner.empty.claims")}</p>
-            ) : null}
-
-            {claimCodes.map((claimCode) => (
-              <article key={claimCode.id} className="owner-claim-card">
-                <div className="owner-claim-top">
-                  <strong>{claimCode.code}</strong>
-                  <span className="owner-status-pill owner-status-pill-neutral">
-                    {claimCode.status}
-                  </span>
-                </div>
-                <p>{formatCurrency(claimCode.amount)}</p>
-                <small>
-                  {t("owner.labels.issuedAt")}: {new Date(claimCode.issuedAt).toLocaleString()}{" "}
-                  {claimCode.note ? `- ${claimCode.note}` : ""}
-                </small>
-              </article>
-            ))}
-          </div>
-        </article>
+          {primaryPoiId ? (
+            <PoiQrCard poiId={primaryPoiId} poiName={displayPrimaryPoiNameVi || displayShopName} />
+          ) : (
+            <p className="owner-empty-state">{t("owner.sections.qrMissingDescription")}</p>
+          )}
+        </section>
       </div>
     );
   }
 
   function renderActivePanel() {
     if (!dashboard) return null;
-    if (activeSection === "profile") return renderProfilePanel();
-    if (activeSection === "poi") return renderPoiPanel();
     if (activeSection === "menu") return renderMenuPanel();
-    if (activeSection === "claims") return renderClaimsPanel();
+    if (activeSection === "profile") return renderProfilePanel();
+    if (activeSection === "mapInfo") return renderMapInfoPanel();
+    if (activeSection === "qr") return renderQrPanel();
     return renderOverviewPanel();
+  }
+
+  if (dashboardQuery.isLoading) {
+    return (
+      <section className="owner-page">
+        <Loading />
+      </section>
+    );
+  }
+
+  if (dashboardQuery.error) {
+    return (
+      <section className="owner-page">
+        <p className="owner-error">{dashboardQuery.error.message || t("owner.error")}</p>
+      </section>
+    );
+  }
+
+  if (!dashboard) {
+    return (
+      <section className="owner-page">
+        <p className="owner-error">{t("owner.noShop")}</p>
+      </section>
+    );
   }
 
   return (
     <section className="owner-page">
-      <header className="owner-hero">
-        <div className="owner-hero-copy">
-          <p className="owner-kicker">{t("owner.badge")}</p>
-          <h1>{t("owner.title")}</h1>
-          <p>{t("owner.subtitle")}</p>
-
-          <div className="owner-hero-actions">
-            <Link className="owner-button owner-button-link" to="/map">
-              {t("owner.viewMap")}
-            </Link>
+      <div className="owner-shell">
+        <header className="owner-shop-header">
+          <ShopImage src={coverImage} label={displayShopName} compact />
+          <div className="owner-shop-header-copy">
+            <p className="owner-kicker">{t("owner.badge")}</p>
+            <h1>{displayShopName || t("owner.noShop")}</h1>
+            <p>{heroSummaryText}</p>
+            <div className="owner-shop-header-meta">
+              {primaryPoiCategoryLabel ? <span className="owner-shop-meta">{primaryPoiCategoryLabel}</span> : null}
+              <span className={`owner-status-pill owner-status-pill-${statusTone}`}>
+                {activeStatusLabel}
+              </span>
+            </div>
           </div>
-        </div>
+          <Link className="owner-button secondary" to="/map">
+            {t("owner.viewMap")}
+          </Link>
+        </header>
 
-        <div className="owner-hero-summary">
-          <div className={`owner-status-pill owner-status-pill-${statusTone}`}>
-            {activeStatusLabel}
-          </div>
-          <strong>{dashboard?.shopName || t("owner.noShop")}</strong>
-          <span>{currentUser?.displayName}</span>
-          {dashboard?.addressLine ? <p>{dashboard.addressLine}</p> : <p>{t("owner.summaryFallback")}</p>}
-        </div>
-      </header>
-
-      {feedback ? <div className="owner-feedback">{feedback}</div> : null}
-
-      {dashboardQuery.isLoading ? <Loading /> : null}
-      {dashboardQuery.error ? (
-        <p className="owner-error">{dashboardQuery.error.message || t("owner.error")}</p>
-      ) : null}
-
-      {!dashboard ? null : (
-        <div className="owner-dashboard-shell">
-          <aside className="owner-dashboard-nav">
-            <article className="owner-card owner-nav-summary">
-              <div className="owner-card-head">
-                <div>
-                  <p className="owner-section-kicker">{t("owner.sections.overviewKicker")}</p>
-                  <h2>{dashboard.shopName}</h2>
-                </div>
-              </div>
-
-              <div className="owner-summary-list">
-                <SummaryRow label={t("owner.fields.address")} value={dashboard.addressLine || t("owner.summaryUnavailable")} />
-                <SummaryRow label={t("owner.labels.menuCount")} value={String(menuItems.length)} />
-                <SummaryRow label={t("owner.stats.claimCodes")} value={String(stats?.claimCodesIssuedCount ?? 0)} />
-              </div>
-            </article>
-
-            <article className="owner-card owner-nav-card">
-              <div className="owner-card-head">
-                <div>
-                  <p className="owner-section-kicker">{t("owner.badge")}</p>
-                  <h2>{activeSectionMeta.label}</h2>
-                  <p>{activeSectionMeta.description}</p>
-                </div>
-              </div>
-
-              <div className="owner-nav-list">
-                {sections.map((section) => (
-                  <button
-                    key={section.id}
-                    type="button"
-                    className={`owner-nav-button ${activeSection === section.id ? "active" : ""}`}
-                    onClick={() => setActiveSection(section.id)}
-                  >
-                    <div className="owner-nav-button-copy">
-                      <span>{section.kicker}</span>
-                      <strong>{section.label}</strong>
-                      <small>{section.description}</small>
-                    </div>
-                    <span className="owner-nav-badge">{section.badge}</span>
-                  </button>
-                ))}
-              </div>
-            </article>
+        <div className="owner-workspace">
+          <aside className="owner-sidebar">
+            <nav className="owner-nav">
+              {sections.map((section) => (
+                <button
+                  key={section.id}
+                  type="button"
+                  className={`owner-nav-button${activeSection === section.id ? " active" : ""}`}
+                  onClick={() => setActiveSection(section.id)}
+                >
+                  <span className="owner-nav-index">{section.icon}</span>
+                  <span className="owner-nav-copy">
+                    <strong>{section.label}</strong>
+                    <small>{section.description}</small>
+                  </span>
+                  <span className="owner-nav-badge">{section.badge}</span>
+                </button>
+              ))}
+            </nav>
           </aside>
 
-          <div className="owner-dashboard-stage">{renderActivePanel()}</div>
+          <main className="owner-main">
+            <header className="owner-main-header">
+              <div>
+                <p className="owner-section-kicker">{t("owner.badge")}</p>
+                <h2>{activeSectionConfig.label}</h2>
+                <p>{activeSectionConfig.description}</p>
+              </div>
+              <div className="owner-header-actions">
+                <span className="owner-content-tag">{activeSectionConfig.badge}</span>
+              </div>
+            </header>
+
+            {feedback ? <div className="owner-feedback">{feedback}</div> : null}
+
+            <div className="owner-stage">{renderActivePanel()}</div>
+          </main>
         </div>
-      )}
+      </div>
     </section>
   );
+}
+
+function FormInput({ label, onChange, ...inputProps }) {
+  return (
+    <label className="owner-field">
+      <span>{label}</span>
+      <input {...inputProps} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  );
+}
+
+function FormTextArea({ label, onChange, ...textareaProps }) {
+  return (
+    <label className="owner-field">
+      <span>{label}</span>
+      <textarea {...textareaProps} onChange={(event) => onChange(event.target.value)} />
+    </label>
+  );
+}
+
+function MetricCard({ label, value, hint }) {
+  return (
+    <article className="owner-metric-card">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      {hint ? <small>{hint}</small> : null}
+    </article>
+  );
+}
+
+function ShopImage({ src, label, compact = false }) {
+  return (
+    <div className={`owner-shop-image${compact ? " compact" : ""}`}>
+      {src ? (
+        <img src={src} alt={label || "shop"} />
+      ) : (
+        <div className="owner-image-fallback">{buildInitials(label)}</div>
+      )}
+    </div>
+  );
+}
+
+function CompactMenuList({ items, emptyText, onEdit, onDelete, onToggle, t, compact = false }) {
+  if (!items.length) {
+    return <p className="owner-empty-state">{emptyText}</p>;
+  }
+
+  return (
+    <div className={`owner-menu-list${compact ? " compact" : ""}`}>
+      {items.map((item) => (
+        <article key={item.id} className="owner-menu-row">
+          <div className="owner-menu-thumb">
+            {item.imageUrl ? (
+              <img src={item.imageUrl} alt={item.name} />
+            ) : (
+              <div className="owner-image-fallback">{buildInitials(item.name)}</div>
+            )}
+          </div>
+          <div className="owner-menu-info">
+            <strong>{getFriendlyDisplayName(item.name)}</strong>
+            <p>{item.description || t("owner.summaryUnavailable")}</p>
+            <span>{formatCurrency(item.price)}</span>
+          </div>
+          <div className="owner-menu-actions">
+            <button
+              type="button"
+              className={`owner-stock-toggle${item.isAvailable ? " active" : ""}`}
+              onClick={() => onToggle(item)}
+            >
+              {item.isAvailable ? t("owner.available") : t("owner.hidden")}
+            </button>
+            <button type="button" className="owner-link-button" onClick={() => onEdit(item)}>
+              {t("owner.edit")}
+            </button>
+            {onDelete ? (
+              <button type="button" className="owner-link-button danger" onClick={() => onDelete(item.id)}>
+                {t("owner.delete")}
+              </button>
+            ) : null}
+          </div>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function buildMenuPayload(item) {
+  return {
+    name: item.name || "",
+    description: item.description || "",
+    price: Number(item.price || 0),
+    imageUrl: item.imageUrl || "",
+    isAvailable: Boolean(item.isAvailable),
+    displayOrder: Number(item.displayOrder || 0),
+  };
 }
 
 function getOwnerStatusTone(status) {
@@ -996,21 +682,50 @@ function translateOwnerStatus(t, status) {
   return t("owner.status.notSubmitted");
 }
 
-function StatCard({ label, value }) {
-  return (
-    <div className="owner-stat-card">
-      <strong>{value}</strong>
-      <span>{label}</span>
-    </div>
-  );
+function getFriendlyDisplayName(value = "") {
+  return value
+    .replace(/\bdemo\b/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 }
 
-function SummaryRow({ label, value }) {
+function getFriendlyOwnerSummary(value, fallback) {
+  const normalized = (value || "").replace(/\s+/g, " ").trim();
+
+  if (!normalized) {
+    return fallback;
+  }
+
+  if (/(demo|test|placeholder|POI|dashboard|tính năng)/i.test(normalized)) {
+    return fallback;
+  }
+
+  return normalized;
+}
+
+function translateOwnerCategory(t, value) {
+  const normalized = (value || "").toLowerCase();
+  const lookup = {
+    food: "owner.categories.food",
+    street_food: "owner.categories.street_food",
+    grilled_food: "owner.categories.grilled_food",
+    dessert: "owner.categories.dessert",
+    seafood: "owner.categories.seafood",
+    snack: "owner.categories.snack",
+    drinks: "owner.categories.drinks",
+  };
+
+  return lookup[normalized] ? t(lookup[normalized]) : value || "";
+}
+
+function buildInitials(value = "") {
   return (
-    <div className="owner-summary-row">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
+    value
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "VK"
   );
 }
 

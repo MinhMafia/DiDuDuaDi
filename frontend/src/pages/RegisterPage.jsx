@@ -66,87 +66,89 @@ export default function RegisterPage() {
 
   return (
     <AuthShell
-      badge={t("auth.badge")}
-      title={t("auth.registerTitle")}
-      subtitle={t("auth.registerSubtitle")}
+      badge={t("appName")}
+      title={t("auth.register")}
+      subtitle={t("auth.registerTitle")}
       footerText={t("auth.haveAccount")}
       footerLinkLabel={t("auth.goLogin")}
       footerLinkTo="/login"
     >
-      <form onSubmit={handleSubmit} className="auth-form">
-        <label>
-          <span>{t("auth.displayName")}</span>
-          <input
-            value={form.displayName}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, displayName: event.target.value }))
-            }
-            autoComplete="name"
-            required
-          />
-        </label>
-
-        <div className="auth-form-row">
+      <div className="auth-panel">
+        <form onSubmit={handleSubmit} className="auth-form">
           <label>
-            <span>{t("auth.username")}</span>
+            <span>{t("auth.displayName")}</span>
             <input
-              value={form.username}
+              value={form.displayName}
               onChange={(event) =>
-                setForm((current) => ({ ...current, username: event.target.value }))
+                setForm((current) => ({ ...current, displayName: event.target.value }))
               }
-              autoComplete="username"
+              autoComplete="name"
               required
             />
           </label>
 
-          <label>
-            <span>{t("auth.emailOptional")}</span>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, email: event.target.value }))
-              }
-              autoComplete="email"
-            />
-          </label>
-        </div>
+          <div className="auth-form-row">
+            <label>
+              <span>{t("auth.username")}</span>
+              <input
+                value={form.username}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, username: event.target.value }))
+                }
+                autoComplete="username"
+                required
+              />
+            </label>
 
-        <div className="auth-form-row">
-          <label>
-            <span>{t("auth.password")}</span>
-            <input
-              type="password"
-              value={form.password}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, password: event.target.value }))
-              }
-              autoComplete="new-password"
-              required
-            />
-          </label>
+            <label>
+              <span>{t("auth.emailOptional")}</span>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, email: event.target.value }))
+                }
+                autoComplete="email"
+              />
+            </label>
+          </div>
 
-          <label>
-            <span>{t("auth.confirmPassword")}</span>
-            <input
-              type="password"
-              value={form.confirmPassword}
-              onChange={(event) =>
-                setForm((current) => ({ ...current, confirmPassword: event.target.value }))
-              }
-              autoComplete="new-password"
-              required
-            />
-          </label>
-        </div>
+          <div className="auth-form-row">
+            <label>
+              <span>{t("auth.password")}</span>
+              <input
+                type="password"
+                value={form.password}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, password: event.target.value }))
+                }
+                autoComplete="new-password"
+                required
+              />
+            </label>
 
-        {error ? <p className="auth-error">{error}</p> : null}
-        {success ? <p className="auth-success">{success}</p> : null}
+            <label>
+              <span>{t("auth.confirmPassword")}</span>
+              <input
+                type="password"
+                value={form.confirmPassword}
+                onChange={(event) =>
+                  setForm((current) => ({ ...current, confirmPassword: event.target.value }))
+                }
+                autoComplete="new-password"
+                required
+              />
+            </label>
+          </div>
 
-        <button type="submit" disabled={loading} className="auth-secondary-button">
-          {loading ? t("auth.registerLoading") : t("auth.register")}
-        </button>
-      </form>
+          {error ? <p className="auth-error">{error}</p> : null}
+          {success ? <p className="auth-success">{success}</p> : null}
+
+          <button type="submit" disabled={loading} className="auth-secondary-button">
+            {loading ? t("auth.registerLoading") : t("auth.register")}
+          </button>
+        </form>
+      </div>
     </AuthShell>
   );
 }

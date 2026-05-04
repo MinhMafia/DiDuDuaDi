@@ -1,33 +1,73 @@
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:8.4
+    container_name: didududi-mysql
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: didududi
       MYSQL_ROOT_PASSWORD: my-secret-pw
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
-      - mysqldata:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+      - ./backend/DiDuDuaDi.API/Data/db.sql:/docker-entrypoint-initdb.d/01-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-pmy-secret-pw"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  adminer:
+    image: adminer:4.8.1
+    container_name: didududi-adminer
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
 
   backend:
-    build: ./backend/DiDuDuaDi.API
+    build:
+      context: ./backend/DiDuDuaDi.API
+    container_name: didududi-backend
+    restart: unless-stopped
     ports:
       - "5000:8080"
     environment:
-      ConnectionStrings__DefaultConnection: "Server=mysql;Port=3306;Database=didududi;User=root;Password=my-secret-pw;SslMode=None;"
-      OpenAI__ApiKey: "${OPENAI_API_KEY}"
-      OpenAI__Model: "gpt-4o-mini"
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: Server=mysql;Port=3306;Database=didududi;User=root;Password=my-secret-pw;SslMode=None;
+      Jwt__Issuer: DiDuDuaDi.API
+      Jwt__Audience: DiDuDuaDi.Frontend
+      Jwt__SecretKey: SET_THIS_FOR_DOCKER_LOCAL_WITH_AT_LEAST_32_CHARACTERS
+      Cors__AllowedOrigins__0: http://localhost:3000
+      Cors__AllowedOrigins__1: http://127.0.0.1:3000
+      Cors__AllowedOrigins__2: http://localhost:5173
+      Cors__AllowedOrigins__3: http://127.0.0.1:5173
+      Cors__AllowedOrigins__4: http://localhost:4173
+      Cors__AllowedOrigins__5: http://127.0.0.1:4173
+      Mistral__ApiKey: ${MISTRAL_API_KEY:-}
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
   frontend:
-    build: ./frontend
+    image: node:20-alpine
+    container_name: didududi-frontend
+    working_dir: /app
+    restart: unless-stopped
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 3000"
     ports:
-      - "3000:80"
+      - "3000:3000"
     environment:
-      VITE_GOOGLE_MAPS_API_KEY: "${GOOGLE_MAPS_API_KEY}"
+      VITE_LOCAL_API_PROXY_TARGET: http://backend:8080
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
     depends_on:
-      - backend
+      backend:
+        condition: service_started
 
 volumes:
-  mysqldata:
+  mysql_data:
+  frontend_node_modules:

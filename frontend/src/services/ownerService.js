@@ -29,8 +29,3 @@ export async function deleteMenuItem(menuItemId) {
   const response = await apiClient.delete(`/owner/menu-items/${menuItemId}`);
   return response.data;
 }
-
-export async function createClaimCode(payload) {
-  const response = await apiClient.post("/owner/claim-codes", payload);
-  return response.data;
-}

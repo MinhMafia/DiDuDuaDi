@@ -97,9 +97,9 @@ public class InMemoryPoiRepository : IPoiRepository
         }
     ];
 
-    public IReadOnlyList<POI> GetAll() => _pois;
+    public IReadOnlyList<POI> GetAll(Guid? userId = null) => _pois;
 
-    public POI? GetById(Guid id) => _pois.FirstOrDefault(p => p.Id == id);
+    public POI? GetById(Guid id, Guid? userId = null) => _pois.FirstOrDefault(p => p.Id == id);
 
     public POI Add(POI poi)
     {
@@ -133,7 +133,7 @@ public class InMemoryPoiRepository : IPoiRepository
         return false;
     }
 
-    public IReadOnlyList<POI> GetNearby(double lat, double lng, double radiusMeters)
+    public IReadOnlyList<POI> GetNearby(double lat, double lng, double radiusMeters, Guid? userId = null)
     {
         return _pois
             .Select(p => new { Poi = p, Distance = HaversineMeters(lat, lng, p.Location.Lat, p.Location.Lng) })

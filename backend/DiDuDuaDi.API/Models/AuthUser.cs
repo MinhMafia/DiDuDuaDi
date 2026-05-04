@@ -1,3 +1,3 @@
 namespace DiDuDuaDi.API.Models;
 
-public record AuthUser(string Username, string Role, string DisplayName);
+public record AuthUser(Guid Id, string Username, string Role, string DisplayName);

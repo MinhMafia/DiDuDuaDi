@@ -11,6 +11,32 @@ export function getLocalizedValue(value, language, fallbackLanguage = "vi") {
   return value[language] || value[fallbackLanguage] || Object.values(value)[0] || "";
 }
 
+export function resolveBackendUrl(pathOrUrl) {
+  if (!pathOrUrl || typeof pathOrUrl !== "string") return "";
+  if (/^(https?:|blob:|data:)/i.test(pathOrUrl)) return pathOrUrl;
+
+  const normalizedPath = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
+  const shouldUseLocalProxyByDefault =
+    import.meta.env.DEV && import.meta.env.VITE_FORCE_REMOTE_API !== "true";
+
+  if (shouldUseLocalProxyByDefault) {
+    return normalizedPath;
+  }
+
+  const configuredBaseUrl =
+    import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+
+  if (!configuredBaseUrl) {
+    return normalizedPath;
+  }
+
+  const backendOrigin = configuredBaseUrl
+    .replace(/\/+$/, "")
+    .replace(/\/api$/i, "");
+
+  return `${backendOrigin}${normalizedPath}`;
+}
+
 export function calculateDistanceMeters(from, to) {
   if (!from || !to) return null;
 

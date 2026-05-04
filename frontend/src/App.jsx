@@ -6,38 +6,38 @@ import CollaborationPage from "./pages/CollaborationPage";
 import LoginPage from "./pages/LoginPage";
 import MapPage from "./pages/MapPage";
 import OwnerDashboardPage from "./pages/OwnerDashboardPage";
-import SystemBenchMark from "./pages/SystemBenchmark";
+import PoiDetailPage from "./pages/PoiDetailPage";
 import RegisterPage from "./pages/RegisterPage";
 import SettingsPage from "./pages/SettingsPage";
 import SystemBenchmark from "./pages/SystemBenchmark";
+import { ConfigProvider } from "antd";
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/test" element={<SystemBenchMark />} />
+      <Route path="/test" element={<SystemBenchmark></SystemBenchmark>}></Route>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
+      {/* POI Detail - Public route, accessible without auth */}
+      <Route path="/poi/:id" element={<PoiDetailPage />} />
+
       <Route
-        element={<ProtectedRoute allowedRoles={["user", "owner", "admin"]} />}
-      >
-        <Route
-          path="/"
-          element={
-            <MainLayout>
-              <Navigate to="/map" replace />
-            </MainLayout>
-          }
-        />
-        <Route
-          path="/map"
-          element={
-            <MainLayout>
-              <MapPage />
-            </MainLayout>
-          }
-        />
-      </Route>
+        path="/"
+        element={
+          <MainLayout>
+            <Navigate to="/map" replace />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/map"
+        element={
+          <MainLayout>
+            <MapPage />
+          </MainLayout>
+        }
+      />
 
       <Route element={<ProtectedRoute allowedRoles={["user"]} />}>
         <Route
@@ -66,13 +66,31 @@ export default function App() {
           path="/admin"
           element={
             <MainLayout>
-              <AdminDashboardPage />
+             <ConfigProvider
+  theme={{
+    token: {
+      colorPrimary: "#468bfa", 
+      borderRadius: 12,
+      fontFamily: "Inter, sans-serif",
+    },
+    components: {
+      Button: {
+        borderRadius: 10,
+      },
+      Card: {
+        borderRadius: 16,
+      },
+    },
+  }}
+>
+  <AdminDashboardPage />
+</ConfigProvider>
             </MainLayout>
           }
         />
       </Route>
 
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      <Route path="*" element={<Navigate to="/map" replace />} />
     </Routes>
   );
 }

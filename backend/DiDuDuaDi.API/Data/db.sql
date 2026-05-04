@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS tours (
     created_by_account_id CHAR(36) NULL,
     code VARCHAR(50) NOT NULL,
     name VARCHAR(200) NOT NULL,
+    category VARCHAR(80) NULL,
     description TEXT NULL,
     estimated_duration_minutes INT NOT NULL DEFAULT 0,
     cover_image_url VARCHAR(500) NULL,
@@ -755,6 +756,85 @@ ON DUPLICATE KEY UPDATE
     short_description = VALUES(short_description),
     description = VALUES(description),
     audio_url = VALUES(audio_url);
+
+INSERT INTO tours (
+    id,
+    created_by_account_id,
+    code,
+    name,
+    category,
+    description,
+    estimated_duration_minutes,
+    cover_image_url,
+    is_active
+)
+VALUES
+    (
+        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+        '11111111-1111-1111-1111-111111111111',
+        'vinh-khanh-street-food-walk',
+        '{"Vi":"Tour ăn vặt Vĩnh Khánh","En":"Vinh Khanh street snack walk"}',
+        'street_food',
+        '{"Vi":"Lộ trình ngắn để thử bánh tráng nướng, nước mát và một điểm ốc quen trên phố.","En":"A short route to try grilled rice paper, cool drinks, and a familiar shellfish stop on the street."}',
+        75,
+        'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=900&q=80',
+        1
+    ),
+    (
+        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2',
+        '11111111-1111-1111-1111-111111111111',
+        'vinh-khanh-seafood-night',
+        '{"Vi":"Tour hải sản buổi tối","En":"Vinh Khanh seafood night route"}',
+        'seafood',
+        '{"Vi":"Lộ trình dành cho khách muốn đi một vòng các quán ốc nổi bật ở khu Vĩnh Khánh.","En":"A route for visitors who want to spend the evening moving through standout seafood stops around Vinh Khanh."}',
+        95,
+        'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=900&q=80',
+        1
+    ),
+    (
+        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3',
+        '11111111-1111-1111-1111-111111111111',
+        'vinh-khanh-grill-and-shellfish',
+        '{"Vi":"Tour nướng và ốc","En":"Vinh Khanh grilled and shellfish route"}',
+        'grilled_food',
+        '{"Vi":"Lộ trình kết hợp bò lá lốt, quán ốc và điểm ăn nhanh để khách dễ đổi món.","En":"A route that mixes grilled beef, seafood, and a quick snack stop for visitors who want more variety."}',
+        90,
+        'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=900&q=80',
+        1
+    )
+ON DUPLICATE KEY UPDATE
+    created_by_account_id = VALUES(created_by_account_id),
+    code = VALUES(code),
+    name = VALUES(name),
+    category = VALUES(category),
+    description = VALUES(description),
+    estimated_duration_minutes = VALUES(estimated_duration_minutes),
+    cover_image_url = VALUES(cover_image_url),
+    is_active = VALUES(is_active);
+
+DELETE FROM tour_pois
+WHERE tour_id IN (
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2',
+    'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3'
+);
+
+INSERT INTO tour_pois (
+    tour_id,
+    poi_id,
+    sort_order,
+    stop_minutes
+)
+VALUES
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1', '55555555-5555-5555-5555-555555555552', 1, 20),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1', '55555555-5555-5555-5555-555555555554', 2, 20),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa1', '55555555-5555-5555-5555-555555555553', 3, 20),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '55555555-5555-5555-5555-555555555551', 1, 20),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '99999999-9999-9999-9999-999999999991', 2, 20),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa2', '99999999-9999-9999-9999-999999999992', 3, 20),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3', '88888888-8888-8888-8888-888888888888', 1, 20),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3', '55555555-5555-5555-5555-555555555551', 2, 20),
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaa3', '55555555-5555-5555-5555-555555555552', 3, 20);
 
 INSERT INTO cash_claim_codes (
     shop_id,

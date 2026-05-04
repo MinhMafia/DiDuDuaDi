@@ -18,12 +18,14 @@ export default function AuthShell({
     <section className="auth-page">
       <div className="auth-card">
         <div className="auth-head">
-          <div>
-            <p className="auth-badge">{badge || t("auth.badge")}</p>
+          <div className="auth-head__copy">
+            {badge ? <p className="auth-badge">{badge}</p> : null}
             <h1>{title}</h1>
-            <p className="auth-subtitle">{subtitle}</p>
+            {subtitle ? <p className="auth-subtitle">{subtitle}</p> : null}
           </div>
-          <LanguageSwitcher />
+          <div className="auth-head__controls">
+            <LanguageSwitcher />
+          </div>
         </div>
 
         {children}

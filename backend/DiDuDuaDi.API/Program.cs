@@ -8,6 +8,11 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+// Swagger Configuration - Thêm cái này để Azure hiện được giao diện test API
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtSecretKey = jwtSection["SecretKey"] ?? throw new InvalidOperationException("Missing Jwt:SecretKey");
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey));
@@ -39,14 +44,14 @@ builder.Services.AddScoped<IAnalyticsRepository, MySqlAnalyticsRepository>();
 builder.Services.AddScoped<IAdminRepository, MySqlAdminRepository>();
 builder.Services.AddHttpClient<ITranslationService, GoogleFreeTranslationService>();
 builder.Services.AddHttpClient<ITextToSpeechService, GoogleFreeTextToSpeechService>();
+builder.Services.AddHttpClient<IMistralChatService, MistralChatService>();
 
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
-        policy
-            .WithOrigins("http://localhost:3000", "http://localhost:5173")
-            .AllowAnyHeader()
-            .AllowAnyMethod());
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod());
 });
 
 var app = builder.Build();
@@ -65,7 +70,14 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.UseCors();
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiDuDuaDi API v1");
+    c.RoutePrefix = string.Empty; // Vào thẳng link là ra Swagger
+});
+
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -74,7 +86,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-app.MapGet("/", () => Results.Ok(new { success = true, message = "DiDuDuaDi.API (.NET 10) is running" }));
+// app.MapGet("/", () => Results.Ok(new { success = true, message = "DiDuDuaDi.API (.NET 10) is running" }));
+app.MapGet("/hello", () => Results.Ok(new { message = "Backend is alive!" }));
+
 app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>

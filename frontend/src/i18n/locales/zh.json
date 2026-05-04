@@ -7,6 +7,9 @@
   "nav": {
     "home": "首页",
     "map": "地图",
+    "cooperate": "申请成为店主",
+    "owner": "店主",
+    "admin": "管理员",
     "routes": "路线",
     "settings": "设置"
   },
@@ -103,6 +106,204 @@
     "subtitle": "询问永庆美食街的演示餐馆",
     "welcome": "你好。你可以问我吃什么、地图上有哪些演示餐馆，或者直接输入一家餐馆的名字获取简短介绍。",
     "placeholder": "询问美食、餐馆或地图...",
-    "send": "发送"
+    "send": "发送",
+    "close": "关闭",
+    "fabLabel": "AI"
+  },
+  "home": {
+    "title": "DiDuDuaDi 系统测试面板",
+    "subtitle": "基础界面用于测试前端是否已连接后端和示例数据 API。",
+    "healthNotChecked": "未检查",
+    "healthConnected": "后端已连接",
+    "healthFailed": "连接失败",
+    "connectError": "无法连接后端",
+    "poiApiError": "无法调用 POIs API",
+    "nearbyApiError": "无法调用 Nearby API",
+    "errorLabel": "错误",
+    "loading": "正在加载数据...",
+    "nearbyTitle": "附近兴趣点",
+    "emptyNearby": "暂无数据。点击\"测试 Nearby API\"查看结果。",
+    "labels": {
+      "backendStatus": "后端状态",
+      "serverTime": "服务器时间",
+      "totalPoi": "兴趣点总数"
+    },
+    "actions": {
+      "testHealth": "测试 Health API",
+      "testPois": "测试 POIs API",
+      "testNearby": "测试 Nearby API"
+    },
+    "fields": {
+      "lat": "纬度",
+      "lng": "经度",
+      "radius": "半径 (米)"
+    }
+  },
+  "routes": {
+    "placeholder": "路线页面将在下一步完善。"
+  },
+  "common": {
+    "loading": "加载中...",
+    "unexpectedErrorTitle": "页面遇到错误",
+    "unexpectedErrorDescription": "请刷新页面或重新登录继续。"
+  },
+  "collaboration": {
+    "title": "与我们合作",
+    "subtitle": "填写店铺信息以申请从用户升级为店主。管理员将在审批后授予权限。",
+    "currentUser": "当前账号",
+    "submit": "提交店主申请",
+    "submitting": "正在提交...",
+    "success": "已成功提交店主申请。",
+    "error": "无法提交申请。",
+    "fields": {
+      "shopName": "店铺名称",
+      "address": "永庆地址",
+      "latitude": "纬度",
+      "longitude": "经度",
+      "idCardImageUrl": "身份证照片链接",
+      "businessLicenseImageUrl": "营业执照照片链接（如有）",
+      "note": "备注"
+    }
+  },
+  "owner": {
+    "badge": "店主工作区",
+    "title": "店主控制台",
+    "subtitle": "管理菜单、介绍内容、兑换码和统计数据，以便游客应用显示更丰富的店铺信息。",
+    "noShop": "尚未关联店铺",
+    "error": "无法加载店主控制台数据。",
+    "statsTitle": "快速统计",
+    "shopInfoTitle": "店铺资料与介绍",
+    "poiTitle": "地图上的兴趣点内容",
+    "poiSubtitle": "以下名称和描述是游客在地图上打开你的店铺时将看到的内容。",
+    "menuTitle": "菜单管理",
+    "menuSubtitle": "此处启用的菜品将在游客打开你的店铺兴趣点时显示给他们。",
+    "claimTitle": "现金兑换码",
+    "claimSubtitle": "为在餐厅现金支付的顾客生成激活码。",
+    "viewMap": "打开地图视图",
+    "summaryFallback": "完善你的店铺信息，以便游客看到完整的店铺资料。",
+    "summaryUnavailable": "尚未更新",
+    "saveProfile": "保存店铺资料",
+    "saving": "正在保存...",
+    "addMenu": "添加菜品",
+    "updateMenu": "更新菜品",
+    "cancelEdit": "取消编辑",
+    "createClaim": "创建兑换码",
+    "available": "可见",
+    "hidden": "隐藏",
+    "edit": "编辑",
+    "delete": "删除",
+    "feedback": {
+      "saved": "店铺资料已更新。",
+      "poiSaved": "地图上的兴趣点内容已更新。",
+      "menuCreated": "已添加新菜品。",
+      "menuUpdated": "已更新菜品。",
+      "menuDeleted": "已删除菜品。",
+      "claimCreated": "已创建兑换码"
+    },
+    "stats": {
+      "totalVisits": "兴趣点访问次数",
+      "audioPlays": "音频播放次数",
+      "claimCodes": "已创建兑换码",
+      "todayVisits": "今日访问",
+      "todayAudio": "今日音频"
+    },
+    "status": {
+      "approved": "已批准",
+      "rejected": "已拒绝",
+      "pending": "待审核",
+      "notSubmitted": "尚未提交"
+    },
+    "labels": {
+      "issuedAt": "创建时间",
+      "menuCount": "当前菜品数量"
+    },
+    "empty": {
+      "menu": "菜单中还没有菜品。为你的餐厅添加第一道菜品。",
+      "claims": "最近没有创建兑换码。"
+    },
+    "sections": {
+      "overviewKicker": "业务概览",
+      "overview": "店铺概览",
+      "performanceKicker": "应用表现",
+      "profileKicker": "核心店铺资料",
+      "profileDescription": "更新可见的店铺资料以及将提交给管理员审核的介绍草稿。",
+      "mapKicker": "游客在地图上看到的",
+      "menuKicker": "菜单编辑器",
+      "editMenu": "编辑菜单项",
+      "menuListKicker": "当前可见",
+      "menuList": "当前菜单",
+      "menuListDescription": "这些是游客打开你的兴趣点时看到的菜品。",
+      "claimKicker": "现金支付",
+      "claimHistoryKicker": "追踪已发放码",
+      "claimHistory": "最近的兑换码",
+      "claimHistoryDescription": "顾客到店时快速查看最近发放的兑换码。"
+    },
+    "fields": {
+      "shopName": "店铺名称",
+      "address": "地址",
+      "latitude": "纬度",
+      "longitude": "经度",
+      "description": "当前简短描述",
+      "pendingIntro": "待管理员审核的介绍草稿",
+      "hours": "营业时间",
+      "phone": "电话号码",
+      "imageUrl": "图片链接",
+      "menuName": "菜品名称",
+      "poiCategory": "地点类别",
+      "poiNameVi": "兴趣点名称（越南语）",
+      "poiNameEn": "兴趣点名称（英语）",
+      "poiDescriptionVi": "兴趣点描述（越南语）",
+      "poiDescriptionEn": "兴趣点描述（英语）",
+      "menuDescription": "菜品描述",
+      "price": "价格",
+      "order": "显示顺序",
+      "available": "对游客可见",
+      "amount": "金额",
+      "expireAfterHours": "过期时间（小时）",
+      "note": "备注"
+    },
+    "savePoi": "保存兴趣点内容"
+  },
+  "admin": {
+    "title": "管理员控制台",
+    "subtitle": "审核店主申请、审核店铺内容，并追踪最近的审核历史。",
+    "ownerRequestsTitle": "店主升级申请",
+    "ownerRequestsSubtitle": "审核用户提交的材料，批准或拒绝成为店主的申请。",
+    "shopIntroTitle": "待审核的店铺介绍",
+    "shopIntroSubtitle": "在店铺介绍出现在地图和语音导览之前，审核店主提交的草稿。",
+    "reviewHistoryTitle": "最近的审核历史",
+    "reviewHistorySubtitle": "追踪已处理的申请，便于复查决定和审核备注。",
+    "ownerHistoryTitle": "店主申请历史",
+    "shopIntroHistoryTitle": "店铺介绍审核历史",
+    "labels": {
+      "user": "用户",
+      "owner": "店主",
+      "address": "地址",
+      "idCard": "身份证",
+      "businessLicense": "营业执照",
+      "note": "备注",
+      "reviewNote": "审核备注",
+      "latestReviewNote": "最新审核备注",
+      "currentContent": "当前内容",
+      "pendingContent": "已提交内容",
+      "noContent": "尚无内容。"
+    },
+    "status": {
+      "approved": "已批准",
+      "rejected": "已拒绝",
+      "pending": "待审核"
+    },
+    "approve": "批准",
+    "reject": "拒绝",
+    "approveContent": "批准内容",
+    "processing": "处理中...",
+    "reviewNotePlaceholder": "输入批准备注或拒绝理由",
+    "loadOwnerRequestsError": "无法加载店主申请。",
+    "loadShopIntrosError": "无法加载店铺介绍草稿。",
+    "loadHistoryError": "无法加载审核历史。",
+    "emptyPendingOwnerRequests": "没有待审核的店主申请。",
+    "emptyPendingShopIntros": "没有待审核的店铺介绍。",
+    "emptyOwnerHistory": "尚无店主申请历史。",
+    "emptyShopIntroHistory": "尚无店铺介绍审核历史。"
   }
 }

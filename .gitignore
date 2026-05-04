@@ -4,18 +4,33 @@
 .env
 .env.local
 .env.*.local
+**/appsettings.Development.json
+**/appsettings.Production.json
+appsettings.Development.json
+appsettings.Production.json
 
 # Node
 node_modules/
 frontend/dist/
 frontend/.vite/
+dist/
+build/
 
 # .NET
 **/bin/
 **/obj/
+**/bin-temp/
+**/obj-temp/
+publish/
+publish-*/
+**/publish/
+**/publish-*/
 .dotnet/
+.dotnet-cli/
 .nuget/
 *.user
+fatal_error.log
+*.log
 
 # IDE
 .vscode/
@@ -27,3 +42,8 @@ frontend/.vite/
 Thumbs.db
 
 .fake
+tmp/
+.sixth/
+*.mp3
+*.wav
+backend/DiDuDuaDi.API/Data/note.txt

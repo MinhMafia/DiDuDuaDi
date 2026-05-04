@@ -2,21 +2,12 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Card,
-  Input,
-  Button,
-  Space,
-  Alert,
-  Typography,
-} from "antd";
+import { Input, Button, Alert } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 
 import AuthShell from "../components/auth/AuthShell";
 import { login } from "../services/authService";
 import { loginSuccess } from "../store/slices/appSlice";
-
-const { Text } = Typography;
 
 export default function LoginPage() {
   const dispatch = useDispatch();
@@ -64,91 +55,56 @@ export default function LoginPage() {
 
   return (
     <AuthShell
-      badge={t("auth.badge")}
-      title={t("auth.loginTitle")}
-      subtitle={t("auth.loginSubtitle")}
+      badge={t("appName")}
+      title={t("auth.login")}
+      subtitle={t("layout.tagline")}
       footerText={t("auth.noAccount")}
       footerLinkLabel={t("auth.goRegister")}
       footerLinkTo="/register"
     >
-      <Card
-        style={{
-          borderRadius: 24,
-          border: "1px solid #e2e8f0",
-          boxShadow: "0 20px 48px rgba(15,23,42,0.08)",
-          background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
-        }}
-        bodyStyle={{ padding: 28 }}
-      >
-        <Space direction="vertical" size={20} style={{ width: "100%" }}>
-          {successMessage && (
-            <Alert type="success" message={successMessage} showIcon />
-          )}
+      <div className="auth-login-panel">
+        {successMessage ? <Alert type="success" message={successMessage} showIcon /> : null}
+        {error ? <Alert type="error" message={error} showIcon /> : null}
 
-          {error && <Alert type="error" message={error} showIcon />}
+        <form onSubmit={handleSubmit} className="auth-login-form">
+          <Input
+            size="large"
+            prefix={<UserOutlined />}
+            placeholder={t("auth.username")}
+            value={form.username}
+            autoComplete="username"
+            className="auth-login-input"
+            aria-label={t("auth.username")}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, username: event.target.value }))
+            }
+          />
 
-          <form onSubmit={handleSubmit}>
-            <Space direction="vertical" style={{ width: "100%" }} size={14}>
-              <div>
-                <Text
-                  strong
-                  style={{ display: "block", marginBottom: 8, color: "#0f172a" }}
-                >
-                  {t("auth.username")}
-                </Text>
-                <Input
-                  size="large"
-                  prefix={<UserOutlined />}
-                  placeholder={t("auth.username")}
-                  value={form.username}
-                  autoComplete="username"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, username: e.target.value }))
-                  }
-                  style={{ borderRadius: 14, height: 48 }}
-                />
-              </div>
+          <Input.Password
+            size="large"
+            prefix={<LockOutlined />}
+            placeholder={t("auth.password")}
+            value={form.password}
+            autoComplete="current-password"
+            className="auth-login-input"
+            aria-label={t("auth.password")}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, password: event.target.value }))
+            }
+          />
 
-              <div>
-                <Text
-                  strong
-                  style={{ display: "block", marginBottom: 8, color: "#0f172a" }}
-                >
-                  {t("auth.password")}
-                </Text>
-                <Input.Password
-                  size="large"
-                  prefix={<LockOutlined />}
-                  placeholder={t("auth.password")}
-                  value={form.password}
-                  autoComplete="current-password"
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, password: e.target.value }))
-                  }
-                  style={{ borderRadius: 14, height: 48 }}
-                />
-              </div>
-
-              <Button
-                type="primary"
-                htmlType="submit"
-                size="large"
-                loading={loading}
-                block
-                style={{
-                  height: 50,
-                  borderRadius: 14,
-                  fontWeight: 700,
-                  marginTop: 6,
-                  boxShadow: "0 12px 24px rgba(37, 99, 235, 0.24)",
-                }}
-              >
-                {loading ? t("auth.loading") : t("auth.login")}
-              </Button>
-            </Space>
-          </form>
-        </Space>
-      </Card>
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            loading={loading}
+            block
+            className="auth-login-submit"
+          >
+            {loading ? t("auth.loading") : t("auth.login")}
+          </Button>
+        </form>
+      </div>
     </AuthShell>
   );
 }

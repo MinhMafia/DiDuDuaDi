@@ -111,17 +111,15 @@ export default function SpeechGuidePlayer({
     if (lastAutoSpeakRef.current === autoSpeakToken) return;
 
     lastAutoSpeakRef.current = autoSpeakToken;
-    
-    if (audioUrl=="") {
+
+    if (audioUrl) {
       const currentPlayer = playerRef.current;
       if (currentPlayer && !currentPlayer.playing()) {
         currentPlayer.play();
       }
-    } 
-    else if (speechText) {
+    } else if (speechText) {
       startSpeech();
     }
-    
   }, [audioUrl, onPlaybackStart, playbackKey, speechLanguage, speechText, triggerAutoSpeak, voices]);
 
   function togglePlayback() {
@@ -144,6 +142,28 @@ export default function SpeechGuidePlayer({
         startSpeech();
       }
     }
+  }
+
+  function handleRewindFiveSeconds() {
+    const currentPlayer = playerRef.current;
+    if (!currentPlayer) return;
+
+    const currentProgress = Number(currentPlayer.seek() || 0);
+    const nextProgress = Math.max(0, currentProgress - 5);
+    currentPlayer.seek(nextProgress);
+    setProgress(nextProgress);
+  }
+
+  function handleStopPlayback() {
+    if (audioUrl) {
+      const currentPlayer = playerRef.current;
+      if (!currentPlayer) return;
+      currentPlayer.stop();
+      setProgress(0);
+      return;
+    }
+
+    stopSpeech();
   }
 
   function handleSeek(event) {
@@ -191,29 +211,27 @@ export default function SpeechGuidePlayer({
 
     // Improved voice scoring
     const getVoiceScore = (voice) => {
-        let score = 0;
-        const lang = voice.lang.toLowerCase();
-        
-        // Exact locale match gets highest priority
-        if (lang === normalizedLanguage) score += 100;
-        // General language match (e.g., 'vi' matching 'vi-VN')
-        else if (lang.startsWith(normalizedLanguage.slice(0, 2))) score += 50;
-        else return -1; // Not matching language at all
-        
-        const name = voice.name.toLowerCase();
-        if (name.includes("google") || name.includes("online") || name.includes("natural")) {
-            score += 20; // Premium online voices are much better
-        }
-        if (voice.localService === false) {
-            score += 10;
-        }
-        
-        return score;
+      let score = 0;
+      const lang = voice.lang.toLowerCase();
+
+      if (lang === normalizedLanguage) score += 100;
+      else if (lang.startsWith(normalizedLanguage.slice(0, 2))) score += 50;
+      else return -1;
+
+      const name = voice.name.toLowerCase();
+      if (name.includes("google") || name.includes("online") || name.includes("natural")) {
+        score += 20;
+      }
+      if (voice.localService === false) {
+        score += 10;
+      }
+
+      return score;
     };
-    
+
     const matchingVoiceWithScore = [...voices]
-      .map(v => ({ voice: v, score: getVoiceScore(v) }))
-      .filter(v => v.score > 0)
+      .map((voice) => ({ voice, score: getVoiceScore(voice) }))
+      .filter((voiceMatch) => voiceMatch.score > 0)
       .sort((a, b) => b.score - a.score)[0];
     const shouldPreferCloudTts =
       isVietnamese || !matchingVoiceWithScore?.voice;
@@ -223,7 +241,6 @@ export default function SpeechGuidePlayer({
         return false;
       }
 
-      // For Vietnamese, only use browser TTS when we have a Vietnamese-capable voice.
       if (isVietnamese && !matchingVoiceWithScore?.voice) {
         return false;
       }
@@ -273,17 +290,20 @@ export default function SpeechGuidePlayer({
     // Prefer cloud TTS when the browser does not have a matching voice for the selected language.
     if (shouldPreferCloudTts) {
       cloudTtsPlayerRef.current = playCloudTts(finalSpeechText, speechLanguage, {
-          onPlay: () => { setIsPlaying(true); onPlaybackStart?.(); },
-          onEnd: () => {
-            cloudTtsPlayerRef.current = null;
+        onPlay: () => {
+          setIsPlaying(true);
+          onPlaybackStart?.();
+        },
+        onEnd: () => {
+          cloudTtsPlayerRef.current = null;
+          setIsPlaying(false);
+        },
+        onError: () => {
+          cloudTtsPlayerRef.current = null;
+          if (!speakWithBrowserTts()) {
             setIsPlaying(false);
-          },
-          onError: () => {
-            cloudTtsPlayerRef.current = null;
-            if (!speakWithBrowserTts()) {
-              setIsPlaying(false);
-            }
-          },
+          }
+        },
       });
       return;
     }
@@ -329,16 +349,37 @@ export default function SpeechGuidePlayer({
           <strong>{t("audio.title")}</strong>
           <p>{title || t("audio.noPoiSelected")}</p>
         </div>
+      </div>
+
+      <div className="audio-guide-controls">
         <button
           type="button"
+          className="audio-guide-control secondary"
+          onClick={handleRewindFiveSeconds}
+          disabled={!audioUrl || isTranslating}
+          title={!audioUrl ? t("audio.rewindRequiresAudioFile") : t("audio.rewind5")}
+        >
+          {t("audio.rewind5")}
+        </button>
+        <button
+          type="button"
+          className="audio-guide-control primary"
           onClick={togglePlayback}
           disabled={(!audioUrl && !speechText) || (isTranslating && !isPlaying)}
         >
           {isTranslating
             ? t("audio.translating", "Dịch...")
-            : isPlaying 
-              ? (isSpeechMode ? t("audio.stop") : t("audio.pause")) 
+            : isPlaying
+              ? (isSpeechMode ? t("audio.stop") : t("audio.pause"))
               : t("audio.play")}
+        </button>
+        <button
+          type="button"
+          className="audio-guide-control secondary"
+          onClick={handleStopPlayback}
+          disabled={(!audioUrl && !speechText) || isTranslating}
+        >
+          {t("audio.stop")}
         </button>
       </div>
 
@@ -362,8 +403,14 @@ export default function SpeechGuidePlayer({
 
       {!audioUrl && speechText ? (
         <p className="supporting-text">
-          {isTranslating ? t("audio.translatingHint", "Đang chuyển hoá âm thanh...") : t("audio.ttsReady")}
+          {isTranslating
+            ? t("audio.translatingHint", "Đang chuẩn bị giọng đọc cho ngôn ngữ bạn chọn.")
+            : t("audio.ttsReady")}
         </p>
+      ) : null}
+
+      {!audioUrl && speechText ? (
+        <p className="audio-guide-note">{t("audio.seekUnavailable")}</p>
       ) : null}
 
       {!audioUrl && !speechText ? (

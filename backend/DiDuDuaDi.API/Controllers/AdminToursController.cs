@@ -1,111 +1,151 @@
+using DiDuDuaDi.API.Models;
+using DiDuDuaDi.API.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using DiDuDuaDi.API.Repositories;
-using DiDuDuaDi.API.Models;
 
 namespace DiDuDuaDi.API.Controllers;
 
 [ApiController]
 [Route("api/admin/food-tours")]
 [Authorize(Roles = "admin")]
-public class AdminToursController : ControllerBase
+public class AdminToursController(IAdminRepository repository) : ControllerBase
 {
-    private readonly IAdminRepository _repo;
-
-    public AdminToursController(IAdminRepository repo)
-    {
-        _repo = repo;
-    }
-
-    // ✅ CREATE
     [HttpPost]
-    public async Task<ActionResult<FoodTour>> CreateFoodTour(
-        [FromBody] CreateFoodTourRequest request)
+    public async Task<ActionResult<FoodTour>> CreateFoodTour([FromBody] CreateFoodTourRequest request)
     {
-        if (request.Steps == null || !request.Steps.Any())
-            return BadRequest("Steps is required");
-
-        var duplicatedOrder = request.Steps
-            .GroupBy(s => s.Order)
-            .Any(g => g.Count() > 1);
-
-        if (duplicatedOrder)
-            return BadRequest("Step order must be unique");
-
-        var tour = new FoodTour
+        var validationMessage = ValidateRequest(request);
+        if (validationMessage != null)
         {
-            Id = Guid.NewGuid(),
-            Title = request.Title,
-            Description = request.Description,
-            Category = request.Category,
-            Steps = request.Steps
-                .OrderBy(s => s.Order)
-                .Select(s => new FoodTourStep
-                {
-                    PoiId = s.PoiId,
-                    Order = s.Order
-                })
-                .ToList()
-        };
+            return BadRequest(validationMessage);
+        }
 
-        await _repo.CreateFoodTourAsync(tour);
+        var tour = BuildTour(Guid.NewGuid(), request);
+        await repository.CreateFoodTourAsync(tour);
 
         return CreatedAtAction(nameof(GetFoodTourById), new { id = tour.Id }, tour);
     }
 
-    // ✅ GET ALL
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<FoodTour>>> GetFoodTours()
     {
-        var tours = await _repo.GetFoodToursAsync();
+        var tours = await repository.GetFoodToursAsync();
         return Ok(tours);
     }
 
-    // ✅ GET BY ID
-    [HttpGet("{id}")]
+    [HttpGet("{id:guid}")]
     public async Task<ActionResult<FoodTour>> GetFoodTourById(Guid id)
     {
-        var tour = await _repo.GetFoodTourByIdAsync(id);
-
-        if (tour == null) return NotFound();
-
-        return Ok(tour);
+        var tour = await repository.GetFoodTourByIdAsync(id);
+        return tour == null ? NotFound() : Ok(tour);
     }
 
-    // ✅ UPDATE
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateFoodTour(Guid id, CreateFoodTourRequest request)
+    [HttpPut("{id:guid}")]
+    public async Task<IActionResult> UpdateFoodTour(Guid id, [FromBody] CreateFoodTourRequest request)
     {
-        var tour = await _repo.GetFoodTourByIdAsync(id);
-        if (tour == null) return NotFound();
+        var validationMessage = ValidateRequest(request);
+        if (validationMessage != null)
+        {
+            return BadRequest(validationMessage);
+        }
 
-        tour.Title = request.Title;
-        tour.Description = request.Description;
-        tour.Category = request.Category;
+        var existingTour = await repository.GetFoodTourByIdAsync(id);
+        if (existingTour == null)
+        {
+            return NotFound();
+        }
 
-        tour.Steps = request.Steps
-            .OrderBy(s => s.Order)
-            .Select(s => new FoodTourStep
+        existingTour.Title = NormalizeLocalizedString(request.Title);
+        existingTour.Description = NormalizeLocalizedString(request.Description);
+        existingTour.Category = NormalizeNullable(request.Category);
+        existingTour.Steps = request.Steps
+            .OrderBy(step => step.Order)
+            .Select((step, index) => new FoodTourStep
             {
-                PoiId = s.PoiId,
-                Order = s.Order
+                PoiId = step.PoiId,
+                Order = index + 1
             })
             .ToList();
 
-        await _repo.UpdateFoodTourAsync(tour);
-
+        await repository.UpdateFoodTourAsync(existingTour);
         return NoContent();
     }
 
-    // ✅ DELETE
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteFoodTour(Guid id)
     {
-        var exists = await _repo.GetFoodTourByIdAsync(id);
-        if (exists == null) return NotFound();
+        var existingTour = await repository.GetFoodTourByIdAsync(id);
+        if (existingTour == null)
+        {
+            return NotFound();
+        }
 
-        await _repo.DeleteFoodTourAsync(id);
-
+        await repository.DeleteFoodTourAsync(id);
         return NoContent();
+    }
+
+    private static FoodTour BuildTour(Guid id, CreateFoodTourRequest request)
+    {
+        return new FoodTour
+        {
+            Id = id,
+            Title = NormalizeLocalizedString(request.Title),
+            Description = NormalizeLocalizedString(request.Description),
+            Category = NormalizeNullable(request.Category),
+            Steps = request.Steps
+                .OrderBy(step => step.Order)
+                .Select((step, index) => new FoodTourStep
+                {
+                    PoiId = step.PoiId,
+                    Order = index + 1
+                })
+                .ToList()
+        };
+    }
+
+    private static string? ValidateRequest(CreateFoodTourRequest request)
+    {
+        var hasTitle =
+            !string.IsNullOrWhiteSpace(request.Title?.Vi) ||
+            !string.IsNullOrWhiteSpace(request.Title?.En);
+
+        if (!hasTitle)
+        {
+            return "Tour title is required.";
+        }
+
+        if (request.Steps == null || request.Steps.Count == 0)
+        {
+            return "At least one POI is required.";
+        }
+
+        if (request.Steps.GroupBy(step => step.Order).Any(group => group.Count() > 1))
+        {
+            return "Step order must be unique.";
+        }
+
+        if (request.Steps.GroupBy(step => step.PoiId).Any(group => group.Count() > 1))
+        {
+            return "A POI cannot appear twice in the same tour.";
+        }
+
+        return null;
+    }
+
+    private static LocalizedString NormalizeLocalizedString(LocalizedString? value)
+    {
+        var vi = NormalizeNullable(value?.Vi) ?? NormalizeNullable(value?.En) ?? string.Empty;
+        var en = NormalizeNullable(value?.En) ?? NormalizeNullable(value?.Vi) ?? string.Empty;
+
+        return new LocalizedString
+        {
+            Vi = vi,
+            En = en
+        };
+    }
+
+    private static string? NormalizeNullable(string? value)
+    {
+        var trimmedValue = value?.Trim();
+        return string.IsNullOrWhiteSpace(trimmedValue) ? null : trimmedValue;
     }
 }

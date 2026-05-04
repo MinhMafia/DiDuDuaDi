@@ -7,6 +7,9 @@
   "nav": {
     "home": "홈",
     "map": "지도",
+    "cooperate": "점주 등록 신청",
+    "owner": "점주",
+    "admin": "관리자",
     "routes": "경로",
     "settings": "설정"
   },
@@ -103,6 +106,204 @@
     "subtitle": "빈카인 거리의 데모 식당에 대해 물어보세요",
     "welcome": "안녕하세요. 무엇을 먹을지, 지도에 있는 데모 식당, 또는 특정 식당 이름을 물어보면 짧게 설명해 드릴 수 있습니다.",
     "placeholder": "음식, 식당 또는 지도에 대해 질문하세요...",
-    "send": "보내기"
+    "send": "보내기",
+    "close": "닫기",
+    "fabLabel": "AI"
+  },
+  "home": {
+    "title": "DiDuDuaDi 시스템 테스트 패널",
+    "subtitle": "프론트엔드가 백엔드 및 샘플 데이터 API에 연결되었는지 테스트하기 위한 기본 인터페이스입니다.",
+    "healthNotChecked": "확인 안 함",
+    "healthConnected": "백엔드 연결됨",
+    "healthFailed": "연결 실패",
+    "connectError": "백엔드에 연결할 수 없습니다",
+    "poiApiError": "POIs API를 호출할 수 없습니다",
+    "nearbyApiError": "Nearby API를 호출할 수 없습니다",
+    "errorLabel": "오류",
+    "loading": "데이터 로드 중...",
+    "nearbyTitle": "근처 POI",
+    "emptyNearby": "데이터가 없습니다. \"Nearby API 테스트\"를 클릭하여 결과를 확인하세요.",
+    "labels": {
+      "backendStatus": "백엔드 상태",
+      "serverTime": "서버 시간",
+      "totalPoi": "총 POI 수"
+    },
+    "actions": {
+      "testHealth": "Health API 테스트",
+      "testPois": "POIs API 테스트",
+      "testNearby": "Nearby API 테스트"
+    },
+    "fields": {
+      "lat": "위도",
+      "lng": "경도",
+      "radius": "반경 (미터)"
+    }
+  },
+  "routes": {
+    "placeholder": "경로 페이지는 다음 단계에서 완성됩니다."
+  },
+  "common": {
+    "loading": "로드 중...",
+    "unexpectedErrorTitle": "페이지에서 오류가 발생했습니다",
+    "unexpectedErrorDescription": "페이지를 새로고침하거나 다시 로그인하여 계속하세요."
+  },
+  "collaboration": {
+    "title": "우리와 협력",
+    "subtitle": "가게 정보를 입력하여 사용자에서 점주로의 권한 업그레이드를 신청하세요. 관리자가 승인 후 권한을 부여합니다.",
+    "currentUser": "현재 계정",
+    "submit": "점주 신청 제출",
+    "submitting": "제출 중...",
+    "success": "점주 신청이 성공적으로 제출되었습니다.",
+    "error": "신청을 제출할 수 없습니다.",
+    "fields": {
+      "shopName": "가게 이름",
+      "address": "빈카인 주소",
+      "latitude": "위도",
+      "longitude": "경도",
+      "idCardImageUrl": "신분증 이미지 URL",
+      "businessLicenseImageUrl": "영업 허가증 이미지 URL(선택)",
+      "note": "비고"
+    }
+  },
+  "owner": {
+    "badge": "점주 워크스페이스",
+    "title": "점주 대시보드",
+    "subtitle": "메뉴, 소개 콘텐츠, 청구 코드 및 통계를 관리하여 관광객 앱에 더 풍부한 가게 정보를 표시합니다.",
+    "noShop": "아직 연결된 가게가 없습니다",
+    "error": "점주 대시보드 데이터를 로드할 수 없습니다.",
+    "statsTitle": "빠른 통계",
+    "shopInfoTitle": "가게 프로필 및 소개",
+    "poiTitle": "지도의 POI 콘텐츠",
+    "poiSubtitle": "아래 이름과 설명은 관광객이 지도에서 당신의 가게를 열었을 때 보이는 내용입니다.",
+    "menuTitle": "메뉴 관리",
+    "menuSubtitle": "여기에서 활성화된 요리는 관광객이 당신의 POI를 열었을 때 표시됩니다.",
+    "claimTitle": "현금 청구 코드",
+    "claimSubtitle": "레스토랑에서 현금 결제하는 고객을 위한 활성화 코드를 생성합니다.",
+    "viewMap": "지도 보기 열기",
+    "summaryFallback": "관광객이 전체 프로필을 볼 수 있도록 가게 정보를 완성하세요.",
+    "summaryUnavailable": "아직 업데이트되지 않음",
+    "saveProfile": "가게 프로필 저장",
+    "saving": "저장 중...",
+    "addMenu": "요리 추가",
+    "updateMenu": "요리 업데이트",
+    "cancelEdit": "편집 취소",
+    "createClaim": "청구 코드 생성",
+    "available": "표시 중",
+    "hidden": "숨김",
+    "edit": "편집",
+    "delete": "삭제",
+    "feedback": {
+      "saved": "가게 프로필이 업데이트되었습니다.",
+      "poiSaved": "지도의 POI 콘텐츠가 업데이트되었습니다.",
+      "menuCreated": "새 요리가 추가되었습니다.",
+      "menuUpdated": "요리가 업데이트되었습니다.",
+      "menuDeleted": "요리가 삭제되었습니다.",
+      "claimCreated": "청구 코드가 생성되었습니다"
+    },
+    "stats": {
+      "totalVisits": "POI 방문 수",
+      "audioPlays": "오디오 재생 수",
+      "claimCodes": "생성된 청구 코드",
+      "todayVisits": "오늘 방문",
+      "todayAudio": "오늘 오디오"
+    },
+    "status": {
+      "approved": "승인됨",
+      "rejected": "거부됨",
+      "pending": "심사 대기 중",
+      "notSubmitted": "미제출"
+    },
+    "labels": {
+      "issuedAt": "생성 일시",
+      "menuCount": "현재 요리 수"
+    },
+    "empty": {
+      "menu": "아직 메뉴에 요리가 없습니다. 레스토랑의 첫 번째 요리를 추가하세요.",
+      "claims": "최근에 생성된 청구 코드가 없습니다."
+    },
+    "sections": {
+      "overviewKicker": "비즈니스 개요",
+      "overview": "가게 개요",
+      "performanceKicker": "앱 성능",
+      "profileKicker": "핵심 가게 프로필",
+      "profileDescription": "표시되는 가게 프로필과 관리자가 검토할 소개 초안을 업데이트합니다.",
+      "mapKicker": "관광객이 지도에서 보는 것",
+      "menuKicker": "메뉴 편집기",
+      "editMenu": "메뉴 항목 편집",
+      "menuListKicker": "현재 표시 중",
+      "menuList": "현재 메뉴",
+      "menuListDescription": "이것들은 관광객이 당신의 POI를 열었을 때 보는 요리입니다.",
+      "claimKicker": "현금 결제",
+      "claimHistoryKicker": "발행된 코드 추적",
+      "claimHistory": "최근 청구 코드",
+      "claimHistoryDescription": "고객이 가게에 왔을 때 최근 발행된 코드를 빠르게 확인합니다."
+    },
+    "fields": {
+      "shopName": "가게 이름",
+      "address": "주소",
+      "latitude": "위도",
+      "longitude": "경도",
+      "description": "현재 짧은 설명",
+      "pendingIntro": "관리자 검토 대기 중인 소개 초안",
+      "hours": "영업 시간",
+      "phone": "전화번호",
+      "imageUrl": "이미지 URL",
+      "menuName": "요리 이름",
+      "poiCategory": "장소 카테고리",
+      "poiNameVi": "POI 이름(베트남어)",
+      "poiNameEn": "POI 이름(영어)",
+      "poiDescriptionVi": "POI 설명(베트남어)",
+      "poiDescriptionEn": "POI 설명(영어)",
+      "menuDescription": "요리 설명",
+      "price": "가격",
+      "order": "표시 순서",
+      "available": "관광객에게 표시",
+      "amount": "금액",
+      "expireAfterHours": "만료 시간(시간)",
+      "note": "비고"
+    },
+    "savePoi": "POI 콘텐츠 저장"
+  },
+  "admin": {
+    "title": "관리자 대시보드",
+    "subtitle": "점주 신청 검토, 가게 콘텐츠 관리, 최근 검토 이력 추적을 관리합니다.",
+    "ownerRequestsTitle": "점주 업그레이드 신청",
+    "ownerRequestsSubtitle": "사용자 제출물을 검토하고 점주가 되기 위한 신청을 승인 또는 거부합니다.",
+    "shopIntroTitle": "대기 중인 가게 소개",
+    "shopIntroSubtitle": "가게 소개가 지도와 오디오 가이드에 표시되기 전에 점주가 제출한 초안을 검토합니다.",
+    "reviewHistoryTitle": "최근 검토 이력",
+    "reviewHistorySubtitle": "처리된 신청을 추적하여 결정과 검토 메모를 다시 확인하기 쉽게 합니다.",
+    "ownerHistoryTitle": "점주 신청 이력",
+    "shopIntroHistoryTitle": "가게 소개 검토 이력",
+    "labels": {
+      "user": "사용자",
+      "owner": "점주",
+      "address": "주소",
+      "idCard": "신분증",
+      "businessLicense": "영업 허가증",
+      "note": "비고",
+      "reviewNote": "검토 메모",
+      "latestReviewNote": "최신 검토 메모",
+      "currentContent": "현재 콘텐츠",
+      "pendingContent": "제출된 콘텐츠",
+      "noContent": "아직 콘텐츠가 없습니다."
+    },
+    "status": {
+      "approved": "승인됨",
+      "rejected": "거부됨",
+      "pending": "대기 중"
+    },
+    "approve": "승인",
+    "reject": "거부",
+    "approveContent": "콘텐츠 승인",
+    "processing": "처리 중...",
+    "reviewNotePlaceholder": "승인 메모 또는 거부 사유를 입력하세요",
+    "loadOwnerRequestsError": "점주 신청을 로드할 수 없습니다.",
+    "loadShopIntrosError": "가게 소개 초안을 로드할 수 없습니다.",
+    "loadHistoryError": "검토 이력을 로드할 수 없습니다.",
+    "emptyPendingOwnerRequests": "대기 중인 점주 신청이 없습니다.",
+    "emptyPendingShopIntros": "대기 중인 가게 소개가 없습니다.",
+    "emptyOwnerHistory": "아직 점주 신청 이력이 없습니다.",
+    "emptyShopIntroHistory": "아직 가게 소개 검토 이력이 없습니다."
   }
 }
