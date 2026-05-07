@@ -119,6 +119,48 @@ td.center {
 }
 </style>
 
+<!-- ======================== CAP NHAT HIEN TRANG ======================== -->
+
+<h1>CAP NHAT HIEN TRANG CHUC NANG</h1>
+
+<p>Phan phu luc nay bo sung cac thay doi moi cua he thong DiDuDuaDi sau khi hoan thien giao dien Owner/Admin, QR public link, thong ke truy cap va tu dong thuyet minh gan POI.</p>
+
+<h3>1. Cac chuc nang da duoc cap nhat</h3>
+
+<ul>
+<li><span class="bold">Ban do nguoi dung:</span> Ban kinh tim quanh da chuyen sang o chon moc co dinh 50m, 100m, 200m, 500m va tuy chon Tat ca. Toa do hien tai duoc dua xuong phan ghi chu duoi ban do.</li>
+<li><span class="bold">Tu dong thuyet minh gan POI:</span> He thong phat khi user o trong pham vi 35m. Neu user dung giua nhieu POI co khoang cach gan bang nhau, he thong uu tien POI chua nghe trong phien hien tai; neu van bang nhau thi dung thu tu on dinh de tranh doi qua lai lien tuc.</li>
+<li><span class="bold">Audio da ngon ngu:</span> Khi ngon ngu hien tai khong co file audio dung ngon ngu, he thong dung speechText va Web Speech API theo dung ngon ngu dang chon, khong fallback sang audio tieng Viet.</li>
+<li><span class="bold">Dang ky quan an:</span> Trang hop tac voi chu quan su dung tabs Dang ky moi va Lich su & Trang thai. Don bi tu choi co nut Sua lai tu don cu de nap lai thong tin cu vao form.</li>
+<li><span class="bold">Chon toa do GPS:</span> Form dang ky quan va Owner dashboard ho tro chon vi tri truc tiep tren ban do de lay latitude/longitude chinh xac hon.</li>
+<li><span class="bold">Owner dashboard:</span> Giao dien da duoc thiet ke lai theo huong toi gian, co sidebar rieng cho Tong quan, Quan ly thuc don, Thong tin quan, Thong tin tren ban do va QR quan.</li>
+<li><span class="bold">Quan ly thuc don:</span> Danh sach mon an hien theo grid; thao tac them/sua mon duoc dua vao dialog de giao dien gon hon. The mon an bo phan mo ta dai de de quet nhanh.</li>
+<li><span class="bold">QR quan:</span> Owner co the tao link cong khai /poi/{id}?source=qr, sao chep link, mo trang chi tiet va in standee Digital Menu. Luot truy cap tu QR duoc ghi nhan rieng trong thong ke.</li>
+<li><span class="bold">Admin dashboard:</span> Da bo thong ke tour du lich khoi tong quan va thay bang thong ke nguoi dang truy cap trong 5 phut, dong thoi bo sung tong so nguoi da tung truy cap.</li>
+</ul>
+
+<h3>2. Cap nhat so do PlantUML</h3>
+
+<ul>
+<li>Da cap nhat activity_08_user_view_poi_detail.puml theo luong mo chi tiet POI tu ban do hoac QR, tracking source va audio guide.</li>
+<li>Da cap nhat activity_10_auto_play_tts.puml va sequence_20_auto_play_tts.puml theo logic tu dong thuyet minh trong 35m, xu ly POI bang khoang cach va audio dung ngon ngu.</li>
+<li>Da cap nhat activity_11_user_upgrade_request.puml va sequence_21_user_upgrade_request.puml theo giao dien tabs, lich su don va sua lai tu don cu.</li>
+<li>Da cap nhat activity_14_owner_dashboard.puml va sequence_23_owner_update_poi_content.puml theo Owner dashboard moi, menu dialog, map picker va QR standee.</li>
+<li>Da cap nhat activity_15_analytics_tracking.puml va them sequence_25_qr_scan_tracking.puml cho visitor heartbeat, active users, total visitors, poi view, audio play va QR scan.</li>
+<li>Da cap nhat sequence_18_user_discover_poi.puml theo ban kinh co dinh 50/100/200/500/Tat ca va loc/sap xep POI tren frontend.</li>
+</ul>
+
+<h3>3. Danh gia nhanh va de xuat tiep theo</h3>
+
+<ul>
+<li><span class="bold">Can kiem tra sau deploy:</span> API backend phai la ban publish moi nhat, tranh loi deploy thu muc cu khong khop schema hoac file DLL bi hong.</li>
+<li><span class="bold">Bao mat:</span> Ban demo van cho phep mat khau demo dang plain text. Khi len production can chuyen sang BCrypt/Argon2 va migrate password_hash.</li>
+<li><span class="bold">Phan quyen API:</span> Can tiep tuc ra soat cac endpoint tao/sua/xoa POI, menu va noi dung owner de dam bao chi dung role moi thao tac duoc.</li>
+<li><span class="bold">Thong ke realtime:</span> Active users hien dua tren heartbeat trong 5 phut. Neu can realtime hon co the bo sung SignalR hoac WebSocket.</li>
+<li><span class="bold">Hieu nang ban do:</span> Khi so POI tang lon, nen chuyen loc ban kinh sang SQL bounding box/Haversine va index theo toa do thay vi loc nhieu tren frontend.</li>
+<li><span class="bold">Kiem thu:</span> Nen bo sung test cho auto narration tie-breaker, QR source tracking, owner stats va cooperate request history.</li>
+</ul>
+
 <!-- ======================== TRANG BÌA ======================== -->
 <div class="title-page">
 

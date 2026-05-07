@@ -5,46 +5,64 @@ skinparam sequenceFontName "Times New Roman"
 skinparam lifelineStrategy nosolid
 
 actor Owner
-participant "Frontend" as FE
+participant "Frontend\n(OwnerDashboard)" as FE
 participant "OwnerController" as Ctrl
 participant "TranslationService" as Trans
+participant "TextToSpeechService" as TTS
 participant "MySqlOwnerRepository" as Repo
-database "pois, poi_translations" as DB
+database "MySQL\nshops, pois,\npoi_translations,\nmenu_items" as DB
 
 Owner -> FE: Truy cap Owner dashboard
-FE --> Owner: Hien thi form chinh sua POI
-
-Owner -> FE: Dien ten/mo ta VI va EN
-
-FE -> Ctrl: PUT /api/owner/poi-content\n{ category, nameVi, descriptionVi,\n nameEn, descriptionEn }
-note right
-  Authorization: Bearer owner_token
-end note
-
-Ctrl -> Ctrl: Validate token
+FE -> Ctrl: GET /api/owner/dashboard
 Ctrl -> Repo: GetDashboard(username)
-Repo -> DB: SELECT * FROM shops\nWHERE owner_account_id=?
-DB --> Repo: Shop + POI
+Repo -> DB: SELECT shop, poi, translations,\nmenu, stats
+DB --> Repo: Dashboard data
 Repo --> Ctrl: Dashboard
+Ctrl --> FE: 200 OK
+FE --> Owner: Hien thi tong quan, menu,\nprofile, map va QR
 
-Ctrl -> Repo: UpdatePoiContentAsync(username, request)
-Repo -> DB: UPDATE pois SET category=?
+alt Cap nhat thong tin ban do
+  Owner -> FE: Chon vi tri tren map picker
+  FE -> Ctrl: PUT /api/owner/profile\n{ address, latitude, longitude, ... }
+  Ctrl -> Repo: UpdateShopProfile(username, request)
+  Repo -> DB: UPDATE shops, pois
+  DB --> Repo: OK
+  Ctrl --> FE: 200 OK
+else Cap nhat noi dung da ngon ngu
+  Owner -> FE: Sua ten/mo ta VI va EN theo tab
+  FE -> Ctrl: PUT /api/owner/poi-content\n{ nameVi, descVi, nameEn, descEn, category }
+  Ctrl -> Repo: UpdatePoiContentAsync(username, request)
+  Repo -> DB: UPDATE pois + upsert vi/en
 
-loop Voi moi ngon ngu (vi,en,zh,ja,ko,fr,th)
-  alt VI hoac EN
-    Repo -> DB: UPDATE poi_translations\nWHERE language_code=vi/en
-  else ZH, JA, KO, FR, TH
-    Ctrl -> Trans: Translate(nameVi, descVi, targetLang)
-    Trans -> Trans: Goi Google Translate API
-    Trans --> Ctrl: name, desc da dich
-    Ctrl -> Repo: UpsertPoiTranslation(poiId, lang, name, desc)
+  loop ZH, JA, KO, FR, TH
+    Ctrl -> Trans: Translate(VI content, targetLang)
+    Trans --> Ctrl: translated name/description
+    Ctrl -> TTS: Generate audio for translated description
+    TTS --> Ctrl: audioUrl hoac null
+    Ctrl -> Repo: Upsert translation + audioUrl
     Repo -> DB: INSERT/UPDATE poi_translations
   end
+  Ctrl --> FE: 200 OK
+else Quan ly thuc don
+  Owner -> FE: Bam Them/Sua mon
+  FE --> Owner: Mo dialog menu item
+  Owner -> FE: Luu mon hoac doi trang thai hien/het
+  FE -> Ctrl: POST/PUT/DELETE /api/owner/menu-items
+  Ctrl -> Repo: Create/Update/Delete menu item
+  Repo -> DB: INSERT/UPDATE/DELETE menu_items
+  DB --> Repo: OK
+  Ctrl --> FE: 200 OK
+else QR quan
+  Owner -> FE: Xem standee QR Digital Menu
+  FE -> FE: Tao link /poi/{id}?source=qr\nva QR code
+  Owner -> FE: Sao chep link hoac In standee
 end
 
-DB --> Repo: Thanh cong
-Repo --> Ctrl: Thanh cong
+FE -> Ctrl: GET /api/owner/dashboard
+Ctrl -> Repo: GetDashboard(username)
+Repo -> DB: SELECT stats moi nhat
+DB --> Repo: Dashboard data
 Ctrl --> FE: 200 OK
-FE --> Owner: Thong bao thanh cong
+FE --> Owner: Cap nhat giao dien
 
 @enduml

@@ -5,38 +5,48 @@ skinparam activityFontName "Times New Roman"
 
 start
 
-repeat
-  :Ung dung dang chay;
-  
-  :He thong lien tuc theo doi vi tri User
-    qua watchPosition API;
-  
-  :He thong tinh khoang cach den cac POI
-    bang cong thuc Haversine;
+:User bat che do tu thuyet minh
+khi o gan POI;
 
-  if (User trong ban kinh ~35m cua POI?) then (Khong)
-    :Tiep tuc theo doi;
-    -[hidden]->
+repeat
+  :Trinh duyet cap nhat vi tri qua watchPosition;
+  :Frontend tinh khoang cach Haversine
+  den cac POI dang co tren ban do;
+
+  if (Co POI trong pham vi 35m?) then (Khong)
+    :Khong phat am thanh;
   else (Co)
-    if (Tinh nang auto-play duoc bat?) then (Tat)
-      :Khong phat am thanh;
-      :Tiep tuc theo doi;
-      -[hidden]->
-    else (Bat)
-      :He thong xac dinh POI gan nhat;
-      :He thong lay ngon ngu hien tai dang chon;
-      :He thong lay noi dung thuyet minh
-        tu bang poi_translations;
-      :Phat audio qua TTS
-        (Web Speech API / Google Cloud);
-      :Ghi nhan su kien
-        vao bang audio_play_events;
-      -[hidden]->
+    :Lay danh sach ung vien gan trong 35m;
+    :Sap xep theo khoang cach tang dan;
+
+    if (Nhieu POI co khoang cach gan bang nhau?) then (Co)
+      if (Co POI chua tung nghe trong phien nay?) then (Co)
+        :Chon POI chua nghe truoc;
+      else (Khong)
+        :Chon POI dau tien theo thu tu on dinh
+        de tranh doi qua lai lien tuc;
+      endif
+    else (Khong)
+      :Chon POI gan nhat;
+    endif
+
+    if (POI vua chon da duoc phat gan day?) then (Co)
+      :Bo qua de tranh lap audio lien tuc;
+    else (Khong)
+      :Lay ngon ngu hien tai;
+      if (Co audio dung ngon ngu?) then (Co)
+        :Phat file audio dung ngon ngu;
+      else (Khong)
+        :Dung speechText va Web Speech API
+        dung ngon ngu hien tai;
+        :Khong dung audio tieng Viet thay the;
+      endif
+      :Danh dau POI da nghe trong phien;
+      :Ghi nhan su kien audio-play;
     endif
   endif
 repeat while (Ung dung con chay) is (Co)
 
--> No;
 stop
 
 @enduml

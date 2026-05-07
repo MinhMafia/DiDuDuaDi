@@ -5,37 +5,43 @@ skinparam sequenceFontName "Times New Roman"
 skinparam lifelineStrategy nosolid
 
 actor User
-participant "Frontend\n(MapView)" as FE
+participant "Frontend\n(MapPage)" as FE
 participant "Browser\nGeolocation" as GPS
 participant "Redux Store" as Store
-participant "Web Speech API\n/ Google Cloud TTS" as TTS
+participant "HTMLAudioElement\n/Web Speech API" as Audio
 participant "AnalyticsController" as Ctrl
 database "MySQL\naudio_play_events" as DB
 
-User -> FE: Bat ung dung\n(auto-play duoc bat trong Settings)
+User -> FE: Bat "Tu thuyet minh khi o gan POI"
+FE -> GPS: watchPosition()
 
-loop Moi giay
-  FE -> GPS: watchPosition()\ntheo doi vi tri
-  GPS --> FE: Cap nhat vi tri\n{ lat, lng }
-  
-  FE -> Store: Lay danh sach POI\nva ban kinh hien tai
-  Store --> FE: POIs + radius
-  
-  FE -> FE: Tinh khoang cach\nden moi POI (Haversine)
-  
-  alt Khoang cach < 35m
-    FE -> Store: Lay ngon ngu hien tai\n(tieng VI/EN/...)
-    Store --> FE: languageCode
-    
-    FE -> FE: Lay noi dung thuyet minh\n(ten + mo ta) theo ngon ngu
-    
-    FE -> TTS: speechSynthesis.speak()\nhoac Google Cloud TTS
-    TTS -> TTS: Chuyen text thanh audio
-    TTS --> FE: Phat am thanh
-    
+loop Khi vi tri thay doi
+  GPS --> FE: { lat, lng }
+  FE -> Store: Lay languageCode va danh sach POI
+  Store --> FE: languageCode, pois
+  FE -> FE: Tinh khoang cach tung POI
+  FE -> FE: Lay cac POI trong 35m
+
+  alt Khong co POI gan
+    FE --> User: Khong phat audio
+  else Co POI gan
+    FE -> FE: Chon POI gan nhat;\nneu bang nhau uu tien POI chua nghe
+    FE -> FE: Neu van bang nhau dung thu tu on dinh
+    FE -> FE: Bo qua neu POI da phat gan day
+
+    alt Co audioUrl dung languageCode
+      FE -> Audio: play(audioUrl)
+    else Khong co audio dung ngon ngu
+      FE -> Audio: speechSynthesis.speak(speechText, languageCode)
+      note right
+        Khong fallback sang audio tieng Viet
+        khi user dang chon ngon ngu khac.
+      end note
+    end
+
     FE -> Ctrl: POST /api/analytics/audio-play\n{ poiId, languageCode, source }
-    Ctrl -> DB: INSERT INTO\naudio_play_events
-    DB --> Ctrl: Thanh cong
+    Ctrl -> DB: INSERT audio_play_events
+    DB --> Ctrl: OK
     Ctrl --> FE: 200 OK
   end
 end

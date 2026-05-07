@@ -221,6 +221,15 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
             new { username });
     }
 
+    public IReadOnlyList<OwnerUpgradeRequestSummary> GetOwnerUpgradeRequestHistory(string username)
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        return connection.Query<OwnerUpgradeRequestSummary>(
+            BuildOwnerUpgradeRequestSelect("a.username = @username"),
+            new { username }).ToList();
+    }
+
     public IReadOnlyList<OwnerUpgradeRequestSummary> GetOwnerUpgradeRequests(string? status)
     {
         using var connection = connectionFactory.CreateConnection();
@@ -228,6 +237,67 @@ public class MySqlAuthRepository(IDbConnectionFactory connectionFactory) : IAuth
         return connection.Query<OwnerUpgradeRequestSummary>(
             BuildOwnerUpgradeRequestSelect("(@status IS NULL OR our.status = @status)"),
             new { status }).ToList();
+    }
+
+    public OwnerUpgradeRequestSummary? UpdateMyPendingOwnerUpgradeRequest(
+        long requestId,
+        string username,
+        CreateOwnerUpgradeRequest request)
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        var affected = connection.Execute(
+            """
+            UPDATE owner_upgrade_requests our
+            INNER JOIN accounts a ON a.id = our.account_id
+            SET
+                our.shop_name = @ShopName,
+                our.address_line = @AddressLine,
+                our.latitude = @Latitude,
+                our.longitude = @Longitude,
+                our.id_card_image_url = @IdCardImageUrl,
+                our.business_license_image_url = @BusinessLicenseImageUrl,
+                our.note = @Note,
+                our.submitted_at = CURRENT_TIMESTAMP
+            WHERE our.id = @RequestId
+              AND a.username = @Username
+              AND our.status = 'pending';
+            """,
+            new
+            {
+                RequestId = requestId,
+                Username = username,
+                request.ShopName,
+                request.AddressLine,
+                request.Latitude,
+                request.Longitude,
+                request.IdCardImageUrl,
+                request.BusinessLicenseImageUrl,
+                request.Note
+            });
+
+        return affected > 0 ? GetOwnerUpgradeRequestById(connection, requestId) : null;
+    }
+
+    public OwnerUpgradeRequestSummary? CancelMyPendingOwnerUpgradeRequest(long requestId, string username)
+    {
+        using var connection = connectionFactory.CreateConnection();
+
+        var affected = connection.Execute(
+            """
+            UPDATE owner_upgrade_requests our
+            INNER JOIN accounts a ON a.id = our.account_id
+            SET
+                our.status = 'cancelled',
+                our.review_note = 'Người dùng đã hủy đơn trước khi admin duyệt.',
+                our.reviewed_at = CURRENT_TIMESTAMP
+            WHERE our.id = @RequestId
+              AND a.username = @Username
+              AND our.status = 'pending';
+            """,
+            new { RequestId = requestId, Username = username });
+
+        return affected > 0 ? GetOwnerUpgradeRequestById(connection, requestId) : null;
     }
 
     public OwnerUpgradeRequestSummary? ApproveOwnerUpgradeRequest(long requestId, string adminUsername)

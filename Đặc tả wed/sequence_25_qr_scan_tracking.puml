@@ -1,0 +1,35 @@
+@startuml sequence_25_qr_scan_tracking
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor Owner
+actor Visitor
+participant "OwnerDashboard" as OwnerFE
+participant "PoiDetailPage" as PoiFE
+participant "AnalyticsController" as Analytics
+participant "OwnerController" as OwnerCtrl
+database "MySQL\nshop_visit_events" as DB
+
+Owner -> OwnerFE: Mo muc QR quan
+OwnerFE -> OwnerFE: Tao public URL\n/poi/{poiId}?source=qr
+OwnerFE -> OwnerFE: Render QR va standee in duoc
+Owner --> Visitor: Dat standee tai quan
+
+Visitor -> PoiFE: Quet QR bang dien thoai
+PoiFE -> PoiFE: Doc query source=qr
+PoiFE -> Analytics: POST /api/analytics/poi-view\n{ poiId, languageCode, source: "qr" }
+Analytics -> DB: INSERT shop_visit_events\nsource='qr'
+DB --> Analytics: OK
+Analytics --> PoiFE: 200 OK
+PoiFE --> Visitor: Hien thi chi tiet quan va thuc don
+
+Owner -> OwnerFE: Xem dashboard
+OwnerFE -> OwnerCtrl: GET /api/owner/dashboard
+OwnerCtrl -> DB: COUNT shop_visit_events\nWHERE source='qr'
+DB --> OwnerCtrl: totalQrScanCount, qrScanCountToday
+OwnerCtrl --> OwnerFE: Dashboard stats
+OwnerFE --> Owner: Hien thi luot quet QR
+
+@enduml

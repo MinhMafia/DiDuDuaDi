@@ -29,6 +29,13 @@ export default function SpeechGuidePlayer({
   const [audioAccessState, setAudioAccessState] = useState("unknown");
   const speechSessionRef = useRef(0);
   const cloudTtsPlayerRef = useRef(null);
+  const onPlaybackStartRef = useRef(onPlaybackStart);
+  const previousPlaybackKeyRef = useRef(playbackKey);
+  const previousSpeechLanguageRef = useRef(speechLanguage);
+
+  useEffect(() => {
+    onPlaybackStartRef.current = onPlaybackStart;
+  }, [onPlaybackStart]);
 
   useEffect(() => {
     if (!audioUrl) {
@@ -48,7 +55,7 @@ export default function SpeechGuidePlayer({
       onplay: () => {
         setIsPlaying(true);
         setAudioAccessState("ready");
-        onPlaybackStart?.();
+        onPlaybackStartRef.current?.();
       },
       onpause: () => setIsPlaying(false),
       onstop: () => {
@@ -73,7 +80,7 @@ export default function SpeechGuidePlayer({
       player.unload();
       playerRef.current = null;
     };
-  }, [audioUrl, onPlaybackStart, speechText]);
+  }, [audioUrl, speechText]);
 
   useEffect(() => {
     if (!isPlaying || !playerRef.current) return undefined;
@@ -108,9 +115,32 @@ export default function SpeechGuidePlayer({
   }, []);
 
   useEffect(() => {
+    const playbackKeyChanged = previousPlaybackKeyRef.current !== playbackKey;
+    const speechLanguageChanged = previousSpeechLanguageRef.current !== speechLanguage;
+
+    previousPlaybackKeyRef.current = playbackKey;
+    previousSpeechLanguageRef.current = speechLanguage;
+
+    if (!playbackKeyChanged && !speechLanguageChanged) {
+      return;
+    }
+
     stopSpeech();
-    return () => stopSpeech();
+    if (playerRef.current?.playing()) {
+      playerRef.current.stop();
+    }
+    setProgress(0);
   }, [playbackKey, speechLanguage]);
+
+  useEffect(
+    () => () => {
+      stopSpeech();
+      if (playerRef.current?.playing()) {
+        playerRef.current.stop();
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (variant !== "full") return;
@@ -286,7 +316,7 @@ export default function SpeechGuidePlayer({
       utterance.onstart = () => {
         setIsPlaying(true);
         setAudioAccessState("ready");
-        onPlaybackStart?.();
+        onPlaybackStartRef.current?.();
       };
       utterance.onend = () => setIsPlaying(false);
       utterance.onerror = () => {
@@ -312,7 +342,7 @@ export default function SpeechGuidePlayer({
         onPlay: () => {
           setIsPlaying(true);
           setAudioAccessState("ready");
-          onPlaybackStart?.();
+          onPlaybackStartRef.current?.();
         },
         onEnd: () => {
           cloudTtsPlayerRef.current = null;
@@ -332,7 +362,7 @@ export default function SpeechGuidePlayer({
         onPlay: () => {
           setIsPlaying(true);
           setAudioAccessState("ready");
-          onPlaybackStart?.();
+          onPlaybackStartRef.current?.();
         },
         onEnd: () => {
           cloudTtsPlayerRef.current = null;
@@ -354,7 +384,7 @@ export default function SpeechGuidePlayer({
         onPlay: () => {
           setIsPlaying(true);
           setAudioAccessState("ready");
-          onPlaybackStart?.();
+          onPlaybackStartRef.current?.();
         },
         onEnd: () => {
           cloudTtsPlayerRef.current = null;

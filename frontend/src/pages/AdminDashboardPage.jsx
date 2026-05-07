@@ -2,11 +2,9 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
-import { Cell } from "recharts";
-import { CrownOutlined } from "@ant-design/icons";
 import {
-  BarChart,
-  Bar,
+  Area,
+  AreaChart,
   XAxis,
   YAxis,
   Tooltip,
@@ -14,10 +12,17 @@ import {
   CartesianGrid,
 } from "recharts";
 import {
-  UserOutlined,
-  FileTextOutlined,
+  BarChartOutlined,
+  CompassOutlined,
+  DashboardOutlined,
+  DownloadOutlined,
   EnvironmentOutlined,
+  FileDoneOutlined,
+  FileTextOutlined,
+  ReloadOutlined,
+  ShopOutlined,
   TeamOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import { Card } from "antd";
 import {
@@ -53,7 +58,6 @@ import {
 
 import {
   getTopShops,
-  getTopPois,
   getActiveVisitorsCount,
   getTotalVisitorsCount,
   getPois,
@@ -96,6 +100,7 @@ export default function AdminDashboardPage() {
 
   const [activeSection, setActiveSection] = useState("overview");
   const [feedback, setFeedback] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // POI Detail modal state
   const [poiDetailVisible, setPoiDetailVisible] = useState(false);
@@ -171,19 +176,6 @@ export default function AdminDashboardPage() {
       if (Array.isArray(res?.data)) return res.data;
       if (Array.isArray(res?.data?.items)) return res.data.items;
       return [];
-    },
-  });
-
-  const topPoisQuery = useQuery({
-    queryKey: ["topPois", statsPeriod, statsMetric],
-    queryFn: () => getTopPois(parseInt(statsPeriod), 10, statsMetric),
-    enabled: !!(statsPeriod && statsMetric),
-    select: (res) => {
-      return Array.isArray(res?.data)
-        ? res.data
-        : Array.isArray(res?.data?.items)
-          ? res.data.items
-          : [];
     },
   });
 
@@ -330,28 +322,38 @@ export default function AdminDashboardPage() {
   const totalTours = foodToursQuery.data?.length ?? 0;
   const activeVisitorsCount = activeVisitorsQuery.data ?? 0;
   const totalVisitorsCount = totalVisitorsQuery.data ?? 0;
-const overviewChartData = [
-  {
-    name: "Owner",
-    value: pendingOwnerCount,
-  },
-  {
-    name: "Intro",
-    value: pendingIntroCount,
-  },
-  {
-    name: "POI",
-    value: totalPois,
-  },
-  {
-    name: "Live",
-    value: activeVisitorsCount,
-  },
-  {
-    name: "Total",
-    value: totalVisitorsCount,
-  },
-];
+  const overviewChartData = [
+    {
+      name: "Owner",
+      value: pendingOwnerCount,
+    },
+    {
+      name: "Intro",
+      value: pendingIntroCount,
+    },
+    {
+      name: "POI",
+      value: totalPois,
+    },
+    {
+      name: "Live",
+      value: activeVisitorsCount,
+    },
+    {
+      name: "Total",
+      value: totalVisitorsCount,
+    },
+  ];
+
+  const ADMIN_SECTION_ICONS = {
+    overview: <DashboardOutlined />,
+    ownerRequests: <ShopOutlined />,
+    shopIntros: <FileDoneOutlined />,
+    statistics: <BarChartOutlined />,
+    managePois: <EnvironmentOutlined />,
+    foodTours: <CompassOutlined />,
+  };
+
   // ================= SECTIONS =================
   const sections = [
     {
@@ -411,9 +413,6 @@ const overviewChartData = [
       badge: `${totalTours} tour`,
     },
   ];
-
-  const activeSectionMeta =
-    sections.find((section) => section.id === activeSection) ?? sections[0];
 
   // ================= HANDLERS =================
   function handlePoiSubmit() {
@@ -487,6 +486,102 @@ const overviewChartData = [
     setEditTourModalVisible(true);
   }
 
+  async function handleRefreshDashboard() {
+    setIsRefreshing(true);
+
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["owner-upgrade-requests"] }),
+        queryClient.invalidateQueries({ queryKey: ["shop-intro-reviews"] }),
+        queryClient.invalidateQueries({ queryKey: ["topShops"] }),
+        queryClient.invalidateQueries({ queryKey: ["pois"] }),
+        queryClient.invalidateQueries({ queryKey: ["foodTours"] }),
+        queryClient.invalidateQueries({ queryKey: ["activeVisitors"] }),
+        queryClient.invalidateQueries({ queryKey: ["totalVisitors"] }),
+      ]);
+      message.success("Đã làm mới dữ liệu admin");
+    } catch {
+      message.error("Không thể làm mới dữ liệu. Vui lòng thử lại.");
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
+  function handleExportStatistics() {
+    const rows = topShopsQuery.data ?? [];
+
+    if (rows.length === 0) {
+      message.warning("Chưa có dữ liệu thống kê để xuất.");
+      return;
+    }
+
+    const metricLabel = statsMetric === "audio" ? "Audio" : "Lượt xem";
+    const generatedAt = new Date();
+    const tableRows = rows
+      .map(
+        (item, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${escapeExcelCell(resolveActivityName(item))}</td>
+            <td>${escapeExcelCell(item.slug || "-")}</td>
+            <td>${escapeExcelCell(item.latitude ?? item.lat ?? "-")}</td>
+            <td>${escapeExcelCell(item.longitude ?? item.lng ?? "-")}</td>
+            <td>${escapeExcelCell(metricLabel)}</td>
+            <td>${escapeExcelCell(item.count ?? 0)}</td>
+          </tr>
+        `,
+      )
+      .join("");
+
+    const workbookHtml = `
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <style>
+            table { border-collapse: collapse; font-family: Arial, sans-serif; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; }
+            th { background: #dbeafe; font-weight: 700; }
+            .title { background: #2563eb; color: #ffffff; font-size: 18px; }
+          </style>
+        </head>
+        <body>
+          <table>
+            <tr>
+              <th class="title" colspan="7">Báo cáo thống kê top quán</th>
+            </tr>
+            <tr>
+              <td colspan="7">Khoảng thời gian: ${escapeExcelCell(statsPeriod)} ngày</td>
+            </tr>
+            <tr>
+              <td colspan="7">Chỉ số: ${escapeExcelCell(metricLabel)}</td>
+            </tr>
+            <tr>
+              <td colspan="7">Ngày xuất: ${escapeExcelCell(generatedAt.toLocaleString("vi-VN"))}</td>
+            </tr>
+            <tr>
+              <th>STT</th>
+              <th>Tên quán</th>
+              <th>Slug</th>
+              <th>Vĩ độ</th>
+              <th>Kinh độ</th>
+              <th>Chỉ số</th>
+              <th>Số lượt</th>
+            </tr>
+            ${tableRows}
+          </table>
+        </body>
+      </html>
+    `;
+
+    downloadTextFile(
+      workbookHtml,
+      `thong-ke-top-quan-${statsPeriod}-ngay-${statsMetric}-${formatFileDate(generatedAt)}.xls`,
+      "application/vnd.ms-excel;charset=utf-8",
+    );
+    message.success("Đã xuất file Excel thống kê.");
+  }
+
   function handleTourSubmit() {
     setFeedback("");
 
@@ -543,92 +638,162 @@ const overviewChartData = [
   }
 
   // ================= RENDER PANELS =================
+  function renderActivityCard() {
+    const metricLabel = statsMetric === "audio" ? "Audio" : "Lượt xem";
+    const topShopRows = topShopsQuery.data ?? [];
+    const chartRows = topShopRows.length
+      ? topShopRows.slice(0, 6).map((item) => ({
+          name: item.name || item.slug || "Quán",
+          value: item.count ?? 0,
+        }))
+      : overviewChartData;
+
+    return (
+      <Card className="admin-activity-card">
+        <div className="admin-activity-head">
+          <div>
+            <p className="admin-section-kicker">Hoạt động</p>
+            <h3>Hoạt động {statsPeriod} ngày</h3>
+            <p>Theo dõi {metricLabel.toLowerCase()} nổi bật của các quán.</p>
+          </div>
+          <div className="admin-activity-filters">
+            <div className="admin-filter-group" aria-label="Khoảng thời gian">
+              {["7", "30"].map((period) => (
+                <button
+                  key={period}
+                  type="button"
+                  className={statsPeriod === period ? "active" : ""}
+                  onClick={() => setStatsPeriod(period)}
+                >
+                  {period} ngày
+                </button>
+              ))}
+            </div>
+            <div className="admin-filter-group" aria-label="Chỉ số">
+              {[
+                ["visits", "Lượt xem"],
+                ["audio", "Audio"],
+              ].map(([metric, label]) => (
+                <button
+                  key={metric}
+                  type="button"
+                  className={statsMetric === metric ? "active" : ""}
+                  onClick={() => setStatsMetric(metric)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="admin-activity-layout">
+          <div className="admin-activity-chart">
+            <ResponsiveContainer width="100%" height={330}>
+              <AreaChart data={chartRows} margin={{ top: 18, right: 18, left: 0, bottom: 8 }}>
+                <defs>
+                  <linearGradient id="adminActivityArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2563EB" stopOpacity={0.32} />
+                    <stop offset="56%" stopColor="#10B981" stopOpacity={0.16} />
+                    <stop offset="100%" stopColor="#10B981" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" tickLine={false} axisLine={false} />
+                <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                <Tooltip cursor={{ stroke: "#2563EB", strokeWidth: 1.5 }} />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#2563EB"
+                  strokeWidth={3}
+                  fill="url(#adminActivityArea)"
+                  activeDot={{ r: 5, stroke: "#10B981", strokeWidth: 3, fill: "#ffffff" }}
+                  dot={{ r: 3, stroke: "#2563EB", strokeWidth: 2, fill: "#ffffff" }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="admin-top-lists">
+            <TopActivityList
+              emptyText="Chưa có dữ liệu top quán."
+              isLoading={topShopsQuery.isLoading}
+              items={topShopRows}
+              subtitle="Gộp lượt theo từng quán"
+              title="Top quán"
+            />
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
   function renderOverviewPanel() {
     return (
-     <div className="admin-overview-grid">
-  <Card className="stat-card stat-purple">
-    <div className="stat-content">
-      <div className="stat-icon">
-        <UserOutlined />
-      </div>
-      <div>
-        <h2>{pendingOwnerCount}</h2>
-        <p>Yêu cầu chủ quán đang chờ</p>
-      </div>
-    </div>
-  </Card>
+      <div className="admin-overview-grid">
+        <Card className="stat-card stat-owner">
+          <div className="stat-card-body">
+            <div className="stat-card-top">
+              <div className="stat-icon">
+                <UserOutlined />
+              </div>
+              <h2>{pendingOwnerCount}</h2>
+            </div>
+            <p>Yêu cầu chủ quán đang chờ</p>
+          </div>
+        </Card>
 
-  <Card className="stat-card stat-orange">
-    <div className="stat-content">
-      <div className="stat-icon">
-        <FileTextOutlined />
-      </div>
-      <div>
-        <h2>{pendingIntroCount}</h2>
-        <p>Nội dung quán đang chờ duyệt</p>
-      </div>
-    </div>
-  </Card>
+        <Card className="stat-card stat-review">
+          <div className="stat-card-body">
+            <div className="stat-card-top">
+              <div className="stat-icon">
+                <FileTextOutlined />
+              </div>
+              <h2>{pendingIntroCount}</h2>
+            </div>
+            <p>Nội dung quán đang chờ duyệt</p>
+          </div>
+        </Card>
 
-  <Card className="stat-card stat-blue">
-    <div className="stat-content">
-      <div className="stat-icon">
-        <EnvironmentOutlined />
-      </div>
-      <div>
-        <h2>{totalPois}</h2>
-        <p>Tổng số POI trên bản đồ</p>
-      </div>
-    </div>
-  </Card>
+        <Card className="stat-card stat-poi">
+          <div className="stat-card-body">
+            <div className="stat-card-top">
+              <div className="stat-icon">
+                <EnvironmentOutlined />
+              </div>
+              <h2>{totalPois}</h2>
+            </div>
+            <p>Tổng số POI trên bản đồ</p>
+          </div>
+        </Card>
 
-  <Card className="stat-card stat-green">
-    <div className="stat-content">
-      <div className="stat-icon">
-        <TeamOutlined />
-      </div>
-      <div>
-        <h2>{activeVisitorsCount}</h2>
-        <p>Đang truy cập trong 5 phút</p>
-      </div>
-    </div>
-  </Card>
+        <Card className="stat-card stat-live">
+          <div className="stat-card-body">
+            <div className="stat-card-top">
+              <div className="stat-icon">
+                <TeamOutlined />
+              </div>
+              <h2>{activeVisitorsCount}</h2>
+            </div>
+            <p>Đang truy cập trong 5 phút</p>
+          </div>
+        </Card>
 
-  <Card className="stat-card stat-green">
-    <div className="stat-content">
-      <div className="stat-icon">
-        <TeamOutlined />
-      </div>
-      <div>
-        <h2>{totalVisitorsCount}</h2>
-        <p>Tổng người đã từng truy cập</p>
-      </div>
-    </div>
-  </Card>
-   {/* CHART */}
-   <Card className="admin-chart" style={{ marginTop: 24 }}>
-        <h3 className="admin-chart-title" style={{ marginBottom: 200 }}>Thống kê tổng quan</h3>
+        <Card className="stat-card stat-total">
+          <div className="stat-card-body">
+            <div className="stat-card-top">
+              <div className="stat-icon">
+                <TeamOutlined />
+              </div>
+              <h2>{totalVisitorsCount}</h2>
+            </div>
+            <p>Tổng người đã từng truy cập</p>
+          </div>
+        </Card>
 
-        <ResponsiveContainer width="100%" height={300}>
-  <BarChart data={overviewChartData}>
-    <CartesianGrid strokeDasharray="3 3" />
-    <XAxis dataKey="name" />
-    <YAxis />
-    <Tooltip cursor={{ fill: "rgba(0,0,0,0.05)" }} />
-
-    <Bar dataKey="value" radius={[8, 8, 0, 0]}>
-      {overviewChartData.map((entry, index) => (
-        <Cell
-          key={`cell-${index}`}
-          fill={COLORS[index % COLORS.length]}
-        />
-      ))}
-    </Bar>
-  </BarChart>
-</ResponsiveContainer>
-      </Card>
-      
-</div>
+        {renderActivityCard()}
+      </div>
     );
   }
 
@@ -844,131 +1009,97 @@ const overviewChartData = [
   }
 
   function renderStatisticsPanel() {
+    const topShopRows = topShopsQuery.data ?? [];
+
     return (
-      <div className="admin-panel">
+      <div className="admin-panel admin-report-panel">
         <div className="admin-panel-header">
           <div>
-            <p className="admin-section-kicker">
-              {t("admin.sections.statisticsKicker")}
-            </p>
-            <h2>{t("admin.sections.statistics")}</h2>
-            <p>{t("admin.sections.statisticsDescription")}</p>
+            <p className="admin-section-kicker">Báo cáo</p>
+            <h2>Xuất thống kê Excel</h2>
+            <p>Xuất danh sách top quán theo khoảng thời gian và chỉ số đã chọn.</p>
           </div>
+          <Button
+            type="primary"
+            icon={<DownloadOutlined />}
+            loading={topShopsQuery.isFetching}
+            onClick={handleExportStatistics}
+          >
+            Xuất Excel
+          </Button>
         </div>
 
-        <div className="admin-filters">
-          <Text strong>Khoảng thời gian:</Text>
-          {["7", "30", "90"].map((p) => (
-            <Button
-              key={p}
-              type={statsPeriod === p ? "primary" : "default"}
-              onClick={() => setStatsPeriod(p)}
-            >
-              {p} ngày
-            </Button>
-          ))}
-          <Text strong>Chỉ số:</Text>
-          {["visits", "audio"].map((m) => (
-            <Button
-              key={m}
-              type={statsMetric === m ? "primary" : "default"}
-              onClick={() => setStatsMetric(m)}
-            >
-              {m}
-            </Button>
-          ))}
-        </div>
+        <Card className="admin-report-card">
+          <div className="admin-report-toolbar">
+            <div>
+              <h3>Dữ liệu xuất báo cáo</h3>
+              <p>
+                {statsMetric === "audio" ? "Audio" : "Lượt xem"} trong{" "}
+                {statsPeriod} ngày gần nhất.
+              </p>
+            </div>
+            <div className="admin-activity-filters">
+              <div className="admin-filter-group" aria-label="Khoảng thời gian">
+                {["7", "30"].map((period) => (
+                  <button
+                    key={period}
+                    type="button"
+                    className={statsPeriod === period ? "active" : ""}
+                    onClick={() => setStatsPeriod(period)}
+                  >
+                    {period} ngày
+                  </button>
+                ))}
+              </div>
+              <div className="admin-filter-group" aria-label="Chỉ số">
+                {[
+                  ["visits", "Lượt xem"],
+                  ["audio", "Audio"],
+                ].map(([metric, label]) => (
+                  <button
+                    key={metric}
+                    type="button"
+                    className={statsMetric === metric ? "active" : ""}
+                    onClick={() => setStatsMetric(metric)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
-        <div className="admin-stats-grid">
-          <div className="admin-stats-table">
-            <h3>Top quán</h3>
-            {topShopsQuery.isLoading ? (
-              <Loading />
-            ) : topShopsQuery.data?.length === 0 ? (
-              <Empty />
-            ) : (
-              <Table
-                rowKey="slug"
-                columns={[
-                  {
-                    title: "Quán",
-                    dataIndex: "name",
-                    render: (text) => <strong>{text}</strong>,
-                  },
-                  { title: "Slug", dataIndex: "slug" },
-                  {
-                    title: "Vị trí",
-                    render: (_, record) => {
-                      const lat = Number(record?.lat);
-                      const lng = Number(record?.lng);
-                      if (isNaN(lat) || isNaN(lng)) return "N/A";
-                      return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                    },
-                  },
-                  {
-                    title: "Lượt",
-                    dataIndex: "count",
-                    sorter: (a, b) => a.count - b.count,
-                  },
-                ]}
-                dataSource={topShopsQuery.data}
-                pagination={false}
-                size="small"
-              />
-            )}
-          </div>
-          <div className="admin-stats-table">
-            <h3>Top POI</h3>
-            {topPoisQuery.isLoading ? (
-              <Loading />
-            ) : topPoisQuery.data?.length === 0 ? (
-              <Empty />
-            ) : (
-              <Table
-                rowKey={(record) => record.id || record.Id}
-                columns={[
-                  {
-                    title: "Tên địa điểm",
-                    render: (_, record) => (
-                      <strong>
-                        {record.name || record.Name || record.shopName || "N/A"}
-                      </strong>
-                    ),
-                  },
-                  {
-                    title: "ID",
-                    render: (_, record) => (
-                      <Tag>{(record.id || record.Id || "").slice(-8)}</Tag>
-                    ),
-                  },
-                  {
-                    title: "Vị trí",
-                    render: (_, record) => {
-                      const lat = record.lat ?? record.location?.lat;
-                      const lng = record.lng ?? record.location?.lng;
-                      return lat
-                        ? `${Number(lat).toFixed(3)}, ${Number(lng).toFixed(3)}`
-                        : "N/A";
-                    },
-                  },
-                  {
-                    title: "Lượt tương tác",
-                    dataIndex: "count",
-                    sorter: (a, b) => a.count - b.count,
-                    render: (count) => (
-                      <Tag color="orange" style={{ fontWeight: "bold" }}>
-                        {count} lượt
-                      </Tag>
-                    ),
-                  },
-                ]}
-                dataSource={topPoisQuery.data}
-                pagination={false}
-                size="small"
-              />
-            )}
-          </div>
-        </div>
+          <Table
+            rowKey={(record, index) => record.slug || `${record.name}-${index}`}
+            loading={topShopsQuery.isLoading}
+            dataSource={topShopRows}
+            pagination={false}
+            size="middle"
+            columns={[
+              {
+                title: "STT",
+                width: 70,
+                render: (_, __, index) => index + 1,
+              },
+              {
+                title: "Tên quán",
+                dataIndex: "name",
+                render: (text) => <strong>{text || "N/A"}</strong>,
+              },
+              {
+                title: "Slug",
+                dataIndex: "slug",
+                render: (text) => text || "-",
+              },
+              {
+                title: statsMetric === "audio" ? "Số lượt audio" : "Số lượt xem",
+                dataIndex: "count",
+                align: "right",
+                render: (count) => <Tag color="blue">{count ?? 0}</Tag>,
+              },
+            ]}
+          />
+        </Card>
       </div>
     );
   }
@@ -1191,43 +1322,37 @@ const overviewChartData = [
   // ================= MAIN RENDER =================
   return (
     <section className="admin-page">
-     
-<header className="admin-hero">
-  <div className="admin-hero-copy">
-    <div className="admin-hero-top">
-      <div className="admin-hero-icon">
-        <CrownOutlined />
-      </div>
+      <header className="admin-topbar">
+        <div>
+          <p className="admin-kicker">
+            {t("admin.badge") || "Quản trị hệ thống"}
+          </p>
+          <h1>Bảng điều khiển admin</h1>
+          <p>Quản lý yêu cầu, nội dung, POI, tour và số liệu hoạt động.</p>
+        </div>
 
-      <p className="admin-kicker">
-        {t("admin.badge") || "Quản trị hệ thống"}
-      </p>
-    </div>
-
-    <h1>{t("admin.title")}</h1>
-    <p>{t("admin.subtitle")}</p>
-
-    <Tag className="admin-user-tag">
-      {currentUser?.displayName}
-    </Tag>
-  </div>
-</header>
+        <div className="admin-topbar-actions">
+          <Tag className="admin-user-tag">
+            {currentUser?.displayName ||
+              currentUser?.username ||
+              currentUser?.email ||
+              "Admin"}
+          </Tag>
+          <Button
+            icon={<ReloadOutlined />}
+            loading={isRefreshing}
+            onClick={handleRefreshDashboard}
+          >
+            Làm mới
+          </Button>
+        </div>
+      </header>
 
       {feedback ? <div className="admin-feedback">{feedback}</div> : null}
 
       <div className="admin-shell">
         <aside className="admin-nav">
-          <article className="admin-card admin-nav-card">
-            <div className="admin-card-head">
-              <div>
-                <p className="admin-section-kicker">
-                  {t("admin.badge") || "Quản trị"}
-                </p>
-                <h2>{activeSectionMeta.label}</h2>
-                <p>{activeSectionMeta.description}</p>
-              </div>
-            </div>
-
+          <nav className="admin-nav-card" aria-label="Chức năng admin">
             <div className="admin-nav-list">
               {sections.map((section) => (
                 <button
@@ -1238,16 +1363,17 @@ const overviewChartData = [
                   }`}
                   onClick={() => setActiveSection(section.id)}
                 >
+                  <span className="admin-nav-icon">
+                    {ADMIN_SECTION_ICONS[section.id]}
+                  </span>
                   <div className="admin-nav-button-copy">
-                    <span>{section.kicker}</span>
                     <strong>{section.label}</strong>
-                    <small>{section.description}</small>
                   </div>
                   <span className="admin-nav-badge">{section.badge}</span>
                 </button>
               ))}
             </div>
-          </article>
+          </nav>
         </aside>
 
         <div className="admin-stage">{renderActivePanel()}</div>
@@ -1679,6 +1805,86 @@ const overviewChartData = [
       </Modal>
     </section>
   );
+}
+
+function TopActivityList({ emptyText, isLoading, items, subtitle, title }) {
+  const rows = (items ?? []).slice(0, 5);
+
+  return (
+    <div className="admin-top-list">
+      <div className="admin-top-list-head">
+        <h4>{title}</h4>
+        {subtitle ? <p>{subtitle}</p> : null}
+      </div>
+      {isLoading ? (
+        <Loading />
+      ) : rows.length === 0 ? (
+        <Empty description={emptyText} image={Empty.PRESENTED_IMAGE_SIMPLE} />
+      ) : (
+        <div className="admin-top-list-rows">
+          {rows.map((item, index) => (
+            <div
+              className="admin-top-list-row"
+              key={
+                item.id ||
+                item.Id ||
+                item.slug ||
+                item.shopId ||
+                `${title}-${index}`
+              }
+            >
+              <span>{index + 1}</span>
+              <strong>{resolveActivityName(item)}</strong>
+              <em>{item.count ?? item.views ?? item.audioCount ?? 0}</em>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function resolveActivityName(item) {
+  const name =
+    item?.name || item?.Name || item?.shopName || item?.displayName || item?.slug;
+
+  if (typeof name === "object" && name !== null) {
+    return name.vi || name.en || "N/A";
+  }
+
+  return name || "N/A";
+}
+
+function escapeExcelCell(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function formatFileDate(date) {
+  const pad = (value) => String(value).padStart(2, "0");
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+    pad(date.getHours()),
+    pad(date.getMinutes()),
+  ].join("");
+}
+
+function downloadTextFile(content, fileName, mimeType) {
+  const blob = new Blob(["\ufeff", content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 function formatCoordinate(value) {

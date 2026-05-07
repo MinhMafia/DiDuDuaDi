@@ -247,7 +247,7 @@ CREATE TABLE IF NOT EXISTS owner_upgrade_requests (
     id_card_image_url VARCHAR(500) NULL,
     business_license_image_url VARCHAR(500) NULL,
     note VARCHAR(500) NULL,
-    status ENUM('pending', 'payment_pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
+    status ENUM('pending', 'payment_pending', 'approved', 'rejected', 'cancelled') NOT NULL DEFAULT 'pending',
     submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     reviewed_by_account_id CHAR(36) NULL,
     reviewed_at DATETIME NULL,

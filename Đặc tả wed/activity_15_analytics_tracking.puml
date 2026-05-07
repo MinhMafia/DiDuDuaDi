@@ -5,22 +5,31 @@ skinparam activityFontName "Times New Roman"
 
 start
 
-if (User xem chi tiet POI?) then (Co)
-  :Frontend goi POST /analytics/poi-view
-    voi poiId, languageCode, source;
-  :He thong ghi nhan vao bang
-    shop_visit_events;
-  :Cap nhat thong ke cho Owner;
-elseif (User nghe thuyet minh?) then (Co)
-  :Frontend goi POST /analytics/audio-play
-    voi poiId, languageCode, source;
-  :He thong ghi nhan vao bang
-    audio_play_events;
-  :Cap nhat thong ke cho Owner;
+if (Nguoi dung mo app/trang ban do?) then (Co)
+  :Frontend gui heartbeat dinh ky
+  voi sessionId, path, role;
+  :Backend ghi visitor_activity_events;
+  :Admin dashboard tinh:
+  - Dang truy cap trong 5 phut
+  - Tong nguoi da tung truy cap;
+elseif (Nguoi dung xem chi tiet POI?) then (Co)
+  if (URL co source=qr?) then (Co)
+    :source = qr;
+  else (Khong)
+    :source = map/public-detail/demo-map;
+  endif
+  :Frontend POST /analytics/poi-view
+  voi poiId, languageCode, source;
+  :Backend ghi shop_visit_events;
+  :Owner dashboard tinh luot xem va luot quet QR;
+elseif (Nguoi dung nghe thuyet minh?) then (Co)
+  :Frontend POST /analytics/audio-play
+  voi poiId, languageCode, source;
+  :Backend ghi audio_play_events;
+  :Owner dashboard tinh luot phat audio;
 endif
 
-:Du lieu tong hop hien thi
-  tren Owner dashboard;
+:Admin va Owner dashboard nap lai so lieu tong hop;
 
 stop
 

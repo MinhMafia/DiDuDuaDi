@@ -5,6 +5,7 @@ skinparam sequenceFontName "Times New Roman"
 skinparam lifelineStrategy nosolid
 
 actor Admin
+actor Owner
 participant "Frontend" as FE
 participant "AdminController" as Ctrl
 participant "MySqlAdminRepository" as Repo

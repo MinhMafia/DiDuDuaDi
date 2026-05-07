@@ -5,31 +5,52 @@ skinparam activityFontName "Times New Roman"
 
 start
 
-:User chon POI tu ban do hoac danh sach;
+:User mo chi tiet POI tu ban do,
+danh sach gan ban hoac link QR cong khai;
 
-:He thong truy van GetById lay thong tin POI;
-
-:Hien thi thong tin chi tiet POI:
-- Hinh anh
-- Ten shop, dia chi
-- Gio mo cua, so dien thoai
-- Phan gioi thieu da duyet
-- Danh sach mon an va gia ca;
-
-:User chon ngon ngu thuyet minh
-(VI, EN, ZH, JA, KO, FR, TH);
-
-:He thong lay noi dung theo ngon ngu tu bang poi_translations;
-
-if (User muon nghe thuyet minh?) then (Co)
-  :He thong phat audio qua Web Speech API hoac Google Cloud TTS;
+if (URL co source=qr?) then (Co)
+  :Danh dau nguon truy cap la QR;
 else (Khong)
-  :Hien thi van ban thuyet minh;
+  :Danh dau nguon la map hoac public-detail;
 endif
 
-:User co the xem hinh anh va thuc don;
+:Frontend goi API lay chi tiet POI;
 
-:User co the chon tim duong;
+:He thong truy van POI, ban dich,
+thong tin shop va thuc don dang hien;
+
+:Hien thi trang chi tiet:
+- Anh dai dien
+- Ten quan, dia chi, toa do
+- Mo ta theo ngon ngu dang chon
+- Thuc don dang hien
+- Audio guide
+- Link/QR chia se;
+
+:Ghi nhan su kien xem POI vao analytics
+voi poiId, languageCode, source;
+
+:User chon ngon ngu;
+
+:He thong lay noi dung theo ngon ngu tu ban dich;
+
+if (User nghe thuyet minh?) then (Co)
+  if (Co audio dung ngon ngu dang chon?) then (Co)
+    :Phat file audio dung ngon ngu;
+  else (Khong)
+    :Dung speechText va Web Speech API
+    theo dung ngon ngu dang chon;
+    :Khong fallback sang audio tieng Viet;
+  endif
+  :Cho phep Play/Pause, tua, lui 5s
+  neu dang phat file audio;
+  :Ghi nhan audio_play_events;
+else (Khong)
+  :Chi hien thi van ban thuyet minh;
+endif
+
+:User co the mo ban do/tim duong
+hoac quay lai danh sach;
 
 stop
 

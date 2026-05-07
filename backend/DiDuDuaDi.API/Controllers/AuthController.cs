@@ -115,7 +115,7 @@ public class AuthController(IAuthRepository authRepository, ITokenService tokenS
     }
 
     [HttpGet("my-owner-upgrade-request")]
-    [Authorize(Roles = "user")]
+    [Authorize(Roles = "user,owner")]
     public ActionResult<ApiResponse<OwnerUpgradeRequestSummary?>> GetMyOwnerUpgradeRequest()
     {
         var username = User.FindFirstValue(ClaimTypes.Name);
@@ -126,6 +126,77 @@ public class AuthController(IAuthRepository authRepository, ITokenService tokenS
 
         var request = authRepository.GetLatestOwnerUpgradeRequest(username);
         return Ok(new ApiResponse<OwnerUpgradeRequestSummary?>(request, true));
+    }
+
+    [HttpGet("my-owner-upgrade-requests")]
+    [Authorize(Roles = "user,owner")]
+    public ActionResult<ApiResponse<IReadOnlyList<OwnerUpgradeRequestSummary>>> GetMyOwnerUpgradeRequestHistory()
+    {
+        var username = User.FindFirstValue(ClaimTypes.Name);
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return BadRequest(new ApiResponse<IReadOnlyList<OwnerUpgradeRequestSummary>>(Array.Empty<OwnerUpgradeRequestSummary>(), false, "Username is required"));
+        }
+
+        var requests = authRepository.GetOwnerUpgradeRequestHistory(username);
+        return Ok(new ApiResponse<IReadOnlyList<OwnerUpgradeRequestSummary>>(requests, true));
+    }
+
+    [HttpPut("my-owner-upgrade-requests/{requestId:long}")]
+    [Authorize(Roles = "user")]
+    public ActionResult<ApiResponse<OwnerUpgradeRequestSummary>> UpdateMyOwnerUpgradeRequest(
+        long requestId,
+        [FromBody] CreateOwnerUpgradeRequest request)
+    {
+        var username = User.FindFirstValue(ClaimTypes.Name);
+
+        if (string.IsNullOrWhiteSpace(username)
+            || string.IsNullOrWhiteSpace(request.ShopName)
+            || string.IsNullOrWhiteSpace(request.AddressLine))
+        {
+            return BadRequest(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Username, shop name and address are required"));
+        }
+
+        if (!request.Latitude.HasValue || request.Latitude < -90 || request.Latitude > 90)
+        {
+            return BadRequest(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Latitude must be between -90 and 90"));
+        }
+
+        if (!request.Longitude.HasValue || request.Longitude < -180 || request.Longitude > 180)
+        {
+            return BadRequest(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Longitude must be between -180 and 180"));
+        }
+
+        var updated = authRepository.UpdateMyPendingOwnerUpgradeRequest(
+            requestId,
+            username,
+            request with { Username = username });
+
+        if (updated is null)
+        {
+            return NotFound(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Request not found or no longer editable"));
+        }
+
+        return Ok(new ApiResponse<OwnerUpgradeRequestSummary>(updated, true, "Owner upgrade request updated"));
+    }
+
+    [HttpPost("my-owner-upgrade-requests/{requestId:long}/cancel")]
+    [Authorize(Roles = "user")]
+    public ActionResult<ApiResponse<OwnerUpgradeRequestSummary>> CancelMyOwnerUpgradeRequest(long requestId)
+    {
+        var username = User.FindFirstValue(ClaimTypes.Name);
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return BadRequest(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Username is required"));
+        }
+
+        var canceled = authRepository.CancelMyPendingOwnerUpgradeRequest(requestId, username);
+        if (canceled is null)
+        {
+            return NotFound(new ApiResponse<OwnerUpgradeRequestSummary>(null!, false, "Request not found or no longer cancelable"));
+        }
+
+        return Ok(new ApiResponse<OwnerUpgradeRequestSummary>(canceled, true, "Owner upgrade request canceled"));
     }
 
     [HttpPost("owner-upgrade-requests/{requestId:long}/approve")]

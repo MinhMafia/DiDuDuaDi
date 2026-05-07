@@ -36,6 +36,7 @@ const DEFAULT_RADIUS = 500;
 const RADIUS_OPTIONS = [50, 100, 200, 500];
 const ALL_RADIUS_OPTION = "all";
 const AUTO_NARRATE_NEARBY_DISTANCE_METERS = 35;
+const NEAREST_POI_TIE_EPSILON_METERS = 1;
 const DEFAULT_MAP_ZOOM = 16;
 const SEARCH_FOCUS_ZOOM = 18;
 
@@ -48,6 +49,7 @@ export default function MapPage() {
   const autoNarrateOnTouch = useSelector((state) => state.app.autoNarrateOnTouch);
   const searchContainerRef = useRef(null);
   const autoFocusedPoiRef = useRef("");
+  const heardPoiIdsRef = useRef(new Set());
   const trackedAudioRef = useRef("");
   const trackedPoiViewRef = useRef("");
   const [radius, setRadius] = useState(String(DEFAULT_RADIUS));
@@ -55,6 +57,7 @@ export default function MapPage() {
   const [selectedPoi, setSelectedPoi] = useState(null);
   const [isPoiDetailOpen, setIsPoiDetailOpen] = useState(false);
   const [selectedPoiPlaybackKey, setSelectedPoiPlaybackKey] = useState("");
+  const [pendingNarrationRequest, setPendingNarrationRequest] = useState(null);
   const [selectedTourId, setSelectedTourId] = useState("");
   const [poiSearchTerm, setPoiSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -67,7 +70,15 @@ export default function MapPage() {
   const [networkSnapshot, setNetworkSnapshot] = useState(() => getNetworkSnapshot());
   const [viewCenter, setViewCenter] = useState(null);
   const [translatedPoiContent, setTranslatedPoiContent] = useState({});
-  const { error: geoError, isLoading: geoLoading, location } = useGeolocation();
+  const {
+    error: geoError,
+    errorCode: geoErrorCode,
+    isLoading: geoLoading,
+    isSupported: isGeolocationSupported,
+    location,
+    permissionState: geolocationPermissionState,
+    requestLocation,
+  } = useGeolocation();
   const {
     error: deviceHeadingError,
     heading: deviceHeading,
@@ -167,6 +178,22 @@ export default function MapPage() {
             );
           }
 
+          if (Array.isArray(poi.menuItems) && i18n.language !== "vi") {
+            const translatedMenuItems = await Promise.all(
+              poi.menuItems.map(async (item) => ({
+                ...item,
+                description: await translateDisplayField(
+                  item.description,
+                  i18n.language,
+                  speechLanguage,
+                ),
+                name: await translateDisplayField(item.name, i18n.language, speechLanguage),
+              })),
+            );
+
+            translatedEntry.menuItems = translatedMenuItems;
+          }
+
           if (Object.keys(translatedEntry).length > 0) {
             nextTranslatedContent[poi.id] = translatedEntry;
           }
@@ -195,21 +222,18 @@ export default function MapPage() {
       const mapped = rawDisplayPois.map((poi) => {
         const translatedEntry = translatedPoiContent[poi.id] ?? {};
 
-        return {
-          ...poi,
-          audioUrl: resolveBackendUrl(
-            getLocalizedValue(poi.audioGuides, i18n.language) ||
-              getLocalizedValue(poi.audioUrl, i18n.language) ||
-              poi.audioUrl ||
-              "",
-          ),
-          displayDescription:
-            translatedEntry.displayDescription ||
+      return {
+        ...poi,
+        audioUrl: resolveBackendUrl(resolveNarrationAudioUrl(poi, i18n.language)),
+        displayDescription:
+          translatedEntry.displayDescription ||
             getLocalizedValue(poi.description, i18n.language),
           displayIntroduction:
             translatedEntry.displayIntroduction || poi.approvedIntroduction || "",
+          displayCategory: getCategoryLabel(poi.category, t),
           displayName:
             translatedEntry.displayName || getLocalizedValue(poi.name, i18n.language),
+          menuItems: translatedEntry.menuItems || poi.menuItems || [],
         };
       });
 
@@ -222,7 +246,7 @@ export default function MapPage() {
         return a.isFavorite ? -1 : 1;
       });
     },
-    [i18n.language, rawDisplayPois, selectedTour, translatedPoiContent],
+    [i18n.language, rawDisplayPois, selectedTour, t, translatedPoiContent],
   );
 
   const normalizedSearchTerm = normalizeForSearch(poiSearchTerm.trim());
@@ -232,7 +256,7 @@ export default function MapPage() {
     return displayPois
       .filter((poi) => {
         const name = normalizeForSearch(poi.displayName);
-        const category = normalizeForSearch(poi.category);
+        const category = normalizeForSearch(poi.displayCategory || poi.category);
         return name.includes(normalizedSearchTerm) || category.includes(normalizedSearchTerm);
       })
       .slice(0, 8);
@@ -267,8 +291,21 @@ export default function MapPage() {
   useEffect(() => {
     if (!selectedPoi || !selectedPoiPlaybackKey) return;
 
+    const expectedPrefix = `${selectedPoi.id}-${i18n.language}-`;
+    if (selectedPoiPlaybackKey.startsWith(expectedPrefix)) {
+      return;
+    }
+
     setSelectedPoiPlaybackKey(buildPlaybackKey(selectedPoi.id, i18n.language));
-  }, [i18n.language, selectedPoi]);
+  }, [i18n.language, selectedPoi?.id, selectedPoiPlaybackKey]);
+
+  useEffect(() => {
+    if (!pendingNarrationRequest || !selectedPoi) return;
+    if (pendingNarrationRequest.poiId !== selectedPoi.id) return;
+
+    setSelectedPoiPlaybackKey(buildPlaybackKey(selectedPoi.id, i18n.language));
+    setPendingNarrationRequest(null);
+  }, [i18n.language, pendingNarrationRequest, selectedPoi]);
 
   useEffect(() => {
     if (!isSearchOpen) return undefined;
@@ -382,17 +419,36 @@ export default function MapPage() {
 
   const nearestPoi = useMemo(() => {
     if (!effectiveLocation || !displayPois.length) return null;
+
     let minDistance = Infinity;
-    let nearest = null;
+    const candidates = [];
+
     for (const poi of displayPois) {
       const dist = calculateDistanceMeters(effectiveLocation, poi.location);
       if (dist < minDistance) {
         minDistance = dist;
-        nearest = poi;
+        candidates.length = 0;
+        candidates.push(poi);
+        continue;
+      }
+
+      if (Math.abs(dist - minDistance) <= NEAREST_POI_TIE_EPSILON_METERS) {
+        candidates.push(poi);
       }
     }
-    return nearest;
-  }, [displayPois, effectiveLocation]) ?? (displayPois[0] || null);
+
+    if (!candidates.length) {
+      return null;
+    }
+
+    return (
+      candidates.find((poi) => poi.id === selectedPoi?.id) ??
+      candidates.find((poi) => !heardPoiIdsRef.current.has(poi.id)) ??
+      candidates.find((poi) => poi.id === autoFocusedPoiRef.current) ??
+      candidates[0] ??
+      null
+    );
+  }, [displayPois, effectiveLocation, selectedPoi?.id]) ?? (displayPois[0] || null);
 
   const nearestPoiDistance =
     nearestPoi && effectiveLocation
@@ -508,6 +564,7 @@ export default function MapPage() {
     if (!poi) {
       setSelectedPoi(null);
       setSelectedPoiPlaybackKey("");
+      setPendingNarrationRequest(null);
       setIsPoiDetailOpen(false);
       return;
     }
@@ -529,9 +586,14 @@ export default function MapPage() {
     }
 
     if (shouldNarrate) {
-      setSelectedPoiPlaybackKey(buildPlaybackKey(poi.id, i18n.language));
+      setSelectedPoiPlaybackKey("");
+      setPendingNarrationRequest({
+        poiId: poi.id,
+        requestedAt: Date.now(),
+      });
     } else if (options.resetPlayback !== false) {
       setSelectedPoiPlaybackKey("");
+      setPendingNarrationRequest(null);
     }
   }
 
@@ -539,6 +601,7 @@ export default function MapPage() {
     if (!poi || !autoNarrateOnTouch) return;
 
     setSelectedPoi(poi);
+    setPendingNarrationRequest(null);
     setSelectedPoiPlaybackKey(buildPlaybackKey(poi.id, i18n.language));
   }
 
@@ -580,6 +643,7 @@ export default function MapPage() {
     setSelectedTourId("");
     setSelectedPoi(null);
     setSelectedPoiPlaybackKey("");
+    setPendingNarrationRequest(null);
   }
 
   function handleCenterOnUser() {
@@ -587,6 +651,7 @@ export default function MapPage() {
     setDemoLocation(null);
     setSelectedPoi(null);
     setSelectedPoiPlaybackKey("");
+    setPendingNarrationRequest(null);
     setIsPoiDetailOpen(false);
     setMobilePanel("map");
     setMapCenter(location);
@@ -597,6 +662,7 @@ export default function MapPage() {
     setDemoLocation(VINH_KHANH_CENTER);
     setSelectedPoi(null);
     setSelectedPoiPlaybackKey("");
+    setPendingNarrationRequest(null);
     setIsPoiDetailOpen(false);
     setMobilePanel("map");
     setMapCenter(VINH_KHANH_CENTER);
@@ -651,6 +717,8 @@ export default function MapPage() {
   function handleAudioPlaybackStart() {
     if (!selectedPoi?.shopId) return;
 
+    heardPoiIdsRef.current.add(selectedPoi.id);
+
     const trackingKey = `${selectedPoi.id}:${i18n.language}:${selectedPoiPlaybackKey || "manual"}`;
     if (trackedAudioRef.current === trackingKey) {
       return;
@@ -678,9 +746,7 @@ export default function MapPage() {
           : ""
       : "";
   const selectedPoiSpeechText = selectedPoi
-    ? [selectedPoi.displayDescription, selectedPoi.displayIntroduction]
-        .filter(Boolean)
-        .join(" ")
+    ? selectedPoi.displayDescription || selectedPoi.displayIntroduction || ""
     : "";
   const networkPresentation = describeNetwork(networkSnapshot, t);
   const deviceHeadingDegrees = Number.isFinite(deviceHeading) ? Math.round(deviceHeading) : null;
@@ -698,6 +764,22 @@ export default function MapPage() {
     permissionState: deviceHeadingPermissionState,
     t,
   });
+  const hasGpsPermissionIssue =
+    geolocationPermissionState === "denied" || geoErrorCode === "permission_denied";
+  const hasLiveGpsLocation = Boolean(location) && !hasGpsPermissionIssue;
+  const shouldShowGpsRequest =
+    !demoLocation && (!hasLiveGpsLocation || Boolean(geoError) || hasGpsPermissionIssue);
+  const gpsRequestLabel = geoLoading
+    ? t("map.gpsRequesting", { defaultValue: "Đang lấy GPS..." })
+    : hasGpsPermissionIssue
+      ? t("map.gpsRequestPermission", { defaultValue: "Xin quyền vị trí" })
+      : t("map.gpsEnable", { defaultValue: "Bật GPS" });
+  const geoErrorMessage = getGeolocationErrorMessage(geoErrorCode, geoError, t);
+  const gpsStatusLabel = demoLocation
+    ? t("map.demoMode")
+    : hasLiveGpsLocation
+      ? t("map.gpsOn")
+      : t("map.gpsWaiting");
 
   return (
     <section className="map-page">
@@ -710,9 +792,19 @@ export default function MapPage() {
           </div>
 
           <div className="status-row">
-            <span className={`status-pill ${effectiveLocation ? "ok" : ""}`}>
-              {demoLocation ? t("map.demoMode") : location ? t("map.gpsOn") : t("map.gpsWaiting")}
+            <span className={`status-pill ${demoLocation || hasLiveGpsLocation ? "ok" : ""}`}>
+              {gpsStatusLabel}
             </span>
+            {shouldShowGpsRequest ? (
+              <button
+                type="button"
+                className="gps-request-button compact"
+                onClick={requestLocation}
+                disabled={geoLoading || !isGeolocationSupported}
+              >
+                {gpsRequestLabel}
+              </button>
+            ) : null}
             <span
               className={`status-pill network ${networkPresentation.toneClass}`}
               title={networkPresentation.hint}
@@ -1018,7 +1110,28 @@ export default function MapPage() {
               </div>
 
               {geoLoading ? <p className="supporting-text">{t("map.requestingLocation")}</p> : null}
-              {geoError ? <p className="error-text">{geoError}</p> : null}
+              {geoError ? <p className="error-text">{geoErrorMessage}</p> : null}
+              {shouldShowGpsRequest ? (
+                <div className="gps-request-card">
+                  <button
+                    type="button"
+                    className="gps-request-button"
+                    onClick={requestLocation}
+                    disabled={geoLoading || !isGeolocationSupported}
+                  >
+                    {gpsRequestLabel}
+                  </button>
+                  {geolocationPermissionState === "denied" ||
+                  geoErrorCode === "permission_denied" ? (
+                    <p className="supporting-text">
+                      {t("map.gpsDeniedHint", {
+                        defaultValue:
+                          "Nếu trình duyệt đã chặn vị trí, hãy mở biểu tượng ổ khóa trên thanh địa chỉ để cho phép lại.",
+                      })}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
               {!geoError && effectiveLocation ? (
                 <p className="supporting-text">
                   {t("map.locationReady", {
@@ -1063,7 +1176,7 @@ export default function MapPage() {
                       <div className="poi-card-head">
                         <div className="poi-card-info">
                           <strong>{poi.displayName}</strong>
-                          <span className="poi-category">{poi.category}</span>
+                          <span className="poi-category">{poi.displayCategory}</span>
                           {selectedTour ? (
                             <span className="poi-tour-stop">
                               {t("map.tourStopLabel", { order: poi.tourOrder })}
@@ -1116,7 +1229,7 @@ export default function MapPage() {
                   <div className="selected-poi-head">
                     <div>
                       <strong>{selectedPoi.displayName}</strong>
-                      <span className="poi-category">{selectedPoi.category}</span>
+                      <span className="poi-category">{selectedPoi.displayCategory}</span>
                     </div>
                     <button
                       type="button"
@@ -1220,9 +1333,35 @@ function shouldTranslatePlainText(value, language) {
   return language !== "vi";
 }
 
+function getCategoryLabel(category, t) {
+  const normalizedCategory = category || "food";
+  return t(`map.categoryLabels.${normalizedCategory}`, {
+    defaultValue: normalizedCategory.replace(/_/g, " "),
+  });
+}
+
 function getTranslationSeed(value, language) {
   if (!value) return "";
   if (typeof value === "string") return value;
+
+  if (language === "en") {
+    return (
+      value.en ||
+      value.vi ||
+      Object.values(value).find((item) => typeof item === "string") ||
+      ""
+    );
+  }
+
+  if (language !== "vi") {
+    return (
+      value[language] ||
+      value.en ||
+      value.vi ||
+      Object.values(value).find((item) => typeof item === "string") ||
+      ""
+    );
+  }
 
   return (
     value[language] ||
@@ -1243,8 +1382,75 @@ async function safeTranslate(text, targetLanguage) {
   }
 }
 
+async function translateDisplayField(value, language, speechLanguage) {
+  if (shouldTranslatePlainText(value, language) || shouldDynamicallyTranslate(value, language)) {
+    return safeTranslate(getTranslationSeed(value, language), speechLanguage);
+  }
+
+  return getLocalizedValue(value, language);
+}
+
 function buildPlaybackKey(poiId, language) {
   return `${poiId}-${language}-${Date.now()}`;
+}
+
+function resolveNarrationAudioUrl(poi, language) {
+  const localizedGuide = getStrictLocalizedValue(poi.audioGuides, language);
+  if (localizedGuide) {
+    return localizedGuide;
+  }
+
+  const localizedAudioUrl = getStrictLocalizedValue(poi.audioUrl, language);
+  if (localizedAudioUrl) {
+    return localizedAudioUrl;
+  }
+
+  return language === "vi" ? poi.audioUrl || "" : "";
+}
+
+function getStrictLocalizedValue(value, language) {
+  if (!value) return "";
+  if (typeof value === "string") return language === "vi" ? value : "";
+  if (typeof value !== "object") return "";
+
+  if (value[language]) return value[language];
+
+  const normalizedLanguage = String(language || "").toLowerCase();
+  const languageBase = normalizedLanguage.split("-")[0];
+  const matchingKey = Object.keys(value).find((key) => {
+    const normalizedKey = key.toLowerCase();
+    return normalizedKey === normalizedLanguage || normalizedKey.split("-")[0] === languageBase;
+  });
+
+  return matchingKey ? value[matchingKey] : "";
+}
+
+function getGeolocationErrorMessage(errorCode, fallbackMessage, t) {
+  if (errorCode === "permission_denied") {
+    return t("map.gpsPermissionDenied", {
+      defaultValue: "Bạn cần cho phép quyền vị trí để app xác định GPS hiện tại.",
+    });
+  }
+
+  if (errorCode === "position_unavailable") {
+    return t("map.gpsUnavailable", {
+      defaultValue: "Chưa lấy được vị trí hiện tại. Hãy kiểm tra GPS hoặc kết nối mạng.",
+    });
+  }
+
+  if (errorCode === "timeout") {
+    return t("map.gpsTimeout", {
+      defaultValue: "GPS phản hồi hơi lâu. Bạn có thể bấm thử lại.",
+    });
+  }
+
+  if (errorCode === "unsupported") {
+    return t("map.gpsUnsupported", {
+      defaultValue: "Thiết bị hoặc trình duyệt chưa hỗ trợ định vị GPS.",
+    });
+  }
+
+  return fallbackMessage;
 }
 
 function getDeviceHeadingPresentation({

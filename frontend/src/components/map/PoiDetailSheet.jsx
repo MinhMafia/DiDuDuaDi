@@ -19,7 +19,11 @@ export default function PoiDetailSheet({
   if (!poi) return null;
 
   return (
-    <div className="poi-detail-sheet-backdrop" onClick={onClose} role="presentation">
+    <div
+      className="poi-detail-sheet-backdrop"
+      onClick={onClose}
+      role="presentation"
+    >
       <section
         className="poi-detail-sheet"
         onClick={(event) => event.stopPropagation()}
@@ -30,7 +34,9 @@ export default function PoiDetailSheet({
             <p className="poi-detail-kicker">{t("map.detailTitle")}</p>
             <h2>{poi.displayName}</h2>
             <div className="poi-detail-meta">
-              <span className="poi-category">{poi.category}</span>
+              <span className="poi-category">
+                {poi.displayCategory || poi.category}
+              </span>
               {distanceLabel ? <span>{distanceLabel}</span> : null}
             </div>
           </div>
@@ -48,11 +54,16 @@ export default function PoiDetailSheet({
 
           <section className="poi-detail-section">
             <h3>{t("map.aboutShopTitle")}</h3>
-            {poi.shopName ? <p><strong>{poi.shopName}</strong></p> : null}
+            {poi.shopName ? (
+              <p>
+                <strong>{poi.shopName}</strong>
+              </p>
+            ) : null}
             {poi.shopAddress ? <p>{poi.shopAddress}</p> : null}
             {poi.openingHours ? (
               <p>
-                <strong>{t("map.labels.openingHours")}:</strong> {poi.openingHours}
+                <strong>{t("map.labels.openingHours")}:</strong>{" "}
+                {poi.openingHours}
               </p>
             ) : null}
             {poi.phone ? (
@@ -74,7 +85,9 @@ export default function PoiDetailSheet({
             {poi.displayIntroduction ? (
               <p className="poi-detail-intro">{poi.displayIntroduction}</p>
             ) : null}
-            {routeSummary ? <p className="poi-detail-route">{routeSummary}</p> : null}
+            {routeSummary ? (
+              <p className="poi-detail-route">{routeSummary}</p>
+            ) : null}
           </section>
 
           <section className="poi-detail-section">
@@ -83,7 +96,9 @@ export default function PoiDetailSheet({
               <div className="poi-detail-menu-list">
                 {poi.menuItems.map((item) => (
                   <article key={item.id} className="poi-detail-menu-item">
-                    {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : null}
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.name} />
+                    ) : null}
                     <div>
                       <div className="poi-detail-menu-head">
                         <strong>{item.name}</strong>

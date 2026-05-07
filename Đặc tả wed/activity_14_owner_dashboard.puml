@@ -9,46 +9,55 @@ start
 
 :Owner truy cap trang Owner dashboard;
 
-:He thong lay thong tin dashboard
-  voi username hien tai;
+:He thong lay dashboard theo owner hien tai:
+- Shop profile
+- POI chinh
+- Ban dich POI
+- Menu items
+- Thong ke views/audio/QR;
 
-:Hien thi cac thanh phan:
-- Shop profile (ten, dia chi, gio mo...)
-- POI chinh (ten, mo ta VI/EN)
-- Danh sach menu items
-- Cac claim codes gan day
-- Thong ke:
-  * Tong luot truy cap
-  * Tong luot phat audio
-  * So ma claim code da tao;
+:Hien thi sidebar gom:
+- Tong quan
+- Quan ly thuc don
+- Thong tin quan
+- Thong tin tren ban do
+- QR quan;
 
-:Owner chon thao tac;
-
-if (Cap nhat shop profile?) then (Co)
-  :Owner dien thong tin moi;
-  :He thong cap nhat bang shops;
-else if (Chinh sua noi dung POI?) then (Co)
-  :Owner dien ten/mo ta VI va EN;
-  :He thong tu dong dich sang
-    5 ngon ngu con lai (GTranslate);
-  :Cap nhat bang pois va poi_translations;
-else if (Quan ly menu items?) then (Co)
-  if (Them moi?) then (Co)
-    :Owner dien thong tin mon an;
-    :He thong them vao bang menu_items;
-  elseif (Sua?) then (Co)
-    :Owner cap nhat thong tin mon an;
-    :He thong cap nhat vao bang menu_items;
+if (Owner xem Tong quan?) then (Co)
+  :Hien thi stat cards:
+  mon dang co, luot xem, audio plays,
+  luot quet QR va bieu do mini;
+elseif (Owner quan ly thuc don?) then (Co)
+  :Hien thi "Thuc don hien tai";
+  :Owner bam Them mon hoac Sua;
+  :Mo dialog them/sua mon;
+  if (Luu mon?) then (Co)
+    :Tao/cap nhat menu_items;
+  elseif (Doi trang thai hien/het?) then (Co)
+    :Cap nhat is_available;
   else (Xoa)
-    :He thong xoa mon an khoi bang menu_items;
+    :Xoa menu item;
   endif
-else if (Tao claim code?) then (Co)
-  :Owner nhap so tien va thoi han;
-  :He thong sinh ma VK + 6 chu so ngau nhien;
-  :Luu vao bang cash_claim_codes;
-else if (Xem thong ke?) then (Co)
-  :Hien thi so lieu phan tich;
+elseif (Owner cap nhat thong tin quan?) then (Co)
+  :Sua ten, mo ta, anh, danh muc;
+  :Luu shop profile;
+elseif (Owner cap nhat ban do?) then (Co)
+  :Chon vi tri tren map picker
+  hoac nhap toa do;
+  :Cap nhat dia chi/toa do GPS;
+elseif (Owner cap nhat noi dung da ngon ngu?) then (Co)
+  :Sua ten/mo ta VI va EN;
+  :He thong dich cac ngon ngu con lai;
+  :Sinh audio/TTS cho ban dich neu co mo ta;
+  :Cap nhat pois va poi_translations;
+elseif (Owner xem QR quan?) then (Co)
+  :Hien thi standee Digital Menu;
+  :Sao chep link, mo trang chi tiet
+  hoac in standee;
+  :Link QR co source=qr de thong ke quet QR;
 endif
+
+:Refresh dashboard va thong ke moi;
 
 stop
 

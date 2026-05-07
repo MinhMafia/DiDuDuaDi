@@ -5,45 +5,39 @@ skinparam sequenceFontName "Times New Roman"
 skinparam lifelineStrategy nosolid
 
 actor User
-participant "Frontend\n(MapView)" as FE
+participant "Frontend\n(MapPage)" as FE
 participant "Browser\nGeolocation" as GPS
-participant "POIsController\n(Backend)" as Ctrl
+participant "POIsController" as Ctrl
 participant "MySqlPoiRepository" as Repo
-database "MySQL\npois, pois_translations" as DB
+database "MySQL\npois, poi_translations" as DB
 
-User -> FE: Mo trang ban do
-FE -> GPS: request Geolocation\n(enableHighAccuracy: true)
-GPS --> FE: Tra ve vi tri\n(latitude, longitude)
+User -> FE: Mo trang /map
+FE -> GPS: watchPosition()\nhoac dung vi tri demo
+GPS --> FE: { latitude, longitude }
 
-FE -> Ctrl: GET /api/pois/nearby\n?lat={lat}&lng={lng}&radius=500
-
-Ctrl -> Repo: GetNearby(lat, lng, radius)
-Repo -> DB: SELECT pois.*,\n poi_translations.*\nFROM pois\nJOIN poi_translations\nON pois.id = poi_translations.poi_id\nWHERE tinh khoang cach\nHaversine < radius
-DB --> Repo: Danh sach POI gan nhat
+FE -> Ctrl: GET /api/pois
+Ctrl -> Repo: GetAll()
+Repo -> DB: SELECT pois + translations
+DB --> Repo: Danh sach POI
 Repo --> Ctrl: List<POI>
+Ctrl --> FE: 200 OK
 
-Ctrl --> FE: 200 OK\n{ pois: [...] }
+FE -> FE: Tinh khoang cach Haversine\ncho tung POI
+FE -> FE: Loc theo ban kinh chon\n50/100/200/500 hoac Tat ca
+FE -> FE: Sap xep POI gan truoc
+FE --> User: Hien thi marker, danh sach gan ban\nva ghi chu toa do duoi ban do
 
-FE -> FE: Ve cac POI marker\nlen ban do Leaflet
-FE --> User: Hien thi ban do voi POIs
+User -> FE: Doi ban kinh trong o chon co dinh
+FE -> FE: Loc lai danh sach tren client
+FE --> User: Cap nhat marker va danh sach
 
-User -> FE: Dieu chinh ban kinh\n(thanh truot radius)
-FE -> Ctrl: GET /api/pois/nearby\n?radius={moi}
-Ctrl -> Repo: GetNearby(moi)
-Repo -> DB: Truy van moi
-DB --> Repo: Ket qua moi
-Repo --> Ctrl: List<POI>
-Ctrl --> FE: 200 OK\n{ pois: [...] }
-FE -> FE: Cap nhat marker tren ban do
-FE --> User: Hien thi POI da loc
-
-User -> FE: Click vao POI marker
+User -> FE: Click POI marker hoac card
 FE -> Ctrl: GET /api/pois/{id}
 Ctrl -> Repo: GetById(id)
-Repo -> DB: SELECT * FROM pois\nJOIN poi_translations\nWHERE id = ?
-DB --> Repo: POI chi tiet
-Repo --> Ctrl: POI + translations
-Ctrl --> FE: 200 OK\n{ poi: {...} }
-FE --> User: Hien thi chi tiet POI
+Repo -> DB: SELECT POI chi tiet,\ntranslations, menu items
+DB --> Repo: POI detail
+Repo --> Ctrl: POI detail
+Ctrl --> FE: 200 OK
+FE --> User: Hien thi chi tiet nhanh\nva audio guide
 
 @enduml

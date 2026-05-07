@@ -138,6 +138,44 @@
   color: #475569;
 }
 
+.gps-request-button {
+  width: fit-content;
+  min-height: 42px;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.2);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.gps-request-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgba(37, 99, 235, 0.24);
+}
+
+.gps-request-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.gps-request-button.compact {
+  min-height: 42px;
+  padding-inline: 14px;
+}
+
+.gps-request-card {
+  display: grid;
+  gap: 8px;
+}
+
 .map-content-grid {
   display: grid;
   gap: 18px;

@@ -5,26 +5,45 @@ skinparam activityFontName "Times New Roman"
 
 start
 
-:User truy cap trang Collaboration / Upgrade;
+:User truy cap trang Dang ky quan an;
+
+:He thong hien thi giao dien Tabs;
+
+if (User chon tab Lich su & Trang thai?) then (Co)
+  :Lay danh sach don da gui cua user;
+  :Hien thi trang thai pending/approved/rejected
+  va ly do tu choi neu co;
+
+  if (Don cu bi tu choi?) then (Co)
+    :User bam "Sua lai tu don cu";
+    :Nap thong tin don cu sang form dang ky moi;
+  else (Khong)
+    :User chi xem lich su;
+  endif
+endif
+
+:User chon tab Dang ky moi;
 
 :User dien thong tin:
-- Ten shop
+- Ten quan
 - Dia chi
-- URL hinh giay to ca nhan (tuy chon)
-- URL hinh giay phep kinh doanh (tuy chon)
-- Ghi chu (tuy chon);
+- Vi tri GPS chon truc tiep tren ban do
+- Anh CCCD/GPKD neu co
+- Ghi chu;
+
+:He thong dong bo toa do tu map picker
+vao latitude/longitude;
 
 :He thong kiem tra User da co yeu cau pending?;
 
-if (Da co yeu cau pending?) then (Co)
-  :Hien thi thong bao "Da ton tai yeu cau";
+if (Da co pending?) then (Co)
+  :Hien thi thong bao da co yeu cau dang cho duyet;
   stop
 else (Khong)
-  :He thong tao yeu cau moi
-    voi trang thai "pending";
-  :Luu vao bang owner_upgrade_requests;
+  :Tao yeu cau owner upgrade moi;
+  :Luu vao owner_upgrade_requests;
   :Hien thi thong bao thanh cong;
-  :Thong bao cho Admin co yeu cau moi;
+  :Cho Admin thay yeu cau trong Dashboard;
 endif
 
 stop

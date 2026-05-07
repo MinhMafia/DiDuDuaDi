@@ -55,6 +55,14 @@
     "liveMap": "Live map",
     "gpsOn": "GPS is active",
     "gpsWaiting": "Waiting for GPS",
+    "gpsEnable": "Turn on GPS",
+    "gpsRequesting": "Getting GPS...",
+    "gpsRequestPermission": "Request location permission",
+    "gpsPermissionDenied": "Allow location permission so the app can detect your current GPS position.",
+    "gpsDeniedHint": "If the browser blocked location, open the lock icon in the address bar and allow it again.",
+    "gpsUnavailable": "Current location is unavailable. Please check GPS or your network connection.",
+    "gpsTimeout": "GPS is taking a little long. You can try again.",
+    "gpsUnsupported": "This device or browser does not support GPS location.",
     "demoMode": "Demo mode at Vinh Khanh",
     "poiCount_one": "{{count}} place visible",
     "poiCount_other": "{{count}} places visible",
@@ -124,6 +132,14 @@
     "tourEmpty": "This tour does not have any available stops yet.",
     "tourStopLabel": "Stop {{order}}",
     "tourActiveBadge": "Tour: {{name}}",
+    "categoryLabels": {
+      "food": "Food",
+      "street_food": "Street food",
+      "grilled_food": "Grilled food",
+      "seafood": "Seafood",
+      "snack": "Snacks",
+      "drinks": "Drinks"
+    },
     "labels": {
       "openingHours": "Opening hours",
       "phone": "Phone"
@@ -278,10 +294,47 @@
     "title": "Partner with us",
     "subtitle": "Fill in the restaurant information to request an upgrade from user to owner. An admin will review it before granting access.",
     "currentUser": "Current account",
+    "tabs": {
+      "new": "New registration",
+      "history": "History & status"
+    },
+    "latestRequestTitle": "Latest registration request",
+    "reviewNote": "Admin note",
+    "waitingReviewTitle": "Your request is under review",
+    "waitingReviewDescription": "An admin will review your restaurant details, location, and submitted documents before responding.",
+    "paymentTitle": "Owner upgrade payment details",
+    "paymentDescription": "Your request passed the first review step. Use the QR code or transfer memo below to complete the owner upgrade.",
+    "feeAmount": "Upgrade fee",
+    "paymentReference": "Reference code",
+    "paymentRequestedAt": "Payment created at",
+    "transferMemo": "Transfer memo",
+    "qrLabel": "Payment QR",
+    "qrUnavailable": "No payment QR is available for this request yet.",
+    "rejectedTitle": "Your previous request was rejected",
+    "rejectedDescription": "You can review the rejection reason below and submit a new request with updated information.",
+    "formLockedTitle": "Your current request is still being processed",
+    "formLockedMessage": "You cannot create another request right now.",
+    "formLockedDescription": "Track the status in the History & status tab. If the request is rejected, you can use the edit-from-old-request button to resubmit faster.",
+    "formTitle": "Create a new restaurant registration request",
+    "editFormTitle": "Edit pending registration request",
     "submit": "Submit owner registration request",
+    "updateSubmit": "Update pending request",
+    "cancelEdit": "Cancel edit",
     "submitting": "Submitting...",
     "success": "Your owner upgrade request has been submitted successfully.",
+    "updateSuccess": "Your pending request has been updated.",
+    "cancelSuccess": "Your registration request has been canceled. You can create a new one.",
+    "cancelError": "Unable to cancel the registration request.",
     "error": "Unable to submit the request.",
+    "prefillSuccess": "The old request data has been loaded back into the form.",
+    "editPending": "Edit request",
+    "editPendingLoaded": "The pending request has been loaded into the form for editing.",
+    "cancelPending": "Cancel request",
+    "cancelPendingTitle": "Cancel this pending request?",
+    "cancelPendingDescription": "After cancellation, this request stays in history and you can create a new registration request.",
+    "confirmCancel": "Cancel request",
+    "keepPending": "Keep it",
+    "emptyNote": "No extra note.",
     "fields": {
       "shopName": "Shop name",
       "address": "Address in Vinh Khanh",
@@ -290,6 +343,45 @@
       "idCardImageUrl": "ID card image URL",
       "businessLicenseImageUrl": "Business license image URL (optional)",
       "note": "Note"
+    },
+    "mapPicker": {
+      "title": "Pick the restaurant location on the map",
+      "hint": "Click directly on the map to capture a more accurate GPS position for the restaurant. You can still fine-tune latitude and longitude manually if needed.",
+      "selectedCoordinates": "Selected coordinates: {{lat}}, {{lng}}"
+    },
+    "placeholders": {
+      "shopName": "Enter the restaurant name",
+      "address": "Enter the address in the Vinh Khanh area",
+      "latitude": "Example: 10.758700",
+      "longitude": "Example: 106.703100",
+      "note": "Add more details about the restaurant or anything the admin should know"
+    },
+    "validation": {
+      "shopNameRequired": "Please enter the shop name.",
+      "addressRequired": "Please enter the address.",
+      "latitudeRequired": "Please enter the latitude.",
+      "longitudeRequired": "Please enter the longitude."
+    },
+    "status": {
+      "pending": "Pending review",
+      "paymentPending": "Waiting for payment",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "history": {
+      "title": "Previous registration requests",
+      "count_zero": "0 old requests",
+      "count_one": "{{count}} old request",
+      "count_other": "{{count}} old requests",
+      "empty": "You do not have any previous requests yet.",
+      "submittedAt": "Submitted at",
+      "reviewedAt": "Reviewed at",
+      "reviewResult": "Review reason / cancellation note",
+      "noReviewReason": "No review note from the admin yet.",
+      "editFromOld": "Edit from old request",
+      "viewIdCard": "View submitted ID card",
+      "viewBusinessLicense": "View submitted business license"
     }
   },
   "owner": {
@@ -332,8 +424,10 @@
     "stats": {
       "totalVisits": "Shop views",
       "audioPlays": "Audio plays",
+      "qrScans": "QR scans",
       "todayVisits": "Visits today",
-      "todayAudio": "Audio today"
+      "todayAudio": "Audio today",
+      "todayQr": "QR today"
     },
     "status": {
       "approved": "Approved",

@@ -61,10 +61,16 @@ export function persistPublicBaseUrl(value) {
   window.localStorage.setItem(QR_BASE_URL_STORAGE_KEY, normalizedValue);
 }
 
-export function buildPoiDetailUrl(poiId, baseUrl) {
+export function buildPoiDetailUrl(poiId, baseUrl, source = "qr") {
   const normalizedBaseUrl = normalizePublicBaseUrl(baseUrl);
   if (!poiId || !normalizedBaseUrl) return "";
-  return `${normalizedBaseUrl}/poi/${poiId}`;
+
+  const url = new URL(`${normalizedBaseUrl}/poi/${poiId}`);
+  if (source) {
+    url.searchParams.set("source", source);
+  }
+
+  return url.toString();
 }
 
 export function isLocalBaseUrl(baseUrl) {

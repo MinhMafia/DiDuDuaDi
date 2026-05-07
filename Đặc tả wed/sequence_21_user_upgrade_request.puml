@@ -5,42 +5,54 @@ skinparam sequenceFontName "Times New Roman"
 skinparam lifelineStrategy nosolid
 
 actor User
-participant "Frontend" as FE
+participant "Frontend\n(CooperatePage)" as FE
 participant "AuthController" as Ctrl
 participant "MySqlAuthRepository" as Repo
 database "owner_upgrade_requests" as DB
 
-User -> FE: Truy cap trang Upgrade
-FE --> User: Hien thi form nang cap
+User -> FE: Truy cap /cooperate
+FE --> User: Hien thi tabs\nDang ky moi / Lich su & Trang thai
 
-User -> FE: Dien thong tin shop,\n dia chi, giay to, ghi chu
+User -> FE: Mo tab Lich su & Trang thai
+FE -> Ctrl: GET /api/auth/owner-upgrade-requests/me
+Ctrl -> Repo: GetOwnerUpgradeRequests(username)
+Repo -> DB: SELECT requests WHERE account_id=?
+DB --> Repo: Lich su don
+Repo --> Ctrl: List<Request>
+Ctrl --> FE: 200 OK
+FE --> User: Hien thi trang thai va ly do tu choi
 
+alt Don bi tu choi
+  User -> FE: Bam "Sua lai tu don cu"
+  FE -> FE: Nap du lieu don cu vao form Dang ky moi
+end
+
+User -> FE: Chon vi tri quan tren map picker
+FE -> FE: Cap nhat latitude/longitude
+User -> FE: Dien thong tin shop, dia chi,\ngiay to va ghi chu
 FE -> FE: Validate form
 
-FE -> Ctrl: POST /api/auth/owner-upgrade-request\n{ username, shopName, addressLine, ... }
+FE -> Ctrl: POST /api/auth/owner-upgrade-request\n{ shopName, addressLine, latitude,\nlongitude, documents, note }
 note right
-  Authorization: Bearer token
+  Authorization: Bearer user_token
 end note
 
-Ctrl -> Ctrl: Validate token
-
 Ctrl -> Repo: HasPendingOwnerUpgradeRequest(username)
-Repo -> DB: SELECT COUNT(*) WHERE status=pending
-DB --> Repo: So luong (0 hoac 1)
+Repo -> DB: SELECT COUNT(*) WHERE status='pending'
+DB --> Repo: Count
 
-alt Da ton tai yeu cau pending
+alt Da co pending
   Repo --> Ctrl: True
   Ctrl --> FE: 400 Bad Request
-  FE --> User: Thong bao loi
-else Chua co yeu cau pending
+  FE --> User: Thong bao da co don dang cho
+else Chua co pending
   Repo --> Ctrl: False
-  
   Ctrl -> Repo: CreateOwnerUpgradeRequest(request)
-  Repo -> DB: INSERT INTO owner_upgrade_requests\n(account_id, shop_name, address_line,\n id_card_image_url, note, status=pending)
-  DB --> Repo: Thanh cong
-  Repo --> Ctrl: Tra ve ID
+  Repo -> DB: INSERT owner_upgrade_requests\nstatus='pending'
+  DB --> Repo: Created
+  Repo --> Ctrl: Request id
   Ctrl --> FE: 201 Created
-  FE --> User: Thong bao thanh cong
+  FE --> User: Thong bao gui thanh cong
 end
 
 @enduml

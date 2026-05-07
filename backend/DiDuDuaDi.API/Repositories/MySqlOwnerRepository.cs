@@ -288,9 +288,11 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
             SELECT
                 (SELECT COUNT(*) FROM shop_visit_events WHERE shop_id = @ShopId) AS TotalVisitCount,
                 (SELECT COUNT(*) FROM audio_play_events WHERE shop_id = @ShopId) AS TotalAudioPlayCount,
+                (SELECT COUNT(*) FROM shop_visit_events WHERE shop_id = @ShopId AND source = 'qr') AS TotalQrScanCount,
                 (SELECT COUNT(*) FROM cash_claim_codes WHERE shop_id = @ShopId) AS ClaimCodesIssuedCount,
                 (SELECT COUNT(*) FROM shop_visit_events WHERE shop_id = @ShopId AND DATE(created_at) = CURRENT_DATE()) AS VisitCountToday,
-                (SELECT COUNT(*) FROM audio_play_events WHERE shop_id = @ShopId AND DATE(created_at) = CURRENT_DATE()) AS AudioPlayCountToday;
+                (SELECT COUNT(*) FROM audio_play_events WHERE shop_id = @ShopId AND DATE(created_at) = CURRENT_DATE()) AS AudioPlayCountToday,
+                (SELECT COUNT(*) FROM shop_visit_events WHERE shop_id = @ShopId AND source = 'qr' AND DATE(created_at) = CURRENT_DATE()) AS QrScanCountToday;
             """,
             new { shop.ShopId });
 

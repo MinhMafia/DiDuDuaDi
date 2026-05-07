@@ -55,6 +55,14 @@
     "liveMap": "Bản đồ thời gian thực",
     "gpsOn": "GPS đang hoạt động",
     "gpsWaiting": "Đang chờ GPS",
+    "gpsEnable": "Bật GPS",
+    "gpsRequesting": "Đang lấy GPS...",
+    "gpsRequestPermission": "Xin quyền vị trí",
+    "gpsPermissionDenied": "Bạn cần cho phép quyền vị trí để app xác định GPS hiện tại.",
+    "gpsDeniedHint": "Nếu trình duyệt đã chặn vị trí, hãy mở biểu tượng ổ khóa trên thanh địa chỉ để cho phép lại.",
+    "gpsUnavailable": "Chưa lấy được vị trí hiện tại. Hãy kiểm tra GPS hoặc kết nối mạng.",
+    "gpsTimeout": "GPS phản hồi hơi lâu. Bạn có thể bấm thử lại.",
+    "gpsUnsupported": "Thiết bị hoặc trình duyệt chưa hỗ trợ định vị GPS.",
     "demoMode": "Đang demo tại Vĩnh Khánh",
     "poiCount_one": "{{count}} điểm hiển thị",
     "poiCount_other": "{{count}} điểm hiển thị",
@@ -124,6 +132,14 @@
     "tourEmpty": "Tour này hiện chưa có điểm dừng khả dụng.",
     "tourStopLabel": "Điểm dừng {{order}}",
     "tourActiveBadge": "Tour: {{name}}",
+    "categoryLabels": {
+      "food": "Ẩm thực",
+      "street_food": "Ăn vặt",
+      "grilled_food": "Món nướng",
+      "seafood": "Hải sản",
+      "snack": "Ăn nhẹ",
+      "drinks": "Đồ uống"
+    },
     "labels": {
       "openingHours": "Giờ mở cửa",
       "phone": "Điện thoại"
@@ -285,10 +301,47 @@
     "title": "Hợp tác với chúng tôi",
     "subtitle": "Điền thông tin quán để gửi yêu cầu nâng quyền từ người dùng lên chủ quán. Admin sẽ kiểm duyệt trước khi cấp quyền.",
     "currentUser": "Tài khoản hiện tại",
+    "tabs": {
+      "new": "Đăng ký mới",
+      "history": "Lịch sử & Trạng thái"
+    },
+    "latestRequestTitle": "Đơn đăng kí mới nhất",
+    "reviewNote": "Ghi chú từ admin",
+    "waitingReviewTitle": "Đơn của bạn đang chờ duyệt",
+    "waitingReviewDescription": "Admin sẽ xem nội dung đơn, vị trí quán và giấy tờ bạn gửi trước khi phản hồi.",
+    "paymentTitle": "Thông tin thanh toán nâng quyền",
+    "paymentDescription": "Đơn của bạn đã được duyệt bước đầu. Hãy dùng mã QR hoặc nội dung chuyển khoản bên dưới để hoàn tất nâng quyền chủ quán.",
+    "feeAmount": "Phí nâng quyền",
+    "paymentReference": "Mã tham chiếu",
+    "paymentRequestedAt": "Thời điểm tạo thanh toán",
+    "transferMemo": "Nội dung chuyển khoản",
+    "qrLabel": "Mã QR thanh toán",
+    "qrUnavailable": "Chưa có mã QR thanh toán cho đơn này.",
+    "rejectedTitle": "Đơn trước đó đã bị từ chối",
+    "rejectedDescription": "Bạn có thể xem lại lý do từ chối và gửi một đơn mới với thông tin đã cập nhật.",
+    "formLockedTitle": "Đơn hiện tại đang được xử lý",
+    "formLockedMessage": "Bạn chưa thể tạo thêm đơn mới lúc này.",
+    "formLockedDescription": "Hãy theo dõi trạng thái ở tab Lịch sử & Trạng thái. Khi đơn bị từ chối, bạn có thể dùng nút sửa lại từ đơn cũ để gửi lại nhanh hơn.",
+    "formTitle": "Tạo đơn đăng kí quán ăn mới",
+    "editFormTitle": "Sửa đơn đăng kí đang chờ duyệt",
     "submit": "Gửi yêu cầu đăng ký chủ quán",
+    "updateSubmit": "Cập nhật đơn đang chờ duyệt",
+    "cancelEdit": "Hủy sửa",
     "submitting": "Đang gửi...",
     "success": "Đã gửi yêu cầu lên chủ quán thành công.",
+    "updateSuccess": "Đã cập nhật đơn đang chờ duyệt.",
+    "cancelSuccess": "Đã hủy đơn đăng kí. Bạn có thể tạo đơn mới.",
+    "cancelError": "Không hủy được đơn đăng kí.",
     "error": "Không gửi được yêu cầu.",
+    "prefillSuccess": "Đã nạp lại nội dung từ đơn cũ vào form.",
+    "editPending": "Sửa đơn",
+    "editPendingLoaded": "Đã nạp đơn đang chờ duyệt vào form để sửa.",
+    "cancelPending": "Hủy đơn",
+    "cancelPendingTitle": "Hủy đơn đang chờ duyệt?",
+    "cancelPendingDescription": "Sau khi hủy, đơn này sẽ lưu trong lịch sử và bạn có thể tạo đơn đăng kí mới.",
+    "confirmCancel": "Hủy đơn",
+    "keepPending": "Giữ lại",
+    "emptyNote": "Không có ghi chú thêm.",
     "fields": {
       "shopName": "Tên quán",
       "address": "Địa chỉ tại Vĩnh Khánh",
@@ -297,6 +350,45 @@
       "idCardImageUrl": "Link ảnh căn cước (CCCD)",
       "businessLicenseImageUrl": "Link ảnh GPKD (nếu có)",
       "note": "Ghi chú"
+    },
+    "mapPicker": {
+      "title": "Chọn vị trí quán trên bản đồ",
+      "hint": "Bấm trực tiếp lên bản đồ để lấy tọa độ GPS chính xác hơn cho quán. Bạn vẫn có thể chỉnh tay vĩ độ và kinh độ nếu cần.",
+      "selectedCoordinates": "Tọa độ đang chọn: {{lat}}, {{lng}}"
+    },
+    "placeholders": {
+      "shopName": "Nhập tên quán muốn đăng kí",
+      "address": "Nhập địa chỉ tại khu vực Vĩnh Khánh",
+      "latitude": "Ví dụ: 10.758700",
+      "longitude": "Ví dụ: 106.703100",
+      "note": "Mô tả thêm về quán, thời gian hoạt động hoặc thông tin muốn admin lưu ý"
+    },
+    "validation": {
+      "shopNameRequired": "Vui lòng nhập tên quán.",
+      "addressRequired": "Vui lòng nhập địa chỉ quán.",
+      "latitudeRequired": "Vui lòng nhập vĩ độ.",
+      "longitudeRequired": "Vui lòng nhập kinh độ."
+    },
+    "status": {
+      "pending": "Đang chờ duyệt",
+      "paymentPending": "Chờ thanh toán",
+      "approved": "Đã duyệt",
+      "rejected": "Bị từ chối",
+      "cancelled": "Đã hủy"
+    },
+    "history": {
+      "title": "Lịch sử đơn đã đăng kí",
+      "count_zero": "0 đơn cũ",
+      "count_one": "{{count}} đơn cũ",
+      "count_other": "{{count}} đơn cũ",
+      "empty": "Bạn chưa có đơn cũ nào để xem lại.",
+      "submittedAt": "Ngày gửi đơn",
+      "reviewedAt": "Ngày phản hồi",
+      "reviewResult": "Lý do phản hồi / hủy",
+      "noReviewReason": "Chưa có phản hồi từ admin.",
+      "editFromOld": "Sửa lại từ đơn cũ",
+      "viewIdCard": "Xem ảnh CCCD đã gửi",
+      "viewBusinessLicense": "Xem ảnh GPKD đã gửi"
     }
   },
   "owner": {
@@ -336,8 +428,10 @@
     "stats": {
       "totalVisits": "Lượt xem quán",
       "audioPlays": "Lượt phát thuyết minh",
+      "qrScans": "Lượt quét QR",
       "todayVisits": "Lượt xem hôm nay",
-      "todayAudio": "Audio hôm nay"
+      "todayAudio": "Audio hôm nay",
+      "todayQr": "QR hôm nay"
     },
     "status": {
       "approved": "Đã duyệt",
@@ -375,8 +469,8 @@
       "qrMissingDescription": "Chưa có địa điểm chính để tạo QR. Hãy cập nhật thông tin trên bản đồ trước.",
       "menuKicker": "Thực đơn",
       "editMenu": "Chỉnh sửa món ăn",
-      "menuListKicker": "Món đang hiện",
-      "menuList": "Món hiện tại",
+      "menuListKicker": "Thực đơn hiện tại",
+      "menuList": "Thực đơn hiện tại",
       "menuListDescription": "Đây là những món khách đang nhìn thấy khi mở quán của bạn."
     },
     "fields": {
