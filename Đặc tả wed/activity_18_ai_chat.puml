@@ -1,0 +1,25 @@
+@startuml activity_18_ai_chat
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:User mo nut Chat tro ly AI;
+:Frontend nap danh sach POI lam ngu canh goi y;
+:User nhap cau hoi ve dia diem, mon an hoac lich trinh;
+:Frontend gui cau hoi den AIController;
+:Backend tao prompt tu cau hoi va du lieu POI lien quan;
+
+if (Dich vu AI tra ve thanh cong?) then (Co)
+  :Hien thi cau tra loi cua tro ly;
+else (Khong)
+  :Hien thi thong bao tam thoi khong kha dung
+  va goi y thu lai sau;
+endif
+
+:User co the tiep tuc hoi hoac dong chat;
+
+stop
+
+@enduml

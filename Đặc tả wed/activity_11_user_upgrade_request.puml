@@ -9,34 +9,39 @@ start
 
 :He thong hien thi giao dien Tabs;
 
-if (User chon tab Lich su & Trang thai?) then (Co)
+if (User chon tab Lich su va Trang thai?) then (Co)
   :Lay danh sach don da gui cua user;
-  :Hien thi trang thai pending/approved/rejected
-  va ly do tu choi neu co;
+  :Hien thi trang thai:\npending / payment_pending / approved / rejected / cancelled\nva ly do tu choi neu co;
+
+  if (Don dang cho thanh toan?) then (Co)
+    :Hien thi QR thanh toan,\nma tham chieu va noi dung chuyen khoan;
+  else (Khong)
+    :Khong hien thi khoi thanh toan;
+  endif
 
   if (Don cu bi tu choi?) then (Co)
-    :User bam "Sua lai tu don cu";
-    :Nap thong tin don cu sang form dang ky moi;
+    if (User chon sua lai tu don cu?) then (Co)
+      :User bam "Sua lai tu don cu";
+      :Nap thong tin don cu sang form dang ky moi;
+    else (Khong)
+      :User chi xem lich su;
+      stop
+    endif
   else (Khong)
     :User chi xem lich su;
+    stop
   endif
+else (Khong)
+  :User chon tab Dang ky moi;
 endif
 
-:User chon tab Dang ky moi;
+:User dien thong tin:\n- Ten quan\n- Dia chi\n- Vi tri GPS chon truc tiep tren ban do\n- Anh CCCD/GPKD neu co\n- Ghi chu;
 
-:User dien thong tin:
-- Ten quan
-- Dia chi
-- Vi tri GPS chon truc tiep tren ban do
-- Anh CCCD/GPKD neu co
-- Ghi chu;
+:He thong dong bo toa do tu map picker\nvao latitude/longitude;
 
-:He thong dong bo toa do tu map picker
-vao latitude/longitude;
+:He thong kiem tra User da co yeu cau\npending hoac payment_pending?;
 
-:He thong kiem tra User da co yeu cau pending?;
-
-if (Da co pending?) then (Co)
+if (Da co don chua ket thuc?) then (Co)
   :Hien thi thong bao da co yeu cau dang cho duyet;
   stop
 else (Khong)

@@ -14,13 +14,19 @@ User -> FE: Truy cap /cooperate
 FE --> User: Hien thi tabs\nDang ky moi / Lich su & Trang thai
 
 User -> FE: Mo tab Lich su & Trang thai
-FE -> Ctrl: GET /api/auth/owner-upgrade-requests/me
+FE -> Ctrl: GET /api/auth/my-owner-upgrade-requests
 Ctrl -> Repo: GetOwnerUpgradeRequests(username)
 Repo -> DB: SELECT requests WHERE account_id=?
 DB --> Repo: Lich su don
 Repo --> Ctrl: List<Request>
 Ctrl --> FE: 200 OK
-FE --> User: Hien thi trang thai va ly do tu choi
+FE --> User: Hien thi trang thai,
+ly do tu choi va thong tin thanh toan neu co
+
+alt Don dang payment_pending
+  FE --> User: Hien thi QR thanh toan,
+  ma tham chieu va noi dung chuyen khoan
+end
 
 alt Don bi tu choi
   User -> FE: Bam "Sua lai tu don cu"
@@ -38,13 +44,13 @@ note right
 end note
 
 Ctrl -> Repo: HasPendingOwnerUpgradeRequest(username)
-Repo -> DB: SELECT COUNT(*) WHERE status='pending'
+Repo -> DB: SELECT COUNT(*) WHERE status IN\n('pending','payment_pending')
 DB --> Repo: Count
 
-alt Da co pending
+alt Da co pending hoac payment_pending
   Repo --> Ctrl: True
-  Ctrl --> FE: 400 Bad Request
-  FE --> User: Thong bao da co don dang cho
+  Ctrl --> FE: 409 Conflict
+  FE --> User: Thong bao da co don dang xu ly
 else Chua co pending
   Repo --> Ctrl: False
   Ctrl -> Repo: CreateOwnerUpgradeRequest(request)

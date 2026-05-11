@@ -1,0 +1,29 @@
+@startuml sequence_28_ai_chat
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor User
+participant "Frontend\n(ChatButton)" as FE
+participant "POIs API" as PoiAPI
+participant "AIController" as Ctrl
+participant "Mistral API" as AI
+
+User -> FE: Mo chat va nhap cau hoi
+FE -> PoiAPI: GET /api/pois
+PoiAPI --> FE: Danh sach POI lam ngu canh
+FE -> Ctrl: POST /api/ai/chat\n{ message, contextPois }
+Ctrl -> Ctrl: Tao prompt he thong\nva chen POI lien quan
+
+alt AI phan hoi thanh cong
+  Ctrl -> AI: POST /chat/completions
+  AI --> Ctrl: Noi dung tra loi
+  Ctrl --> FE: 200 OK\n{ reply }
+  FE --> User: Hien thi cau tra loi
+else AI loi hoac timeout
+  Ctrl --> FE: 503/500\nAI assistant unavailable
+  FE --> User: Hien thi loi than thien
+end
+
+@enduml

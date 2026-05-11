@@ -1,0 +1,40 @@
+@startuml sequence_26_user_favorites
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor User
+participant "Frontend\n(MapPage)" as FE
+participant "UsersController" as Ctrl
+participant "MySqlUserRepository" as Repo
+database "MySQL\nuser_favorites, pois" as DB
+
+User -> FE: Bam nut yeu thich tren POI
+
+alt POI chua duoc luu
+  FE -> Ctrl: POST /api/users/me/favorites/{poiId}
+  Ctrl -> Repo: AddFavorite(accountId, poiId)
+  Repo -> DB: INSERT IGNORE user_favorites
+  DB --> Repo: OK
+  Ctrl --> FE: 200 OK
+  FE --> User: Icon chuyen sang da yeu thich
+else POI da duoc luu
+  FE -> Ctrl: DELETE /api/users/me/favorites/{poiId}
+  Ctrl -> Repo: RemoveFavorite(accountId, poiId)
+  Repo -> DB: DELETE FROM user_favorites
+  DB --> Repo: OK
+  Ctrl --> FE: 200 OK
+  FE --> User: Icon chuyen ve chua yeu thich
+end
+
+User -> FE: Mo danh sach yeu thich
+FE -> Ctrl: GET /api/users/me/favorites
+Ctrl -> Repo: GetFavorites(accountId)
+Repo -> DB: SELECT favorite POI ids\nva lay chi tiet POI
+DB --> Repo: Danh sach POI
+Repo --> Ctrl: List<POI>
+Ctrl --> FE: 200 OK
+FE --> User: Hien thi cac POI da luu
+
+@enduml

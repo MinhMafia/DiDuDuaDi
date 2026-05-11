@@ -119,48 +119,6 @@ td.center {
 }
 </style>
 
-<!-- ======================== CAP NHAT HIEN TRANG ======================== -->
-
-<h1>CAP NHAT HIEN TRANG CHUC NANG</h1>
-
-<p>Phan phu luc nay bo sung cac thay doi moi cua he thong DiDuDuaDi sau khi hoan thien giao dien Owner/Admin, QR public link, thong ke truy cap va tu dong thuyet minh gan POI.</p>
-
-<h3>1. Cac chuc nang da duoc cap nhat</h3>
-
-<ul>
-<li><span class="bold">Ban do nguoi dung:</span> Ban kinh tim quanh da chuyen sang o chon moc co dinh 50m, 100m, 200m, 500m va tuy chon Tat ca. Toa do hien tai duoc dua xuong phan ghi chu duoi ban do.</li>
-<li><span class="bold">Tu dong thuyet minh gan POI:</span> He thong phat khi user o trong pham vi 35m. Neu user dung giua nhieu POI co khoang cach gan bang nhau, he thong uu tien POI chua nghe trong phien hien tai; neu van bang nhau thi dung thu tu on dinh de tranh doi qua lai lien tuc.</li>
-<li><span class="bold">Audio da ngon ngu:</span> Khi ngon ngu hien tai khong co file audio dung ngon ngu, he thong dung speechText va Web Speech API theo dung ngon ngu dang chon, khong fallback sang audio tieng Viet.</li>
-<li><span class="bold">Dang ky quan an:</span> Trang hop tac voi chu quan su dung tabs Dang ky moi va Lich su & Trang thai. Don bi tu choi co nut Sua lai tu don cu de nap lai thong tin cu vao form.</li>
-<li><span class="bold">Chon toa do GPS:</span> Form dang ky quan va Owner dashboard ho tro chon vi tri truc tiep tren ban do de lay latitude/longitude chinh xac hon.</li>
-<li><span class="bold">Owner dashboard:</span> Giao dien da duoc thiet ke lai theo huong toi gian, co sidebar rieng cho Tong quan, Quan ly thuc don, Thong tin quan, Thong tin tren ban do va QR quan.</li>
-<li><span class="bold">Quan ly thuc don:</span> Danh sach mon an hien theo grid; thao tac them/sua mon duoc dua vao dialog de giao dien gon hon. The mon an bo phan mo ta dai de de quet nhanh.</li>
-<li><span class="bold">QR quan:</span> Owner co the tao link cong khai /poi/{id}?source=qr, sao chep link, mo trang chi tiet va in standee Digital Menu. Luot truy cap tu QR duoc ghi nhan rieng trong thong ke.</li>
-<li><span class="bold">Admin dashboard:</span> Da bo thong ke tour du lich khoi tong quan va thay bang thong ke nguoi dang truy cap trong 5 phut, dong thoi bo sung tong so nguoi da tung truy cap.</li>
-</ul>
-
-<h3>2. Cap nhat so do PlantUML</h3>
-
-<ul>
-<li>Da cap nhat activity_08_user_view_poi_detail.puml theo luong mo chi tiet POI tu ban do hoac QR, tracking source va audio guide.</li>
-<li>Da cap nhat activity_10_auto_play_tts.puml va sequence_20_auto_play_tts.puml theo logic tu dong thuyet minh trong 35m, xu ly POI bang khoang cach va audio dung ngon ngu.</li>
-<li>Da cap nhat activity_11_user_upgrade_request.puml va sequence_21_user_upgrade_request.puml theo giao dien tabs, lich su don va sua lai tu don cu.</li>
-<li>Da cap nhat activity_14_owner_dashboard.puml va sequence_23_owner_update_poi_content.puml theo Owner dashboard moi, menu dialog, map picker va QR standee.</li>
-<li>Da cap nhat activity_15_analytics_tracking.puml va them sequence_25_qr_scan_tracking.puml cho visitor heartbeat, active users, total visitors, poi view, audio play va QR scan.</li>
-<li>Da cap nhat sequence_18_user_discover_poi.puml theo ban kinh co dinh 50/100/200/500/Tat ca va loc/sap xep POI tren frontend.</li>
-</ul>
-
-<h3>3. Danh gia nhanh va de xuat tiep theo</h3>
-
-<ul>
-<li><span class="bold">Can kiem tra sau deploy:</span> API backend phai la ban publish moi nhat, tranh loi deploy thu muc cu khong khop schema hoac file DLL bi hong.</li>
-<li><span class="bold">Bao mat:</span> Ban demo van cho phep mat khau demo dang plain text. Khi len production can chuyen sang BCrypt/Argon2 va migrate password_hash.</li>
-<li><span class="bold">Phan quyen API:</span> Can tiep tuc ra soat cac endpoint tao/sua/xoa POI, menu va noi dung owner de dam bao chi dung role moi thao tac duoc.</li>
-<li><span class="bold">Thong ke realtime:</span> Active users hien dua tren heartbeat trong 5 phut. Neu can realtime hon co the bo sung SignalR hoac WebSocket.</li>
-<li><span class="bold">Hieu nang ban do:</span> Khi so POI tang lon, nen chuyen loc ban kinh sang SQL bounding box/Haversine va index theo toa do thay vi loc nhieu tren frontend.</li>
-<li><span class="bold">Kiem thu:</span> Nen bo sung test cho auto narration tie-breaker, QR source tracking, owner stats va cooperate request history.</li>
-</ul>
-
 <!-- ======================== TRANG BÌA ======================== -->
 <div class="title-page">
 
@@ -211,7 +169,7 @@ td.center {
 
 <p>Trước hết, nhóm chúng em xin gửi lời cảm ơn chân thành và sâu sắc đến quý thầy cô và nhà trường đã tận tình giảng dạy, truyền đạt những kiến thức chuyên môn và kỹ năng thực tiễn quý báu trong suốt quá trình học tập. Những kiến thức nền tảng đó chính là cơ sở quan trọng giúp nhóm có thể nghiên cứu, xây dựng và hoàn thành đồ án này. Đồng thời, nhóm xin bày tỏ lòng biết ơn đến thầy cô hướng dẫn đã luôn theo sát, đóng góp ý kiến, hỗ trợ và định hướng kịp thời trong suốt quá trình thực hiện, giúp đồ án ngày càng hoàn thiện hơn cả về nội dung lẫn hình thức.</p>
 
-<p>Thông qua đồ án <span class="bold">DiDuDuaDi</span>, nhóm chúng em mong muốn vận dụng những kiến thức đã học để xây dựng một hệ thống quản lý và khám phá các điểm quan tâm (POI – Point of Interest) với tính năng thuyết minh đa ngôn ngữ, hỗ trợ người dùng trải nghiệm thực tế tại địa điểm. Hệ thống được thiết kế phục vụ ba đối tượng chính gồm <span class="bold">ADMIN</span>, <span class="bold">OWNER</span> và <span class="bold">USER</span>. Trong đó, <span class="bold">USER</span> có thể xem thông tin POI, tìm đường đến địa điểm, nghe thuyết minh đa ngôn ngữ tự động khi đến gần. <span class="bold">OWNER</span> (chủ cửa hàng/địa điểm) có thể tạo và quản lý nội dung POI, thực đơn, mã giảm giá. <span class="bold">ADMIN</span> đảm nhiệm vai trò quản lý tổng thể hệ thống, duyệt yêu cầu nâng cấp tài khoản và kiểm duyệt nội dung giới thiệu cửa hàng.</p>
+<p>Thông qua đồ án <span class="bold">DiDuDuaDi</span>, nhóm chúng em mong muốn vận dụng những kiến thức đã học để xây dựng một hệ thống quản lý và khám phá các điểm quan tâm (POI – Point of Interest) với tính năng thuyết minh đa ngôn ngữ, hỗ trợ người dùng trải nghiệm thực tế tại địa điểm. Hệ thống được thiết kế phục vụ ba đối tượng chính gồm <span class="bold">ADMIN</span>, <span class="bold">OWNER</span> và <span class="bold">USER</span>. Trong đó, <span class="bold">USER</span> có thể xem thông tin POI, tìm đường đến địa điểm, nghe thuyết minh đa ngôn ngữ tự động khi đến gần. <span class="bold">OWNER</span> (chủ cửa hàng/địa điểm) có thể quản lý nội dung POI, thực đơn, QR quán/standee và thống kê. <span class="bold">ADMIN</span> đảm nhiệm vai trò quản lý tổng thể hệ thống, duyệt yêu cầu nâng cấp tài khoản, xử lý thanh toán nâng quyền và kiểm duyệt nội dung giới thiệu cửa hàng.</p>
 
 <p>Mặc dù nhóm đã rất nỗ lực trong quá trình thực hiện, đồ án vẫn khó tránh khỏi những hạn chế và thiếu sót do thời gian và kinh nghiệm thực tế còn hạn chế. Vì vậy, nhóm chúng em rất mong nhận được những ý kiến đóng góp quý báu từ quý thầy cô để có thể tiếp tục hoàn thiện và phát triển đề tài tốt hơn trong tương lai.</p>
 
@@ -267,6 +225,7 @@ td.center {
 <p class="no-indent" style="margin-left:1.27cm;">4. Công nghệ sử dụng</p>
 
 <p class="no-indent"><span class="bold">X. Kết luận và hướng phát triển trong tương lai</span></p>
+<p class="no-indent"><span class="bold">PHỤ LỤC. Cập nhật hiện trạng chức năng</span></p>
 
 <!-- ======================== I. THÔNG TIN TỔNG QUAN ======================== -->
 <div class="page-break"></div>
@@ -278,6 +237,8 @@ td.center {
 <p>Trong bối cảnh du lịch và khám phá địa điểm ngày càng phát triển, nhu cầu tìm kiếm, trải nghiệm và tiếp cận thông tin về các điểm tham quan, nhà hàng và địa điểm ăn uống của người dùng tăng cao. Người dùng không chỉ cần biết vị trí hay thông tin cơ bản, mà còn mong muốn được nghe thuyết minh, tìm đường di chuyển và khám phá nội dung đa ngôn ngữ ngay tại chỗ. Tuy nhiên, thông tin về các địa điểm hiện nay còn phân tán, thiếu tính tương tác và chưa có nền tảng quản lý tập trung cho cả người dùng cuối lẫn chủ sở hữu địa điểm.</p>
 
 <p>Xuất phát từ thực tế đó, nhóm chúng em đã xây dựng <span class="bold">DiDuDuaDi</span> – hệ thống khám phá và trải nghiệm điểm quan tâm (POI) với trọng tâm là <span class="bold">thuyết minh đa ngôn ngữ tự động theo vị trí</span>. Hệ thống cho phép người dùng xem danh sách POI trên bản đồ, tìm đường đến địa điểm, và tự động nghe thuyết minh khi đến gần POI trong phạm vi xác định. Bên cạnh đó, DiDuDuaDi cung cấp công cụ quản lý cho <span class="bold">Owner</span> (chủ cửa hàng/địa điểm) để cập nhật thông tin, nội dung thuyết minh, thực đơn và theo dõi thống kê truy cập. <span class="bold">Admin</span> đóng vai trò quản lý tổng thể, duyệt yêu cầu nâng cấp tài khoản thành Owner và kiểm duyệt nội dung giới thiệu cửa hàng.</p>
+
+<p>Bên cạnh phạm vi tổng quát về các điểm quan tâm, dự án lựa chọn khu phố ẩm thực Vĩnh Khánh tại TP. Hồ Chí Minh làm bối cảnh triển khai minh họa ban đầu. Đây là khu vực có nhiều quán ăn, nhà hàng và địa điểm ẩm thực tập trung, phù hợp để mô phỏng nhu cầu tra cứu thông tin, xem thực đơn, tìm đường, quét QR tại quán và nghe thuyết minh đa ngôn ngữ. Việc lựa chọn bối cảnh này giúp hệ thống có tính thực tiễn rõ ràng hơn, đồng thời vẫn giữ khả năng mở rộng sang các khu vực hoặc loại hình POI khác trong tương lai.</p>
 
 <p>DiDuDuaDi được thiết kế theo kiến trúc <span class="bold">Client-Server</span> với <span class="bold">Backend</span> xây dựng bằng ASP.NET Core (.NET 10) và <span class="bold">Frontend</span> sử dụng React 18. Hệ thống áp dụng mô hình phân quyền ba vai trò (Admin, Owner, User), hỗ trợ bảy ngôn ngữ (Việt, Anh, Trung, Nhật, Hàn, Pháp, Thái) và tích hợp bản đồ OpenStreetMap kết hợp Leaflet.</p>
 
@@ -307,7 +268,7 @@ td.center {
 <ul>
 <li><span class="bold">Cung cấp nền tảng tra cứu và trải nghiệm POI toàn diện cho người dùng:</span> DiDuDuaDi hướng đến việc giúp USER dễ dàng tìm kiếm, xem thông tin chi tiết, định vị vị trí trên bản đồ, tìm đường di chuyển đến POI và nghe thuyết minh đa ngôn ngữ. Đặc biệt, hệ thống hỗ trợ <span class="bold">tự động phát thuyết minh khi người dùng đến gần POI</span> trong phạm vi xác định, mang lại trải nghiệm thực tế sinh động.</li>
 
-<li><span class="bold">Xây dựng công cụ quản lý POI hiệu quả cho Owner:</span> Sản phẩm tạo điều kiện để Owner (chủ cửa hàng) chủ động cập nhật thông tin shop, nội dung POI (tên, mô tả tiếng Việt/Anh), thực đơn món ăn với giá cả, và tạo mã claim code (mã giảm giá). Hệ thống tự động dịch nội dung sang 6 ngôn ngữ (Anh, Trung, Nhật, Hàn, Pháp, Thái) thông qua Google Translate API.</li>
+<li><span class="bold">Xây dựng công cụ quản lý POI hiệu quả cho Owner:</span> Sản phẩm tạo điều kiện để Owner (chủ cửa hàng) chủ động cập nhật thông tin shop, nội dung POI theo một ngôn ngữ nguồn, thực đơn món ăn với giá cả, QR quán/standee và thống kê truy cập. Hệ thống tự động dịch nội dung sang các ngôn ngữ còn lại thông qua Google Translate API.</li>
 
 <li><span class="bold">Hỗ trợ quản lý tổng thể và kiểm duyệt nội dung cho Admin:</span> DiDuDuaDi cung cấp cho Admin các công cụ để xem và duyệt các yêu cầu nâng cấp tài khoản thành Owner, cũng như kiểm duyệt nội dung giới thiệu cửa hàng (shop introduction) do Owner gửi lên.</li>
 
@@ -341,10 +302,10 @@ td.center {
 
 <ul>
 <li><span class="bold">Quản lý hồ sơ cửa hàng:</span> Cập nhật tên shop, địa chỉ, tọa độ, giờ mở cửa, số điện thoại, hình ảnh và nội dung giới thiệu (pending introduction).</li>
-<li><span class="bold">Quản lý nội dung POI:</span> Chỉnh sửa tên, mô tả POI bằng tiếng Việt và tiếng Anh. Hệ thống tự động dịch sang các ngôn ngữ còn lại.</li>
+<li><span class="bold">Quản lý nội dung POI:</span> Chỉnh sửa tên, mô tả POI bằng một ngôn ngữ nguồn. Hệ thống tự động dịch sang các ngôn ngữ còn lại.</li>
 <li><span class="bold">Quản lý thực đơn (Menu Items):</span> Thêm, sửa, xóa các món ăn với thông tin tên, mô tả, giá, hình ảnh, trạng thái còn hàng và thứ tự hiển thị.</li>
-<li><span class="bold">Tạo mã claim code:</span> Sinh mã giảm giá (định dạng VK + 6 chữ số ngẫu nhiên) cho khách hàng.</li>
-<li><span class="bold">Xem thống kê:</span> Theo dõi lượt truy cập, lượt phát audio và số mã claim code đã tạo.</li>
+<li><span class="bold">Quản lý QR quán:</span> Tạo link công khai /poi/{id}?source=qr, sao chép link, mở trang chi tiết và in standee QR.</li>
+<li><span class="bold">Xem thống kê:</span> Theo dõi lượt truy cập, lượt phát audio và lượt quét QR.</li>
 </ul>
 
 <h3>3. User</h3>
@@ -375,11 +336,12 @@ td.center {
 
 <ul>
 <li>Xây dựng hệ thống đăng ký, đăng nhập và phân quyền người dùng theo ba vai trò: Admin, Owner, User.</li>
-<li>Phát triển chức năng quản lý POI: tạo, xem, cập nhật, xóa POI (CRUD công khai).</li>
+<li>Phát triển chức năng quản lý POI: Admin tạo, cập nhật, xóa POI; người dùng có thể xem danh sách, xem chi tiết và tìm POI gần vị trí hiện tại.</li>
 <li>Xây dựng chức năng tra cứu POI: xem danh sách, tìm kiếm theo tên, lọc theo category, tìm POI gần vị trí hiện tại theo bán kính tùy chỉnh.</li>
+<li>Sử dụng khu phố ẩm thực Vĩnh Khánh làm phạm vi dữ liệu minh họa ban đầu cho các POI quán ăn, thực đơn, QR quán và trải nghiệm thuyết minh tại địa điểm.</li>
 <li>Tích hợp bản đồ OpenStreetMap + Leaflet để hiển thị vị trí POI và hỗ trợ tìm đường đến POI thông qua OSRM.</li>
 <li>Xây dựng chức năng thuyết minh đa ngôn ngữ (7 ngôn ngữ) với auto-play khi đến gần POI.</li>
-<li>Phát triển Dashboard cho Owner: quản lý shop profile, POI content, menu items, claim codes và thống kê.</li>
+<li>Phát triển Dashboard cho Owner: quản lý shop profile, POI content, menu items, QR quán/standee và thống kê.</li>
 <li>Phát triển Dashboard cho Admin: duyệt owner upgrade requests và shop introduction reviews.</li>
 <li>Tích hợp chatbot AI hỗ trợ tra cứu POI và gợi ý.</li>
 <li>Đảm bảo hệ thống có cơ chế bảo mật JWT, phân quyền rõ ràng và hoạt động ổn định.</li>
@@ -394,7 +356,7 @@ td.center {
 <li>Chức năng đánh giá (rating), bình luận của người dùng đối với POI.</li>
 <li>Tích hợp quảng cáo, khuyến mãi nâng cao.</li>
 <li>Ứng dụng di động (Mobile App) native cho iOS/Android.</li>
-<li>Chức năng tạo và quản lý TOUR (định hướng phát triển trong tương lai).</li>
+<li>Các chức năng Food Tour nâng cao như tối ưu lịch trình tự động, chỉ đường theo từng chặng và cá nhân hóa tour theo sở thích.</li>
 </ul>
 
 <!-- ======================== V. DANH SÁCH TÍNH NĂNG ======================== -->
@@ -415,16 +377,16 @@ td.center {
 
 <table>
 <tr><th style="width:8%;">Mã</th><th style="width:24%;">Tên tính năng</th><th style="width:42%;">Mô tả ngắn</th><th style="width:26%;">Đối tượng</th></tr>
-<tr><td class="center">F6</td><td>Tạo POI</td><td>Tạo mới điểm quan tâm</td><td>Public</td></tr>
-<tr><td class="center">F7</td><td>Cập nhật POI</td><td>Chỉnh sửa thông tin POI</td><td>Public</td></tr>
+<tr><td class="center">F6</td><td>Tạo POI</td><td>Tạo mới điểm quan tâm</td><td>Admin</td></tr>
+<tr><td class="center">F7</td><td>Cập nhật POI</td><td>Chỉnh sửa thông tin POI</td><td>Admin</td></tr>
 <tr><td class="center">F8</td><td>Xem danh sách POI</td><td>Hiển thị tất cả POI đang hoạt động</td><td>Public</td></tr>
 <tr><td class="center">F9</td><td>Xem POI gần vị trí hiện tại</td><td>Tìm POI trong bán kính tùy chỉnh</td><td>Public</td></tr>
 <tr><td class="center">F10</td><td>Xem chi tiết POI</td><td>Xem thông tin đầy đủ của một POI</td><td>Public</td></tr>
-<tr><td class="center">F11</td><td>Xóa POI</td><td>Xóa POI khỏi hệ thống</td><td>Public</td></tr>
+<tr><td class="center">F11</td><td>Xóa POI</td><td>Xóa POI khỏi hệ thống</td><td>Admin</td></tr>
 <tr><td class="center">F12</td><td>Quản lý hồ sơ cửa hàng</td><td>Owner cập nhật thông tin shop, địa chỉ, giờ mở</td><td>Owner</td></tr>
-<tr><td class="center">F13</td><td>Quản lý nội dung POI</td><td>Owner chỉnh sửa tên, mô tả POI (VI/EN), hệ thống tự động dịch</td><td>Owner</td></tr>
+<tr><td class="center">F13</td><td>Quản lý nội dung POI</td><td>Owner chọn ngôn ngữ nguồn, nhập tên/mô tả POI, hệ thống tự động dịch sang các ngôn ngữ còn lại</td><td>Owner</td></tr>
 <tr><td class="center">F14</td><td>Quản lý thực đơn</td><td>Owner thêm/sửa/xóa món ăn, giá cả, hình ảnh</td><td>Owner</td></tr>
-<tr><td class="center">F15</td><td>Tạo mã claim code</td><td>Owner sinh mã giảm giá cho khách</td><td>Owner</td></tr>
+<tr><td class="center">F15</td><td>Quản lý QR quán</td><td>Owner tạo link QR công khai, sao chép link và in standee</td><td>Owner</td></tr>
 <tr><td class="center">F16</td><td>Kiểm duyệt nội dung giới thiệu</td><td>Admin duyệt pending introduction của shop</td><td>Admin</td></tr>
 </table>
 
@@ -445,7 +407,7 @@ td.center {
 <tr><th style="width:8%;">Mã</th><th style="width:24%;">Tên tính năng</th><th style="width:42%;">Mô tả ngắn</th><th style="width:26%;">Đối tượng</th></tr>
 <tr><td class="center">F22</td><td>Thuyết minh POI</td><td>Phát audio thuyết minh cho từng POI</td><td>User</td></tr>
 <tr><td class="center">F23</td><td>Hỗ trợ đa ngôn ngữ</td><td>7 ngôn ngữ: VI, EN, ZH, JA, KO, FR, TH</td><td>User</td></tr>
-<tr><td class="center">F24</td><td>Dịch nội dung tự động</td><td>Owner cập nhật VI/EN, hệ thống tự động dịch sang 5 ngôn ngữ còn lại</td><td>Hệ thống</td></tr>
+<tr><td class="center">F24</td><td>Dịch nội dung tự động</td><td>Owner cập nhật nội dung bằng một ngôn ngữ nguồn, hệ thống tự động dịch sang các ngôn ngữ còn lại</td><td>Hệ thống</td></tr>
 <tr><td class="center">F25</td><td>Text-to-Speech</td><td>Tích hợp Web Speech API + Google Cloud TTS</td><td>User</td></tr>
 </table>
 
@@ -481,11 +443,11 @@ td.center {
 <h3>2. Yêu cầu chức năng về quản lý POI</h3>
 
 <ul>
-<li><span class="bold">FR-07:</span> Hệ thống hỗ trợ CRUD POI công khai (tạo, xem, cập nhật, xóa) mà không yêu cầu xác thực.</li>
+<li><span class="bold">FR-07:</span> Hệ thống cho phép Admin tạo, cập nhật, xóa POI; các chức năng xem danh sách, xem chi tiết và tìm POI gần vị trí hiện tại được mở công khai cho người dùng tra cứu.</li>
 <li><span class="bold">FR-08:</span> Owner có thể cập nhật thông tin shop profile (tên, địa chỉ, tọa độ, giờ mở cửa, số điện thoại, hình ảnh, nội dung giới thiệu).</li>
-<li><span class="bold">FR-09:</span> Owner có thể chỉnh sửa nội dung POI (tên, mô tả tiếng Việt và tiếng Anh). Hệ thống tự động dịch sang tiếng Trung, Nhật, Hàn, Pháp, Thái.</li>
+<li><span class="bold">FR-09:</span> Owner có thể chỉnh sửa nội dung POI bằng một ngôn ngữ nguồn. Hệ thống tự động dịch sang các ngôn ngữ còn lại.</li>
 <li><span class="bold">FR-10:</span> Owner có thể quản lý thực đơn (thêm, sửa, xóa món ăn) với đầy đủ thông tin tên, mô tả, giá, hình ảnh, trạng thái và thứ tự hiển thị.</li>
-<li><span class="bold">FR-11:</span> Owner có thể tạo mã claim code (định dạng VK + 6 chữ số) với số tiền tùy chọn và thời hạn hết hạn.</li>
+<li><span class="bold">FR-11:</span> Owner có thể tạo QR quán dạng /poi/{id}?source=qr, sao chép link, mở trang chi tiết và in standee; hệ thống ghi nhận lượt truy cập từ QR vào analytics.</li>
 <li><span class="bold">FR-12:</span> Admin có quyền kiểm duyệt nội dung giới thiệu cửa hàng (pending introduction), phê duyệt hoặc từ chối.</li>
 <li><span class="bold">FR-13:</span> Hệ thống lưu trữ đầy đủ thông tin POI bao gồm tên đa ngôn ngữ, mô tả đa ngôn ngữ, vị trí (latitude/longitude), bán kính kích hoạt, hình ảnh và thông tin shop liên kết.</li>
 </ul>
@@ -510,7 +472,7 @@ td.center {
 <li><span class="bold">FR-23:</span> Hệ thống tự động phát thuyết minh khi USER đến gần POI trong phạm vi xác định (~35m), nếu tính năng auto-play được bật.</li>
 <li><span class="bold">FR-24:</span> Hệ thống sử dụng Web Speech API làm nguồn thuyết minh chính, kết hợp Google Cloud TTS (qua API dịch thuật) làm fallback, đặc biệt cho tiếng Việt.</li>
 <li><span class="bold">FR-25:</span> Hệ thống ghi nhận sự kiện khi USER nghe thuyết minh (analytics).</li>
-<li><span class="bold">FR-26:</span> Owner cập nhật nội dung tiếng Việt và tiếng Anh, hệ thống tự động dịch sang các ngôn ngữ còn lại thông qua Google Translate API.</li>
+<li><span class="bold">FR-26:</span> Owner cập nhật nội dung bằng một ngôn ngữ nguồn, hệ thống tự động dịch sang các ngôn ngữ còn lại thông qua Google Translate API.</li>
 </ul>
 
 <!-- ======================== VII. YÊU CẦU PHI CHỨC NĂNG ======================== -->
@@ -551,7 +513,7 @@ td.center {
 <li><span class="bold">NFR-13:</span> Hệ thống có khả năng mở rộng thêm chức năng mới nhờ kiến trúc Repository pattern phân tầng rõ ràng.</li>
 <li><span class="bold">NFR-14:</span> Dễ dàng bổ sung thêm ngôn ngữ thuyết minh mới thông qua cơ chế dictionary-based localization.</li>
 <li><span class="bold">NFR-15:</span> Mã nguồn được tổ chức rõ ràng theo mô hình Controllers → Services → Repositories → Data, thuận tiện cho việc bảo trì và nâng cấp.</li>
-<li><span class="bold">NFR-16:</span> Hỗ trợ triển khai thông qua Docker Compose với các service PostgreSQL, Backend và Frontend độc lập.</li>
+<li><span class="bold">NFR-16:</span> Hỗ trợ triển khai thông qua Docker Compose với các service MySQL, Backend và Frontend độc lập.</li>
 </ul>
 
 <h3>5. Yêu cầu về khả năng sử dụng</h3>
@@ -717,7 +679,7 @@ td.center {
 
 <p>Sơ đồ Activity này mô tả quy trình Owner truy cập và quản lý dashboard.</p>
 
-<p>Owner đăng nhập và truy cập trang Owner dashboard. Hệ thống hiển thị: thông tin shop profile, POI chính liên kết với shop, danh sách menu items, các claim codes gần đây và thống kê (tổng lượt truy cập, tổng lượt phát audio, số mã đã tạo). Owner có thể thực hiện các thao tác: cập nhật shop profile, chỉnh sửa nội dung POI, quản lý menu items, tạo claim code mới.</p>
+<p>Owner đăng nhập và truy cập trang Owner dashboard. Hệ thống hiển thị: thông tin shop profile, POI chính liên kết với shop, danh sách menu items và thống kê (tổng lượt truy cập, tổng lượt phát audio, lượt quét QR). Owner có thể thực hiện các thao tác: cập nhật shop profile, chỉnh sửa nội dung POI theo một ngôn ngữ nguồn để hệ thống tự dịch, quản lý menu items và tạo QR standee cho trang chi tiết quán.</p>
 
 <p class="no-indent"><span class="bold">– Ghi nhận analytics (lượt xem POI và lượt phát audio)</span></p>
 
@@ -730,43 +692,85 @@ td.center {
 
 <p>Khi User xem chi tiết một POI, frontend gửi request đến endpoint /analytics/poi-view với thông tin poiId, languageCode và source. Hệ thống ghi nhận sự kiện vào bảng shop_visit_events. Tương tự, khi User nghe thuyết minh của POI, hệ thống gửi request đến /analytics/audio-play và ghi nhận vào bảng audio_play_events. Dữ liệu này được tổng hợp để hiển thị trên Owner dashboard và phục vụ phân tích sau này.</p>
 
+<p class="no-indent"><span class="bold">– Các sơ đồ activity bổ sung sau cập nhật</span></p>
+
+<p>Ngoài các luồng chính ở trên, hệ thống đã bổ sung thêm các sơ đồ activity cho chức năng lưu POI yêu thích, quản lý/xem Food Tour và Chat trợ lý AI. Các sơ đồ tương ứng nằm trong các file activity_16_user_favorites.puml, activity_17_food_tour.puml và activity_18_ai_chat.puml.</p>
+
+<p class="no-indent"><span class="bold">– User lưu POI yêu thích</span></p>
+<div class="figure-placeholder">[Chèn hình sơ đồ activity tại đây]</div>
+<p class="figure-caption">Hình 16: Sơ đồ activity User lưu POI yêu thích</p>
+
+<p>Sơ đồ Activity này mô tả quy trình User lưu hoặc bỏ lưu một POI vào danh sách yêu thích. Hệ thống kiểm tra trạng thái đăng nhập, ghi nhận thao tác vào dữ liệu yêu thích và cập nhật lại trạng thái hiển thị trên giao diện bản đồ/chi tiết POI.</p>
+
+<p class="no-indent"><span class="bold">– User xem và sử dụng Food Tour</span></p>
+<div class="figure-placeholder">[Chèn hình sơ đồ activity tại đây]</div>
+<p class="figure-caption">Hình 17: Sơ đồ activity User xem Food Tour</p>
+
+<p>Sơ đồ Activity này mô tả quy trình User xem danh sách Food Tour, mở chi tiết tour, theo dõi các POI thành phần và chọn điểm đến trong tour để xem thông tin hoặc tìm đường trên bản đồ.</p>
+
+<p class="no-indent"><span class="bold">– User chat với trợ lý AI</span></p>
+<div class="figure-placeholder">[Chèn hình sơ đồ activity tại đây]</div>
+<p class="figure-caption">Hình 18: Sơ đồ activity Chat trợ lý AI</p>
+
+<p>Sơ đồ Activity này mô tả quy trình User gửi câu hỏi đến trợ lý AI, hệ thống xử lý ngữ cảnh liên quan đến địa điểm/ẩm thực và trả về phản hồi gợi ý POI hoặc thông tin phù hợp với nhu cầu tra cứu.</p>
+
 <h3>3. Sơ đồ SEQUENCE DIAGRAM</h3>
 
 <p class="no-indent"><span class="bold">– User đăng ký tài khoản</span></p>
 <div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
-<p class="figure-caption">Hình 16: Sơ đồ sequence User đăng ký tài khoản</p>
+<p class="figure-caption">Hình 19: Sơ đồ sequence User đăng ký tài khoản</p>
 
 <p class="no-indent"><span class="bold">– User đăng nhập hệ thống</span></p>
 <div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
-<p class="figure-caption">Hình 17: Sơ đồ sequence User đăng nhập</p>
+<p class="figure-caption">Hình 20: Sơ đồ sequence User đăng nhập</p>
 
 <p class="no-indent"><span class="bold">– User khám phá và xem chi tiết POI</span></p>
 <div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
-<p class="figure-caption">Hình 18: Sơ đồ sequence User khám phá POI</p>
+<p class="figure-caption">Hình 21: Sơ đồ sequence User khám phá POI</p>
 
 <p class="no-indent"><span class="bold">– User tìm đường đến POI</span></p>
 <div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
-<p class="figure-caption">Hình 19: Sơ đồ sequence User tìm đường</p>
+<p class="figure-caption">Hình 22: Sơ đồ sequence User tìm đường</p>
 
 <p class="no-indent"><span class="bold">– Auto-play thuyết minh khi đến gần POI</span></p>
 <div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
-<p class="figure-caption">Hình 20: Sơ đồ sequence auto-play thuyết minh</p>
+<p class="figure-caption">Hình 23: Sơ đồ sequence auto-play thuyết minh</p>
 
 <p class="no-indent"><span class="bold">– User gửi yêu cầu nâng cấp Owner</span></p>
 <div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
-<p class="figure-caption">Hình 21: Sơ đồ sequence User gửi yêu cầu nâng cấp</p>
+<p class="figure-caption">Hình 24: Sơ đồ sequence User gửi yêu cầu nâng cấp</p>
 
 <p class="no-indent"><span class="bold">– Admin duyệt yêu cầu nâng cấp Owner</span></p>
 <div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
-<p class="figure-caption">Hình 22: Sơ đồ sequence Admin duyệt yêu cầu nâng cấp</p>
+<p class="figure-caption">Hình 25: Sơ đồ sequence Admin duyệt yêu cầu nâng cấp</p>
 
 <p class="no-indent"><span class="bold">– Owner cập nhật nội dung POI và hệ thống tự động dịch</span></p>
 <div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
-<p class="figure-caption">Hình 23: Sơ đồ sequence Owner cập nhật POI content</p>
+<p class="figure-caption">Hình 26: Sơ đồ sequence Owner cập nhật POI content</p>
 
 <p class="no-indent"><span class="bold">– Admin kiểm duyệt shop introduction</span></p>
 <div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
-<p class="figure-caption">Hình 24: Sơ đồ sequence Admin review shop intro</p>
+<p class="figure-caption">Hình 27: Sơ đồ sequence Admin review shop intro</p>
+
+<p class="no-indent"><span class="bold">– Các sơ đồ sequence bổ sung sau cập nhật</span></p>
+
+<p>Nhóm sơ đồ sequence bổ sung gồm sequence_25_qr_scan_tracking.puml cho QR scan analytics, sequence_26_user_favorites.puml cho POI yêu thích, sequence_27_food_tour.puml cho Food Tour và sequence_28_ai_chat.puml cho Chat trợ lý AI.</p>
+
+<p class="no-indent"><span class="bold">– QR scan tracking</span></p>
+<div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
+<p class="figure-caption">Hình 28: Sơ đồ sequence ghi nhận lượt quét QR</p>
+
+<p class="no-indent"><span class="bold">– User lưu POI yêu thích</span></p>
+<div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
+<p class="figure-caption">Hình 29: Sơ đồ sequence User lưu POI yêu thích</p>
+
+<p class="no-indent"><span class="bold">– User xem Food Tour</span></p>
+<div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
+<p class="figure-caption">Hình 30: Sơ đồ sequence User xem Food Tour</p>
+
+<p class="no-indent"><span class="bold">– User chat với trợ lý AI</span></p>
+<div class="figure-placeholder">[Chèn hình sơ đồ sequence tại đây]</div>
+<p class="figure-caption">Hình 31: Sơ đồ sequence Chat trợ lý AI</p>
 
 <!-- ======================== IX. THIẾT KẾ HỆ THỐNG ======================== -->
 <div class="page-break"></div>
@@ -789,7 +793,7 @@ td.center {
 <tr><td class="center">8</td><td>tour_pois</td><td>Liên kết POI với tour, xác định thứ tự điểm dừng</td></tr>
 <tr><td class="center">9</td><td>user_favorites</td><td>Lưu danh sách POI yêu thích của người dùng</td></tr>
 <tr><td class="center">10</td><td>owner_upgrade_requests</td><td>Lưu yêu cầu nâng cấp tài khoản từ user lên owner</td></tr>
-<tr><td class="center">11</td><td>cash_claim_codes</td><td>Lưu mã giảm giá do owner tạo cho khách hàng</td></tr>
+<tr><td class="center">11</td><td>cash_claim_codes</td><td>Bảng dữ liệu chuẩn bị cho chức năng claim code; hiện dashboard chỉ đọc thống kê/lịch sử nếu có dữ liệu seed</td></tr>
 <tr><td class="center">12</td><td>shop_visit_events</td><td>Ghi nhận sự kiện lượt truy cập shop/POI (analytics)</td></tr>
 <tr><td class="center">13</td><td>audio_play_events</td><td>Ghi nhận sự kiện lượt phát audio thuyết minh (analytics)</td></tr>
 <tr><td class="center">14</td><td>chat_sessions</td><td>Quản lý phiên chat với trợ lý AI</td></tr>
@@ -1011,7 +1015,7 @@ Cơ sở dữ liệu quan hệ MySQL lưu trữ toàn bộ dữ liệu hệ th�
 <div class="figure-placeholder">
 [Chèn hình sơ đồ kiến trúc tổng quát tại đây]
 </div>
-<p class="figure-caption">Hình 25: Sơ đồ kiến trúc tổng quát của hệ thống DiDuDuaDi</p>
+<p class="figure-caption">Hình 32: Sơ đồ kiến trúc tổng quát của hệ thống DiDuDuaDi</p>
 
 <h3>4. Công nghệ sử dụng</h3>
 
@@ -1045,8 +1049,8 @@ Cơ sở dữ liệu quan hệ MySQL lưu trữ toàn bộ dữ liệu hệ th�
 <h4>4.3. DevOps</h4>
 
 <ul>
-<li><span class="bold">Docker + Docker Compose:</span> Đóng gói và triển khai ba service độc lập (PostgreSQL/PostGIS, Backend, Frontend).</li>
-<li><span class="bold">PostgreSQL/PostGIS:</span> Cơ sở dữ liệu không gian cho môi trường production (trong docker-compose).</li>
+<li><span class="bold">Docker + Docker Compose:</span> Đóng gói và triển khai các service độc lập (MySQL, Backend, Frontend) cho môi trường chạy cục bộ hoặc triển khai.</li>
+<li><span class="bold">MySQL 8.0+ / Aiven MySQL:</span> Cơ sở dữ liệu quan hệ lưu trữ tài khoản, shop, POI, bản dịch, menu, tour và analytics.</li>
 <li><span class="bold">Nginx:</span> Reverse proxy cho frontend trong container.</li>
 </ul>
 
@@ -1064,7 +1068,7 @@ Cơ sở dữ liệu quan hệ MySQL lưu trữ toàn bộ dữ liệu hệ th�
 <li>Quản lý POI với thông tin đa ngôn ngữ (7 ngôn ngữ).</li>
 <li>Tích hợp bản đồ OpenStreetMap + Leaflet, tìm đường OSRM.</li>
 <li>Hệ thống thuyết minh đa ngôn ngữ với auto-play theo vị trí GPS.</li>
-<li>Dashboard cho Owner quản lý shop, POI content, menu items và claim codes.</li>
+<li>Dashboard cho Owner quản lý shop, POI content, menu items, QR quán/standee và thống kê.</li>
 <li>Dashboard cho Admin duyệt owner upgrade requests và shop introductions.</li>
 <li>Chatbot AI hỗ trợ tra cứu và gợi ý POI.</li>
 <li>Analytics tracking cho lượt truy cập và lượt phát audio.</li>
@@ -1076,11 +1080,11 @@ Cơ sở dữ liệu quan hệ MySQL lưu trữ toàn bộ dữ liệu hệ th�
 <h3>2. Hạn chế hiện tại</h3>
 
 <ul>
-<li><span class="bold">GetNearby()</span> hiện đang gọi GetAll() rồi lọc trong C# bằng Haversine, chưa tối ưu cho dữ liệu lớn. Cần cải thiện bằng bounding box/haversine SQL hoặc sử dụng PostGIS spatial index.</li>
+<li><span class="bold">GetNearby()</span> hiện đang gọi GetAll() rồi lọc trong C# bằng Haversine, chưa tối ưu cho dữ liệu lớn. Cần cải thiện bằng bounding box/haversine SQL, spatial index của MySQL hoặc cột tính toán khoảng cách.</li>
 <li><span class="bold">Chưa sắp xếp kết quả theo khoảng cách</span> trong GetNearby(). Cần thêm OrderBy để POI gần nhất lên đầu.</li>
 <li><span class="bold">Validate controller</span> chỉ kiểm tra tọa độ, chưa kiểm tra radius âm hoặc quá lớn.</li>
 <li><span class="bold">Mật khẩu lưu plaintext</span>, cần chuyển sang BCrypt hoặc Argon2 cho production.</li>
-<li><span class="bold">POI CRUD đang public</span> (không yêu cầu auth), cần xem xét phân quyền cho các thao tác tạo/sửa/xóa.</li>
+<li><span class="bold">Phân quyền POI CRUD</span> đã được giới hạn cho Admin ở API chính, tuy nhiên vẫn cần tiếp tục rà soát quyền sở hữu dữ liệu, endpoint phụ và audit log khi mở rộng quyền chỉnh sửa cho Owner.</li>
 </ul>
 
 <h3>3. Định hướng phát triển</h3>
@@ -1088,14 +1092,61 @@ Cơ sở dữ liệu quan hệ MySQL lưu trữ toàn bộ dữ liệu hệ th�
 <ul>
 <li><span class="bold">Tối ưu truy vấn GetNearby():</span> Lọc bằng SQL bounding box/haversine, thêm ORDER BY khoảng cách, validate radius hợp lệ.</li>
 <li><span class="bold">Bảo mật mật khẩu:</span> Tích hợp BCrypt/Argon2 cho việc lưu trữ và xác thực mật khẩu.</li>
-<li><span class="bold">Phân quyền POI CRUD:</span> Giới hạn quyền tạo/sửa/xóa POI cho Owner và Admin.</li>
+<li><span class="bold">Hoàn thiện phân quyền POI CRUD:</span> Kiểm soát quyền sở hữu dữ liệu, audit log và phân tách quyền Admin/Owner nếu mở rộng luồng Owner tự chỉnh sửa POI công khai.</li>
 <li><span class="bold">Chuẩn hóa API documentation:</span> Bổ sung Swagger/OpenAPI cho hệ thống API.</li>
 <li><span class="bold">Mở rộng kiểm thử:</span> Bổ sung unit test và integration test cho controllers, services và repositories.</li>
 <li><span class="bold">Tăng cường bảo mật:</span> Rate limiting, audit log, ẩn thông tin nhạy cảm trong response.</li>
 <li><span class="bold">Tối ưu hiệu năng:</span> Index database cho các cột thường query, thêm caching layer (Redis) cho POI nearby.</li>
 <li><span class="bold">Bổ sung logging, metrics:</span> Tích hợp Serilog, Prometheus/Grafana cho monitoring.</li>
 <li><span class="bold">Hoàn thiện CI/CD:</span> Tự động hóa quy trình build, test và deploy.</li>
-<li><span class="bold">Phát triển chức năng Tour:</span> Tạo và quản lý tour, cho phép User xem chi tiết lộ trình tour với các POI thành phần.</li>
+<li><span class="bold">Hoàn thiện Food Tour:</span> Bổ sung chi tiết tour, chỉ đường theo từng chặng, tối ưu thứ tự POI và trải nghiệm xem lộ trình trên bản đồ.</li>
 <li><span class="bold">Nâng cao trải nghiệm người dùng:</span> Gợi ý POI cá nhân hóa, offline guide, rating/review cho POI.</li>
 <li><span class="bold">Ứng dụng di động:</span> Phát triển mobile app (React Native/Flutter) cho trải nghiệm tốt hơn trên thiết bị di động.</li>
+</ul>
+
+<!-- ======================== PHỤ LỤC CẬP NHẬT HIỆN TRẠNG ======================== -->
+<div class="page-break"></div>
+
+<h1>PHỤ LỤC: CẬP NHẬT HIỆN TRẠNG CHỨC NĂNG</h1>
+
+<p>Phụ lục này bổ sung các thay đổi mới của hệ thống DiDuDuaDi sau khi hoàn thiện giao diện Owner/Admin, QR public link, thống kê truy cập và tự động thuyết minh gần POI.</p>
+
+<h3>1. Các chức năng đã được cập nhật</h3>
+
+<ul>
+<li><span class="bold">Bản đồ người dùng:</span> Bán kính tìm quanh đã chuyển sang ô chọn mốc cố định 50m, 100m, 200m, 500m và tùy chọn Tất cả. Tọa độ hiện tại được đưa xuống phần ghi chú dưới bản đồ.</li>
+<li><span class="bold">Tự động thuyết minh gần POI:</span> Hệ thống phát khi user ở trong phạm vi 35m. Nếu user đứng giữa nhiều POI có khoảng cách gần bằng nhau, hệ thống ưu tiên POI chưa nghe trong phiên hiện tại; nếu vẫn bằng nhau thì dùng thứ tự ổn định để tránh đổi qua lại liên tục.</li>
+<li><span class="bold">Audio đa ngôn ngữ:</span> Khi ngôn ngữ hiện tại không có file audio đúng ngôn ngữ, hệ thống dùng speechText và Web Speech API theo đúng ngôn ngữ đang chọn, không fallback sang audio tiếng Việt.</li>
+<li><span class="bold">Đăng ký quán ăn:</span> Trang hợp tác với chủ quán sử dụng tabs Đăng ký mới và Lịch sử & Trạng thái. Đơn bị từ chối có nút Sửa lại từ đơn cũ để nạp lại thông tin cũ vào form; đơn được duyệt bước đầu sẽ chuyển sang payment_pending và hiển thị QR thanh toán nâng quyền.</li>
+<li><span class="bold">Chọn tọa độ GPS:</span> Form đăng ký quán và Owner dashboard hỗ trợ chọn vị trí trực tiếp trên bản đồ để lấy latitude/longitude chính xác hơn.</li>
+<li><span class="bold">Owner dashboard:</span> Giao diện đã được thiết kế lại theo hướng tối giản, có sidebar riêng cho Tổng quan, Quản lý thực đơn, Thông tin quán, Thông tin trên bản đồ và QR quán.</li>
+<li><span class="bold">Quản lý thực đơn:</span> Danh sách món ăn hiển thị theo grid; thao tác thêm/sửa món được đưa vào dialog để giao diện gọn hơn. Thẻ món ăn bỏ phần mô tả dài để dễ quét nhanh.</li>
+<li><span class="bold">QR quán:</span> Owner có thể tạo link công khai /poi/{id}?source=qr, sao chép link, mở trang chi tiết và in standee Digital Menu. Lượt truy cập từ QR được ghi nhận riêng trong thống kê.</li>
+<li><span class="bold">Admin dashboard:</span> Bổ sung xử lý đơn payment_pending, xác nhận/hủy QR thanh toán nâng quyền, quản lý Food Tour và các thống kê truy cập/top POI/top shop.</li>
+</ul>
+
+<h3>2. Cập nhật sơ đồ PlantUML</h3>
+
+<ul>
+<li>Đã cập nhật activity_08_user_view_poi_detail.puml theo luồng mở chi tiết POI từ bản đồ hoặc QR, tracking source và audio guide.</li>
+<li>Đã cập nhật activity_10_auto_play_tts.puml và sequence_20_auto_play_tts.puml theo logic tự động thuyết minh trong 35m, xử lý POI bằng khoảng cách và audio đúng ngôn ngữ.</li>
+<li>Đã cập nhật activity_11_user_upgrade_request.puml và sequence_21_user_upgrade_request.puml theo giao diện tabs, lịch sử đơn, sửa lại từ đơn cũ và payment_pending QR.</li>
+<li>Đã cập nhật activity_12_admin_review_upgrade.puml và sequence_22_admin_review_upgrade.puml theo luồng duyệt hai bước: tạo QR thanh toán, sau đó xác nhận thanh toán mới kích hoạt Owner.</li>
+<li>Đã cập nhật activity_14_owner_dashboard.puml và sequence_23_owner_update_poi_content.puml theo Owner dashboard mới, menu dialog, map picker, QR standee và form POI một ngôn ngữ nguồn tự dịch sang các ngôn ngữ còn lại.</li>
+<li>Đã cập nhật activity_15_analytics_tracking.puml và thêm sequence_25_qr_scan_tracking.puml cho visitor heartbeat, active users, total visitors, poi view, audio play và QR scan.</li>
+<li>Đã cập nhật sequence_18_user_discover_poi.puml theo bán kính cố định 50/100/200/500/Tất cả và lọc/sắp xếp POI trên frontend.</li>
+<li>Đã bổ sung activity_16/sequence_26 cho POI yêu thích, activity_17/sequence_27 cho Food Tour và activity_18/sequence_28 cho Chat trợ lý AI.</li>
+<li>Đã cập nhật các usecase_01..04 để bổ sung QR quán, Food Tour, POI yêu thích và thanh toán nâng quyền Owner; chức năng claim code được chuyển ra khỏi nhóm chức năng Owner đang hoạt động vì hiện chưa có endpoint tạo claim code trong OwnerController.</li>
+</ul>
+
+<h3>3. Đánh giá nhanh và đề xuất tiếp theo</h3>
+
+<ul>
+<li><span class="bold">Cần kiểm tra sau deploy:</span> API backend phải là bản publish mới nhất, tránh lỗi deploy thư mục cũ không khớp schema hoặc file DLL bị hỏng.</li>
+<li><span class="bold">Bảo mật:</span> Bản demo vẫn cho phép mật khẩu demo dạng plain text. Khi lên production cần chuyển sang BCrypt/Argon2 và migrate password_hash.</li>
+<li><span class="bold">Phân quyền API:</span> Cần tiếp tục rà soát các endpoint tạo/sửa/xóa POI, menu và nội dung owner để đảm bảo chỉ đúng role mới thao tác được.</li>
+<li><span class="bold">Thống kê realtime:</span> Active users hiện dựa trên heartbeat trong 5 phút. Nếu cần realtime hơn có thể bổ sung SignalR hoặc WebSocket.</li>
+<li><span class="bold">Hiệu năng bản đồ:</span> Khi số POI tăng lớn, nên chuyển lọc bán kính sang SQL bounding box/Haversine và index theo tọa độ thay vì lọc nhiều trên frontend.</li>
+<li><span class="bold">Claim code:</span> CSDL và model vẫn còn bảng cash_claim_codes, nhưng OwnerController hiện chỉ đọc thống kê/lịch sử, chưa có API tạo mã mới. Nếu muốn đưa vào báo cáo như chức năng chính thì cần bổ sung endpoint và giao diện, hoặc giữ trong mục dự kiến phát triển.</li>
+<li><span class="bold">Kiểm thử:</span> Nên bổ sung test cho auto narration tie-breaker, QR source tracking, owner stats và cooperate request history.</li>
 </ul>

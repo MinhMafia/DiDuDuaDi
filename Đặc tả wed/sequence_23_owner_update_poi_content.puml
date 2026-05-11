@@ -23,19 +23,19 @@ FE --> Owner: Hien thi tong quan, menu,\nprofile, map va QR
 
 alt Cap nhat thong tin ban do
   Owner -> FE: Chon vi tri tren map picker
-  FE -> Ctrl: PUT /api/owner/profile\n{ address, latitude, longitude, ... }
+  FE -> Ctrl: PUT /api/owner/shop-profile\n{ shopName, addressLine,\n latitude, longitude, ... }
   Ctrl -> Repo: UpdateShopProfile(username, request)
   Repo -> DB: UPDATE shops, pois
   DB --> Repo: OK
   Ctrl --> FE: 200 OK
 else Cap nhat noi dung da ngon ngu
-  Owner -> FE: Sua ten/mo ta VI va EN theo tab
-  FE -> Ctrl: PUT /api/owner/poi-content\n{ nameVi, descVi, nameEn, descEn, category }
+  Owner -> FE: Chon ngon ngu nguon\nva nhap ten/mo ta POI
+  FE -> Ctrl: PUT /api/owner/poi-content\n{ category, sourceLanguage,\n sourceName, sourceDescription }
   Ctrl -> Repo: UpdatePoiContentAsync(username, request)
-  Repo -> DB: UPDATE pois + upsert vi/en
+  Repo -> DB: UPDATE pois + upsert ngon ngu nguon
 
-  loop ZH, JA, KO, FR, TH
-    Ctrl -> Trans: Translate(VI content, targetLang)
+  loop Cac ngon ngu con lai
+    Ctrl -> Trans: Translate(source content, targetLang)
     Trans --> Ctrl: translated name/description
     Ctrl -> TTS: Generate audio for translated description
     TTS --> Ctrl: audioUrl hoac null

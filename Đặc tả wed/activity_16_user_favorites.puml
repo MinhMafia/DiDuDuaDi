@@ -1,0 +1,26 @@
+@startuml activity_16_user_favorites
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+:User dang nhap va mo trang ban do;
+:He thong lay danh sach POI kem trang thai isFavorite;
+
+if (User bam nut yeu thich tren POI?) then (Them)
+  :Frontend goi API them POI vao user_favorites;
+  :Cap nhat trang thai icon yeu thich tren danh sach;
+elseif (User bam bo yeu thich?) then (Bo)
+  :Frontend goi API xoa POI khoi user_favorites;
+  :Cap nhat trang thai icon ve chua yeu thich;
+else (Xem danh sach)
+  :Frontend goi API lay cac POI yeu thich cua user;
+  :Hien thi danh sach POI da luu;
+endif
+
+:User co the mo chi tiet POI hoac tim duong;
+
+stop
+
+@enduml

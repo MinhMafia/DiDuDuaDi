@@ -5,14 +5,18 @@ skinparam sequenceFontName "Times New Roman"
 skinparam lifelineStrategy nosolid
 
 actor Admin
+actor User
 participant "Frontend" as FE
 participant "AuthController" as Ctrl
 participant "MySqlAuthRepository" as Repo
 database "owner_upgrade_requests" as DB1
-database "accounts, shops" as DB2
+database "accounts, shops, pois" as DB2
 
 Admin -> FE: Truy cap Admin dashboard
-FE --> Admin: Danh sach yeu cau pending
+FE -> Ctrl: GET /api/auth/owner-upgrade-requests?status=pending
+FE -> Ctrl: GET /api/auth/owner-upgrade-requests?status=payment_pending
+Ctrl --> FE: Danh sach pending va payment_pending
+FE --> Admin: Danh sach yeu cau can xu ly
 
 Admin -> FE: Chon yeu cau de xem
 FE -> Ctrl: GET /api/auth/owner-upgrade-requests?status=pending
@@ -36,16 +40,14 @@ alt Phe duyet
   
   Ctrl -> Repo: ReviewOwnerUpgradeRequest(id, admin, "approve")
   
-  Repo -> DB1: UPDATE status=approved,\n reviewed_by, reviewed_at
-  
-  Repo -> DB2: UPDATE accounts SET role_id=2 (owner)
-  Repo -> DB2: INSERT INTO shops\n(owner_account_id, name, address_line)
+  Repo -> Repo: Tao payment_reference_code,\npayment_qr_content va payment_qr_image_url
+  Repo -> DB1: UPDATE status=payment_pending,\n reviewed_by, reviewed_at,\n upgrade_fee_amount,\n payment_reference_code,\n payment_qr_image_url
   
   DB1 --> Repo: OK
-  DB2 --> Repo: OK
   Repo --> Ctrl: Thanh cong
-  Ctrl --> FE: 200 OK
-  FE --> Admin: Thong bao thanh cong
+  Ctrl --> FE: 200 OK\n{ status: payment_pending,\n payment QR fields }
+  FE --> Admin: Hien thi QR thanh toan\ncho don nang quyen
+  FE --> User: User thay QR o tab\nLich su & Trang thai
   
 else Tu choi
   FE -> FE: Admin nhap ly do
@@ -58,6 +60,24 @@ else Tu choi
   Repo --> Ctrl: Thanh cong
   Ctrl --> FE: 200 OK
   FE --> Admin: Thong bao thanh cong
+end
+
+alt Admin xac nhan thanh toan
+  Admin -> FE: Bam Xac nhan da thanh toan
+  FE -> Ctrl: POST /api/auth/owner-upgrade-requests/{id}/confirm-payment
+  Ctrl -> Repo: ConfirmOwnerUpgradePayment(id, admin)
+  Repo -> DB2: UPDATE accounts SET role_id=owner
+  Repo -> DB2: INSERT/UPDATE shops\nva tao/cap nhat POI mac dinh
+  Repo -> DB1: UPDATE status=approved,\npayment_confirmed_at, activated_at
+  Ctrl --> FE: 200 OK
+  FE --> Admin: Don da duoc kich hoat Owner
+else Admin huy QR thanh toan
+  Admin -> FE: Bam Huy thanh toan
+  FE -> Ctrl: POST /api/auth/owner-upgrade-requests/{id}/cancel-payment
+  Ctrl -> Repo: CancelOwnerUpgradePayment(id, admin)
+  Repo -> DB1: UPDATE status=pending,\nxoa cac truong payment_*
+  Ctrl --> FE: 200 OK
+  FE --> Admin: Don quay ve trang thai pending
 end
 
 @enduml

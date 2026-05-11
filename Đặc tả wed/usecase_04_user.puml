@@ -37,9 +37,19 @@ rectangle "Trai nghiem User" {
 
   usecase "UC10\nGui yeu cau nang cap Owner" as UC10
   usecase "UC10a\nDien form nang cap Owner" as UC10a
+  usecase "UC10b\nXem lich su va trang thai don" as UC10b
+  usecase "UC10c\nXem QR thanh toan\nneu don payment_pending" as UC10c
 
   usecase "UC11\nChat tro ly AI" as UC11
   usecase "UC11a\nNhan tin voi chatbot" as UC11a
+
+  usecase "UC21\nLuu POI yeu thich" as UC21
+  usecase "UC21a\nThem hoac bo yeu thich" as UC21a
+  usecase "UC21b\nXem danh sach yeu thich" as UC21b
+
+  usecase "UC22\nXem va chon Food Tour" as UC22
+  usecase "UC22a\nLoc POI theo tour da chon" as UC22a
+  usecase "UC22b\nDi theo cac diem trong tour" as UC22b
 }
 
 rectangle "Dich vu ben ngoai" {
@@ -59,6 +69,8 @@ User --> UC08
 User --> UC09
 User --> UC10
 User --> UC11
+User --> UC21
+User --> UC22
 
 UC01 ..> UC01a : <<include>>
 UC02 ..> UC02a : <<include>>
@@ -70,7 +82,13 @@ UC08 ..> UC08a : <<extend>>
 UC08 ..> UC08b : <<extend>>
 UC09 ..> UC09a : <<extend>>
 UC10 ..> UC10a : <<include>>
+UC10 ..> UC10b : <<include>>
+UC10 ..> UC10c : <<extend>>
 UC11 ..> UC11a : <<include>>
+UC21 ..> UC21a : <<extend>>
+UC21 ..> UC21b : <<extend>>
+UC22 ..> UC22a : <<include>>
+UC22 ..> UC22b : <<extend>>
 
 UC06 ..> GPS : <<include>>
 UC07 ..> OSRM : <<include>>

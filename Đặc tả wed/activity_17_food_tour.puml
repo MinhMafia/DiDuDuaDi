@@ -1,0 +1,32 @@
+@startuml activity_17_food_tour
+skinparam backgroundColor White
+skinparam activityFontSize 12
+skinparam activityFontName "Times New Roman"
+
+start
+
+if (Admin quan ly Food Tour?) then (Co)
+  :Admin mo muc Food Tours trong dashboard;
+  :He thong lay danh sach tour va POI;
+  :Admin tao hoac sua tour;
+  :Nhap ten, mo ta, danh muc va chon cac POI theo thu tu;
+  if (Du lieu hop le?) then (Khong)
+    :Hien thi loi tieu de, POI rong,
+    thu tu trung hoac POI trung;
+  else (Co)
+    :Luu tour vao bang tours va tour_steps;
+  endif
+elseif (User chon Food Tour tren ban do?) then (Co)
+  :User mo trang ban do;
+  :Frontend lay danh sach tour public;
+  :User chon mot tour;
+  :He thong loc cac POI theo steps cua tour;
+  :Ban do hien thi marker theo thu tu tour;
+  :User mo POI dau tien hoac tim duong den tung diem;
+else (Khong)
+  :He thong hien thi tat ca POI theo ban kinh dang chon;
+endif
+
+stop
+
+@enduml

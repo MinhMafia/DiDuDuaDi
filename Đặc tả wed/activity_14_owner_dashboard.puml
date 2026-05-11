@@ -46,8 +46,9 @@ elseif (Owner cap nhat ban do?) then (Co)
   hoac nhap toa do;
   :Cap nhat dia chi/toa do GPS;
 elseif (Owner cap nhat noi dung da ngon ngu?) then (Co)
-  :Sua ten/mo ta VI va EN;
-  :He thong dich cac ngon ngu con lai;
+  :Chon ngon ngu nguon;
+  :Nhap ten va mo ta POI bang ngon ngu nguon;
+  :He thong dich sang cac ngon ngu ho tro;
   :Sinh audio/TTS cho ban dich neu co mo ta;
   :Cap nhat pois va poi_translations;
 elseif (Owner xem QR quan?) then (Co)

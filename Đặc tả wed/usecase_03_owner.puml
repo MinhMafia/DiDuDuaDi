@@ -20,12 +20,14 @@ rectangle "Quan ly Owner" {
   usecase "UC14b\nSua thong tin mon an" as UC14b
   usecase "UC14c\nXoa mon an" as UC14c
 
-  usecase "UC15\nTao ma claim code" as UC15
-  usecase "UC15a\nSinh ma claim code" as UC15a
-  usecase "UC15b\nXem lich su ma da tao" as UC15b
+  usecase "UC15\nQuan ly QR quan\nva standee" as UC15
+  usecase "UC15a\nTao link public\n/poi/{id}?source=qr" as UC15a
+  usecase "UC15b\nSao chep link hoac\nmo trang chi tiet" as UC15b
+  usecase "UC15c\nIn standee QR" as UC15c
 
   usecase "UC16\nXem thong ke dashboard" as UC16
   usecase "UC16a\nXem dashboard tong quan" as UC16a
+  usecase "UC16b\nXem luot xem,\naudio va QR scan" as UC16b
 }
 
 rectangle "He thong tu dong" {
@@ -47,7 +49,9 @@ UC14 ..> UC14b : <<extend>>
 UC14 ..> UC14c : <<extend>>
 UC15 ..> UC15a : <<extend>>
 UC15 ..> UC15b : <<extend>>
+UC15 ..> UC15c : <<extend>>
 UC16 ..> UC16a : <<extend>>
+UC16 ..> UC16b : <<extend>>
 
 UC13a ..> AutoTrans : <<include>>
 UC12b ..> Notify : <<include>>

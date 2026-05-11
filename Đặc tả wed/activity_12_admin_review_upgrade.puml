@@ -21,11 +21,23 @@ start
 :Admin quyet dinh;
 
 if (Phe duyet?) then (Phe duyet)
-  :He thong nang role cua user thanh "owner";
-  :He thong tao ban ghi shop moi
+  :He thong tao ma tham chieu
+  va QR thanh toan nang quyen;
+  :Cap nhat trang thai yeu cau thanh
+  "payment_pending";
+  :Thong bao cho User hoan tat thanh toan;
+
+  if (Admin xac nhan da thanh toan?) then (Da thanh toan)
+    :He thong nang role cua user thanh "owner";
+    :He thong tao/cap nhat shop va POI mac dinh
     voi thong tin tu yeu cau;
-  :Cap nhat trang thai yeu cau thanh "approved";
-  :Thong bao cho User;
+    :Cap nhat trang thai yeu cau thanh "approved";
+    :Ghi payment_confirmed_at va activated_at;
+    :Thong bao cho User;
+  else (Huy QR thanh toan)
+    :Xoa thong tin QR thanh toan;
+    :Dua yeu cau ve "pending";
+  endif
 else (Tu choi)
   :Admin nhap ly do tu choi;
   :Cap nhat trang thai yeu cau thanh "rejected";

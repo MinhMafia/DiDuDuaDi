@@ -1,0 +1,40 @@
+@startuml sequence_27_food_tour
+skinparam backgroundColor White
+skinparam sequenceFontSize 11
+skinparam sequenceFontName "Times New Roman"
+skinparam lifelineStrategy nosolid
+
+actor Admin
+actor User
+participant "AdminDashboard" as AdminFE
+participant "MapPage" as MapFE
+participant "AdminToursController" as AdminCtrl
+participant "ToursController" as PublicCtrl
+participant "MySqlAdminRepository" as Repo
+database "MySQL\ntours, tour_steps, pois" as DB
+
+Admin -> AdminFE: Tao/Sua Food Tour
+AdminFE -> AdminCtrl: POST/PUT /api/admin/food-tours\n{ title, description, category, steps }
+AdminCtrl -> AdminCtrl: Validate title,\nsteps khong rong, order/POI khong trung
+AdminCtrl -> Repo: Create/UpdateFoodTourAsync(tour)
+Repo -> DB: INSERT/UPDATE tours
+Repo -> DB: DELETE/INSERT tour_steps theo thu tu
+DB --> Repo: OK
+Repo --> AdminCtrl: OK
+AdminCtrl --> AdminFE: 201 Created hoac 204 NoContent
+AdminFE --> Admin: Cap nhat bang Food Tours
+
+User -> MapFE: Mo trang ban do
+MapFE -> PublicCtrl: GET /api/tours
+PublicCtrl -> Repo: GetFoodToursAsync()
+Repo -> DB: SELECT tours + tour_steps
+DB --> Repo: Danh sach tour
+Repo --> PublicCtrl: List<FoodTour>
+PublicCtrl --> MapFE: 200 OK
+MapFE --> User: Hien thi bo chon Food Tour
+
+User -> MapFE: Chon mot tour
+MapFE -> MapFE: Sap xep POI theo steps\nva loc danh sach hien thi
+MapFE --> User: Hien thi marker/card theo tour
+
+@enduml

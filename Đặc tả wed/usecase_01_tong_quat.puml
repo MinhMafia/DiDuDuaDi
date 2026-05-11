@@ -24,12 +24,16 @@ rectangle "He thong DiDuDuaDi" {
   usecase "UC12\nQuan ly ho so cua hang" as UC12
   usecase "UC13\nQuan ly noi dung POI" as UC13
   usecase "UC14\nQuan ly thuc don" as UC14
-  usecase "UC15\nTao ma claim code" as UC15
+  usecase "UC15\nQuan ly QR quan\nva standee" as UC15
   usecase "UC16\nXem thong ke dashboard" as UC16
   usecase "UC17\nDuyet yeu cau nang cap Owner" as UC17
+  usecase "UC17d\nQuan ly thanh toan\nnang quyen Owner" as UC17d
   usecase "UC18\nKiem duyet noi dung\ngioi thieu shop" as UC18
   usecase "UC19\nQuan ly POI CRUD" as UC19
   usecase "UC20\nXem analytics he thong" as UC20
+  usecase "UC21\nLuu POI yeu thich" as UC21
+  usecase "UC22\nXem va chon Food Tour" as UC22
+  usecase "UC23\nQuan ly Food Tour" as UC23
 }
 
 User --> UC01
@@ -43,6 +47,8 @@ User --> UC08
 User --> UC09
 User --> UC10
 User --> UC11
+User --> UC21
+User --> UC22
 
 Owner --> UC02
 Owner --> UC12
@@ -53,11 +59,15 @@ Owner --> UC16
 
 Admin --> UC02
 Admin --> UC17
+Admin --> UC17d
 Admin --> UC18
 Admin --> UC19
 Admin --> UC20
+Admin --> UC23
 
 UC04 ..> UC08 : <<include>>
 UC06 ..> UC07 : <<include>>
+UC17 ..> UC17d : <<include>>
+UC22 ..> UC03 : <<include>>
 
 @enduml

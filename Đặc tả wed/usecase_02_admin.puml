@@ -12,6 +12,8 @@ rectangle "Quan ly Admin" {
   usecase "UC17a\nXem danh sach yeu cau" as UC17a
   usecase "UC17b\nPhe duyet yeu cau" as UC17b
   usecase "UC17c\nTu choi yeu cau" as UC17c
+  usecase "UC17d\nTao QR thanh toan\nnang quyen" as UC17d
+  usecase "UC17e\nXac nhan hoac huy\nthanh toan" as UC17e
 
   usecase "UC18\nKiem duyet noi dung\ngioi thieu shop" as UC18
   usecase "UC18a\nXem danh sach shop can duy" as UC18a
@@ -26,16 +28,25 @@ rectangle "Quan ly Admin" {
   usecase "UC20\nXem analytics he thong" as UC20
   usecase "UC20a\nThong ke luot truy cap" as UC20a
   usecase "UC20b\nThong ke luot phat audio" as UC20b
+  usecase "UC20c\nThong ke POI/shop noi bat" as UC20c
+
+  usecase "UC23\nQuan ly Food Tour" as UC23
+  usecase "UC23a\nTao Food Tour" as UC23a
+  usecase "UC23b\nCap nhat Food Tour" as UC23b
+  usecase "UC23c\nXoa Food Tour" as UC23c
 }
 
 Admin --> UC17
 Admin --> UC18
 Admin --> UC19
 Admin --> UC20
+Admin --> UC23
 
 UC17 ..> UC17a : <<include>>
 UC17 ..> UC17b : <<extend>>
 UC17 ..> UC17c : <<extend>>
+UC17b ..> UC17d : <<include>>
+UC17d ..> UC17e : <<extend>>
 
 UC18 ..> UC18a : <<include>>
 UC18 ..> UC18b : <<extend>>
@@ -47,5 +58,10 @@ UC19 ..> UC19c : <<extend>>
 
 UC20 ..> UC20a : <<extend>>
 UC20 ..> UC20b : <<extend>>
+UC20 ..> UC20c : <<extend>>
+
+UC23 ..> UC23a : <<extend>>
+UC23 ..> UC23b : <<extend>>
+UC23 ..> UC23c : <<extend>>
 
 @enduml
