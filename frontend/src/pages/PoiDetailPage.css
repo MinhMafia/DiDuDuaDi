@@ -56,6 +56,13 @@
   gap: 12px;
 }
 
+.poi-detail-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .poi-detail-header h1 {
   font-size: 32px;
   font-weight: 900;

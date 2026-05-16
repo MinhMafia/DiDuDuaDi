@@ -11,7 +11,8 @@
     "owner": "Propriétaire",
     "admin": "Admin",
     "routes": "Itinéraires",
-    "settings": "Paramètres"
+    "settings": "Paramètres",
+    "favorites": "Favoris"
   },
   "auth": {
     "badge": "Connexion au système",
@@ -46,7 +47,8 @@
       "user": "Utilisateur",
       "owner": "Propriétaire",
       "admin": "Admin"
-    }
+    },
+    "loginRequired": "Vous devez vous connecter pour utiliser cette fonctionnalit?."
   },
   "map": {
     "title": "Carte gourmande de Vinh Khanh",
@@ -153,7 +155,12 @@
     "autoPlayTitle": "Lecture automatique du guide audio",
     "autoPlayDescription": "Lorsqu'elle est activée, l'application peut lancer automatiquement l'audio lorsque vous approchez d'un point d'intérêt.",
     "enabled": "Activé",
-    "disabled": "Désactivé"
+    "disabled": "Désactivé",
+    "voiceTitle": "Voix disponibles dans le navigateur",
+    "voiceDescription": "V?rifiez quelles voix ce navigateur peut utiliser pour chaque langue et celle que l?application privil?giera.",
+    "voiceReady": "Voix native disponible",
+    "voiceMissing": "Utilisation du repli",
+    "voiceFallback": "Aucune voix adapt?e trouv?e"
   },
   "audio": {
     "title": "Guide audio",
@@ -208,7 +215,9 @@
     "placeholder": "Posez une question sur la nourriture, les restaurants ou la carte...",
     "send": "Envoyer",
     "close": "Fermer",
-    "fabLabel": "IA"
+    "fabLabel": "IA",
+    "emptyReply": "Je n?ai pas encore de r?ponse adapt?e.",
+    "connectionError": "Impossible de se connecter ? l?assistant IA."
   },
   "home": {
     "title": "Panneau de test système DiDuDuaDi",
@@ -283,6 +292,82 @@
       "idCardImageUrl": "URL de l'image de la carte d'identité",
       "businessLicenseImageUrl": "URL de l'image du permis d'exploitation (optionnel)",
       "note": "Note"
+    },
+    "tabs": {
+      "new": "Nouvelle inscription",
+      "history": "Historique & statut"
+    },
+    "latestRequestTitle": "Derni?re demande d?inscription",
+    "reviewNote": "Note admin",
+    "waitingReviewTitle": "Votre demande est en attente",
+    "waitingReviewDescription": "L?admin v?rifiera la demande, la position du restaurant et les documents avant de r?pondre.",
+    "paymentTitle": "Informations de paiement",
+    "paymentDescription": "Votre demande a ?t? pr?-approuv?e. Utilisez le QR ou le m?mo de virement ci-dessous pour finaliser.",
+    "feeAmount": "Frais de mise ? niveau",
+    "paymentReference": "Code de r?f?rence",
+    "paymentRequestedAt": "Paiement cr?? le",
+    "transferMemo": "M?mo de virement",
+    "qrLabel": "QR de paiement",
+    "qrUnavailable": "Aucun QR de paiement disponible pour cette demande.",
+    "rejectedTitle": "Votre demande pr?c?dente a ?t? refus?e",
+    "rejectedDescription": "Vous pouvez consulter le motif de refus et envoyer une nouvelle demande mise ? jour.",
+    "formLockedTitle": "Votre demande est en cours de traitement",
+    "formLockedMessage": "Vous ne pouvez pas cr?er une autre demande pour le moment.",
+    "formLockedDescription": "Suivez le statut dans Historique & statut. Si la demande est refus?e, utilisez Modifier depuis l?ancienne demande.",
+    "formTitle": "Cr?er une nouvelle demande de restaurant",
+    "editFormTitle": "Modifier la demande en attente",
+    "updateSubmit": "Mettre ? jour la demande",
+    "cancelEdit": "Annuler la modification",
+    "updateSuccess": "Demande en attente mise ? jour.",
+    "cancelSuccess": "Demande annul?e. Vous pouvez en cr?er une nouvelle.",
+    "cancelError": "Impossible d?annuler la demande.",
+    "prefillSuccess": "Le contenu de l?ancienne demande a ?t? charg? dans le formulaire.",
+    "editPending": "Modifier la demande",
+    "editPendingLoaded": "La demande en attente a ?t? charg?e dans le formulaire.",
+    "cancelPending": "Annuler la demande",
+    "cancelPendingTitle": "Annuler la demande en attente ?",
+    "cancelPendingDescription": "Apr?s annulation, cette demande reste dans l?historique et vous pouvez en cr?er une nouvelle.",
+    "confirmCancel": "Annuler la demande",
+    "keepPending": "Conserver la demande",
+    "emptyNote": "Aucune note suppl?mentaire.",
+    "mapPicker": {
+      "title": "Choisir la position du restaurant sur la carte",
+      "hint": "Touchez directement la carte pour obtenir des coordonn?es GPS pr?cises. Vous pouvez aussi ajuster latitude et longitude manuellement.",
+      "selectedCoordinates": "Coordonn?es s?lectionn?es : {{lat}}, {{lng}}"
+    },
+    "placeholders": {
+      "shopName": "Nom du restaurant ? inscrire",
+      "address": "Adresse dans la zone de Vinh Khanh",
+      "latitude": "Exemple : 10.758700",
+      "longitude": "Exemple : 106.703100",
+      "note": "Ajoutez des d?tails, horaires ou informations utiles pour l?admin"
+    },
+    "validation": {
+      "shopNameRequired": "Veuillez saisir le nom du restaurant.",
+      "addressRequired": "Veuillez saisir l?adresse.",
+      "latitudeRequired": "Veuillez saisir la latitude.",
+      "longitudeRequired": "Veuillez saisir la longitude."
+    },
+    "status": {
+      "pending": "En attente",
+      "paymentPending": "Paiement en attente",
+      "approved": "Approuv?",
+      "rejected": "Refus?",
+      "cancelled": "Annul?"
+    },
+    "history": {
+      "title": "Historique des demandes",
+      "count_zero": "0 ancienne demande",
+      "count_one": "{{count}} ancienne demande",
+      "count_other": "{{count}} anciennes demandes",
+      "empty": "Aucune ancienne demande ? consulter.",
+      "submittedAt": "Envoy?e le",
+      "reviewedAt": "R?ponse le",
+      "reviewResult": "R?ponse / raison d?annulation",
+      "noReviewReason": "Aucune r?ponse admin pour le moment.",
+      "editFromOld": "Modifier depuis l?ancienne demande",
+      "viewIdCard": "Voir l?image d?identit? envoy?e",
+      "viewBusinessLicense": "Voir la licence envoy?e"
     }
   },
   "owner": {
@@ -318,7 +403,11 @@
       "menuCreated": "Nouveau plat ajouté.",
       "menuUpdated": "Plat mis à jour.",
       "menuDeleted": "Plat supprimé.",
-      "claimCreated": "Code de réclamation créé"
+      "claimCreated": "Code de réclamation créé",
+      "error": "Impossible d enregistrer les modifications. Verifiez la connexion ou reessayez.",
+      "errorWithDetail": "Impossible d enregistrer les modifications : {{message}}",
+      "opened": "Le restaurant est maintenant ouvert.",
+      "closed": "Le restaurant est temporairement fermé."
     },
     "stats": {
       "totalVisits": "Visites POI",
@@ -358,7 +447,12 @@
       "claimKicker": "Paiements en espèces",
       "claimHistoryKicker": "Suivi des codes émis",
       "claimHistory": "Codes de réclamation récents",
-      "claimHistoryDescription": "Vérifiez rapidement les codes récemment émis lorsque les clients arrivent au restaurant."
+      "claimHistoryDescription": "Vérifiez rapidement les codes récemment émis lorsque les clients arrivent au restaurant.",
+      "overviewDescription": "Consultez rapidement l activite du restaurant, les plats et les interactions recentes.",
+      "qrDescription": "Creez un QR code pour ouvrir rapidement la page detail du restaurant.",
+      "qrReady": "Pret",
+      "qrMissing": "Aucun POI",
+      "qrMissingDescription": "Aucun lieu principal n est disponible pour creer un QR. Mettez d abord a jour la carte."
     },
     "fields": {
       "shopName": "Nom de l'établissement",
@@ -382,9 +476,94 @@
       "available": "Visible pour les visiteurs",
       "amount": "Montant",
       "expireAfterHours": "Expire après (heures)",
-      "note": "Note"
+      "note": "Note",
+      "sourceLanguage": "Langue source",
+      "poiSourceName": "Nom affiché",
+      "poiSourceDescription": "Description affichée"
     },
-    "savePoi": "Enregistrer le contenu POI"
+    "savePoi": "Enregistrer le contenu POI",
+    "standeeFallback": "Scannez le code pour voir le menu, les infos du restaurant et la derniere presentation.",
+    "close": "Fermer",
+    "keepItem": "Garder",
+    "deleting": "Suppression...",
+    "menuCreateHint": "Renseignez les informations de base ; les plats visibles apparaitront aux clients.",
+    "menuEditHint": "Modifiez ce plat puis enregistrez pour mettre a jour la page client.",
+    "menuVisibleHint": "Les clients peuvent voir ce plat.",
+    "menuHiddenHint": "Ce plat est temporairement masque aux clients.",
+    "menuPreviewTitle": "Ce que les clients verront",
+    "deleteConfirm": {
+      "kicker": "Supprimer un plat",
+      "title": "Supprimer ce plat ?",
+      "body": "Ce plat sera retire du menu et ne sera plus visible par les clients.",
+      "warning": "Cette action est irreversible.",
+      "cancel": "Annuler",
+      "confirm": "Supprimer"
+    },
+    "autoTranslate": {
+      "kicker": "Traduction auto",
+      "title": "Saisir dans une seule langue",
+      "description": "Choisissez la langue source, puis saisissez le nom et la description. Les autres langues seront générées à l’enregistrement.",
+      "helper": "Le système utilisera ce contenu pour générer les autres langues."
+    },
+    "preview": {
+      "kicker": "Apercu",
+      "emptyMenuName": "Nom du plat",
+      "emptyMenuDescription": "Une courte description apparaitra ici."
+    },
+    "validation": {
+      "imageDataUrl": "Le lien image ressemble a des donnees base64, trop longues et possiblement refusees par le serveur. Utilisez une URL image.",
+      "imageUrlTooLong": "Le lien image est trop long. Utilisez une URL plus courte.",
+      "poiSourceRequired": "Renseignez le nom et la description du POI avant d enregistrer."
+    },
+    "qrStandeeKicker": "Menu numérique",
+    "qrStandeeTitle": "Scannez pour voir le menu",
+    "printStandee": "Imprimer le standee",
+    "placeholders": {
+      "menuName": "Exemple : plat special de la maison",
+      "menuDescription": "Decrivez le gout, la portion ou les accompagnements.",
+      "imageUrl": "Collez un lien image https://, pas de donnees base64"
+    },
+    "settingsTitle": "Param?tres du restaurant",
+    "settingsSubtitle": "Mettez ? jour le profil et les informations affich?es sur la carte.",
+    "today": "Aujourd?hui",
+    "categories": {
+      "food": "Cuisine",
+      "street_food": "Cuisine de rue",
+      "grilled_food": "Grillades",
+      "dessert": "Dessert",
+      "seafood": "Fruits de mer",
+      "snack": "En-cas",
+      "drinks": "Boissons"
+    },
+    "languageNames": {
+      "vi": "Tiếng Việt",
+      "en": "English",
+      "zh": "中文",
+      "ja": "日本語",
+      "ko": "한국어",
+      "fr": "Français",
+      "th": "ไทย"
+    },
+    "header": {
+      "open": "Ouvert",
+      "closed": "Fermé temporairement",
+      "toolsAria": "Outils du restaurant",
+      "notificationsAria": "Notifications"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "count": "{{count}} éléments",
+      "reviewTitle": "Statut de validation",
+      "reviewBody": "Le restaurant est actuellement : {{status}}.",
+      "qrReadyTitle": "QR du restaurant prêt",
+      "qrReadyBody": "Les clients peuvent scanner le QR pour ouvrir la page du restaurant.",
+      "qrMissingTitle": "Aucun QR restaurant",
+      "qrMissingBody": "Mettez à jour le contenu sur la carte pour générer un QR public.",
+      "todayTitle": "Activité du jour",
+      "todayBody": "{{visits}} vues, {{audio}} lectures audio, {{qr}} scans QR.",
+      "quietTitle": "Aucune nouvelle activité",
+      "quietBody": "Aucune vue, lecture audio ou scan QR enregistré aujourd’hui."
+    }
   },
   "admin": {
     "title": "Tableau de bord administrateur",
@@ -426,6 +605,49 @@
     "emptyPendingOwnerRequests": "Il n'y a aucune demande propriétaire en attente.",
     "emptyPendingShopIntros": "Il n'y a aucune introduction en attente.",
     "emptyOwnerHistory": "Aucun historique de demande propriétaire pour le moment.",
-    "emptyShopIntroHistory": "Aucun historique d'examen d'introduction pour le moment."
+    "emptyShopIntroHistory": "Aucun historique d'examen d'introduction pour le moment.",
+    "badge": "Administration syst?me",
+    "sections": {
+      "overview": "Aper?u",
+      "overviewKicker": "Aper?u syst?me",
+      "overviewDescription": "Vue rapide des demandes en attente et des statistiques.",
+      "ownerRequests": "Valider propri?taires",
+      "ownerRequestsKicker": "Demandes de droits",
+      "ownerRequestsDescription": "Approuver ou refuser les demandes pour devenir propri?taire.",
+      "shopIntros": "Valider contenu",
+      "shopIntrosKicker": "Pr?sentations des restaurants",
+      "shopIntrosDescription": "Mod?rer le contenu avant affichage.",
+      "statistics": "Statistiques",
+      "statisticsKicker": "Top restaurants & POI",
+      "statisticsDescription": "Voir les restaurants et lieux les plus consult?s.",
+      "managePois": "G?rer les POI",
+      "managePoisKicker": "Lieux sur la carte",
+      "managePoisDescription": "Ajouter, modifier et supprimer les POI.",
+      "foodTours": "G?rer les circuits",
+      "foodToursKicker": "Itin?raires",
+      "foodToursDescription": "Cr?er et g?rer les circuits gastronomiques."
+    }
+  },
+  "qr": {
+    "kicker": "QR restaurant",
+    "title": "Ouvrir la page publique du restaurant",
+    "subtitle": "Scannez le code ou ouvrez le lien public de {{name}}.",
+    "poiFallbackName": "votre restaurant",
+    "baseUrlLabel": "Domaine public",
+    "baseUrlPlaceholder": "https://votre-domaine.vercel.app",
+    "detailLinkLabel": "Lien de détail du restaurant",
+    "localHint": "Cette adresse est privee. Utilisez le domaine Vercel pour que les clients puissent ouvrir le QR.",
+    "readyHint": "Ce lien est prêt à être ouvert par les clients sur téléphone ou autre appareil.",
+    "copy": "Copier le lien",
+    "copied": "Copié",
+    "open": "Ouvrir la page",
+    "missingUrl": "Aucun lien QR disponible pour le moment."
+  },
+  "favorites": {
+    "title": "Restaurants favoris",
+    "subtitle": "Les lieux que vous avez enregistr?s pour plus tard.",
+    "empty": "Vous n'avez encore enregistr? aucun restaurant favori. Explorez la carte et touchez le c?ur sur les lieux ? garder.",
+    "add": "Ajouter aux favoris",
+    "remove": "Retirer des favoris"
   }
 }

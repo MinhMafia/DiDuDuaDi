@@ -11,7 +11,8 @@
     "owner": "점주",
     "admin": "관리자",
     "routes": "경로",
-    "settings": "설정"
+    "settings": "설정",
+    "favorites": "????"
   },
   "auth": {
     "badge": "시스템 로그인",
@@ -46,7 +47,8 @@
       "user": "사용자",
       "owner": "점주",
       "admin": "관리자"
-    }
+    },
+    "loginRequired": "? ??? ????? ??????."
   },
   "map": {
     "title": "빈카인 음식 거리 지도",
@@ -153,7 +155,12 @@
     "autoPlayTitle": "오디오 가이드 자동 재생",
     "autoPlayDescription": "활성화하면 관심 지점에 가까워졌을 때 자동으로 오디오 가이드를 시작할 수 있습니다.",
     "enabled": "켬",
-    "disabled": "끔"
+    "disabled": "끔",
+    "voiceTitle": "Available browser voices",
+    "voiceDescription": "Check which voices this browser can use for each language and which one the app will prefer.",
+    "voiceReady": "Native voice available",
+    "voiceMissing": "Using fallback",
+    "voiceFallback": "No matching voice found"
   },
   "audio": {
     "title": "오디오 가이드",
@@ -208,7 +215,9 @@
     "placeholder": "음식, 식당 또는 지도에 대해 질문하세요...",
     "send": "보내기",
     "close": "닫기",
-    "fabLabel": "AI"
+    "fabLabel": "AI",
+    "emptyReply": "I do not have a suitable answer right now.",
+    "connectionError": "Could not connect to the AI assistant."
   },
   "home": {
     "title": "DiDuDuaDi 시스템 테스트 패널",
@@ -283,6 +292,82 @@
       "idCardImageUrl": "신분증 이미지 URL",
       "businessLicenseImageUrl": "영업 허가증 이미지 URL(선택)",
       "note": "비고"
+    },
+    "tabs": {
+      "new": "New registration",
+      "history": "History & status"
+    },
+    "latestRequestTitle": "Latest registration request",
+    "reviewNote": "Admin note",
+    "waitingReviewTitle": "Your request is waiting for review",
+    "waitingReviewDescription": "Admin will review the request, shop location and submitted documents before replying.",
+    "paymentTitle": "Owner upgrade payment information",
+    "paymentDescription": "Your request has been initially approved. Use the QR code or transfer note below to complete the owner upgrade.",
+    "feeAmount": "Upgrade fee",
+    "paymentReference": "Reference code",
+    "paymentRequestedAt": "Payment created at",
+    "transferMemo": "Transfer memo",
+    "qrLabel": "Payment QR code",
+    "qrUnavailable": "No payment QR code is available for this request yet.",
+    "rejectedTitle": "Your previous request was rejected",
+    "rejectedDescription": "You can review the rejection reason and submit a new request with updated information.",
+    "formLockedTitle": "Your current request is being processed",
+    "formLockedMessage": "You cannot create another request right now.",
+    "formLockedDescription": "Follow the status in History & status. If the request is rejected, use Edit from old request to resubmit faster.",
+    "formTitle": "Create a new restaurant registration request",
+    "editFormTitle": "Edit pending restaurant registration request",
+    "updateSubmit": "Update pending request",
+    "cancelEdit": "Cancel edit",
+    "updateSuccess": "Pending request updated.",
+    "cancelSuccess": "Registration request cancelled. You can create a new one.",
+    "cancelError": "Could not cancel the registration request.",
+    "prefillSuccess": "Old request content has been loaded into the form.",
+    "editPending": "Edit request",
+    "editPendingLoaded": "Pending request has been loaded into the form for editing.",
+    "cancelPending": "Cancel request",
+    "cancelPendingTitle": "Cancel pending request?",
+    "cancelPendingDescription": "After cancellation, this request remains in history and you can create a new registration request.",
+    "confirmCancel": "Cancel request",
+    "keepPending": "Keep request",
+    "emptyNote": "No extra note.",
+    "mapPicker": {
+      "title": "Choose shop location on the map",
+      "hint": "Tap directly on the map to capture accurate GPS coordinates for the shop. You can still adjust latitude and longitude manually if needed.",
+      "selectedCoordinates": "Selected coordinates: {{lat}}, {{lng}}"
+    },
+    "placeholders": {
+      "shopName": "Enter the restaurant name you want to register",
+      "address": "Enter an address in the Vinh Khanh area",
+      "latitude": "Example: 10.758700",
+      "longitude": "Example: 106.703100",
+      "note": "Add shop details, opening hours or anything you want admin to know"
+    },
+    "validation": {
+      "shopNameRequired": "Please enter the restaurant name.",
+      "addressRequired": "Please enter the restaurant address.",
+      "latitudeRequired": "Please enter latitude.",
+      "longitudeRequired": "Please enter longitude."
+    },
+    "status": {
+      "pending": "Pending review",
+      "paymentPending": "Payment pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "history": {
+      "title": "Registration request history",
+      "count_zero": "0 old requests",
+      "count_one": "{{count}} old request",
+      "count_other": "{{count}} old requests",
+      "empty": "You have no previous requests to review.",
+      "submittedAt": "Submitted at",
+      "reviewedAt": "Reviewed at",
+      "reviewResult": "Response / cancellation reason",
+      "noReviewReason": "No admin response yet.",
+      "editFromOld": "Edit from old request",
+      "viewIdCard": "View submitted ID image",
+      "viewBusinessLicense": "View submitted business license"
     }
   },
   "owner": {
@@ -318,7 +403,11 @@
       "menuCreated": "새 요리가 추가되었습니다.",
       "menuUpdated": "요리가 업데이트되었습니다.",
       "menuDeleted": "요리가 삭제되었습니다.",
-      "claimCreated": "청구 코드가 생성되었습니다"
+      "claimCreated": "청구 코드가 생성되었습니다",
+      "error": "Could not save changes. Check your connection or try again.",
+      "errorWithDetail": "Could not save changes: {{message}}",
+      "opened": "영업 중으로 변경되었습니다.",
+      "closed": "임시 휴무로 변경되었습니다."
     },
     "stats": {
       "totalVisits": "POI 방문 수",
@@ -358,7 +447,12 @@
       "claimKicker": "현금 결제",
       "claimHistoryKicker": "발행된 코드 추적",
       "claimHistory": "최근 청구 코드",
-      "claimHistoryDescription": "고객이 가게에 왔을 때 최근 발행된 코드를 빠르게 확인합니다."
+      "claimHistoryDescription": "고객이 가게에 왔을 때 최근 발행된 코드를 빠르게 확인합니다.",
+      "overviewDescription": "See the main shop activity, current dishes, and recent interactions at a glance.",
+      "qrDescription": "Create a QR code so visitors can quickly open the shop detail page.",
+      "qrReady": "Ready",
+      "qrMissing": "No POI yet",
+      "qrMissingDescription": "No primary place is available for a QR code yet. Update the map information first."
     },
     "fields": {
       "shopName": "가게 이름",
@@ -382,9 +476,94 @@
       "available": "관광객에게 표시",
       "amount": "금액",
       "expireAfterHours": "만료 시간(시간)",
-      "note": "비고"
+      "note": "비고",
+      "sourceLanguage": "입력 언어",
+      "poiSourceName": "표시 이름",
+      "poiSourceDescription": "표시 설명"
     },
-    "savePoi": "POI 콘텐츠 저장"
+    "savePoi": "POI 콘텐츠 저장",
+    "standeeFallback": "코드를 스캔하면 메뉴, 상점 정보, 최신 소개를 볼 수 있습니다.",
+    "close": "Close",
+    "keepItem": "Keep item",
+    "deleting": "Deleting...",
+    "menuCreateHint": "Enter the basics. Visible dishes will appear on the public page.",
+    "menuEditHint": "Update the dish details and save to refresh the customer page.",
+    "menuVisibleHint": "Visitors can see this dish.",
+    "menuHiddenHint": "This dish is hidden from visitors.",
+    "menuPreviewTitle": "Public dish preview",
+    "deleteConfirm": {
+      "kicker": "Confirm delete",
+      "title": "Delete this dish?",
+      "body": "This dish will be removed from the menu and hidden from visitors.",
+      "warning": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete item"
+    },
+    "autoTranslate": {
+      "kicker": "자동 번역",
+      "title": "한 가지 언어로 입력",
+      "description": "원본 언어를 선택하고 이름과 설명을 입력하세요. 저장하면 다른 언어가 생성됩니다.",
+      "helper": "이 내용을 사용해 나머지 언어 버전을 생성합니다."
+    },
+    "preview": {
+      "kicker": "Preview",
+      "emptyMenuName": "Dish name",
+      "emptyMenuDescription": "A short description will appear here."
+    },
+    "validation": {
+      "imageDataUrl": "Image only accepts a public image URL, not pasted/base64 image data.",
+      "imageUrlTooLong": "Image URL is too long. Please use a shorter URL.",
+      "poiSourceRequired": "Please enter a POI name and description before saving."
+    },
+    "qrStandeeKicker": "디지털 메뉴",
+    "qrStandeeTitle": "스캔하여 메뉴 보기",
+    "printStandee": "스탠디 인쇄",
+    "placeholders": {
+      "menuName": "Example: Special grilled beef in betel leaf",
+      "menuDescription": "Describe the flavor, portion, or side dishes.",
+      "imageUrl": "Paste an https:// image link, not base64 data"
+    },
+    "settingsTitle": "Shop settings",
+    "settingsSubtitle": "Update shop profile and map display information.",
+    "today": "오늘",
+    "categories": {
+      "food": "음식",
+      "street_food": "길거리 음식",
+      "grilled_food": "구이",
+      "dessert": "디저트",
+      "seafood": "해산물",
+      "snack": "간식",
+      "drinks": "음료"
+    },
+    "languageNames": {
+      "vi": "Tiếng Việt",
+      "en": "English",
+      "zh": "中文",
+      "ja": "日本語",
+      "ko": "한국어",
+      "fr": "Français",
+      "th": "ไทย"
+    },
+    "header": {
+      "open": "영업 중",
+      "closed": "임시 휴무",
+      "toolsAria": "상점 도구",
+      "notificationsAria": "알림"
+    },
+    "notifications": {
+      "title": "알림",
+      "count": "{{count}}개",
+      "reviewTitle": "검토 상태",
+      "reviewBody": "현재 상점 상태: {{status}}.",
+      "qrReadyTitle": "상점 QR 준비 완료",
+      "qrReadyBody": "고객이 QR을 스캔해 상점 상세 페이지를 열 수 있습니다.",
+      "qrMissingTitle": "상점 QR 없음",
+      "qrMissingBody": "공개 QR을 만들려면 지도 콘텐츠를 업데이트하세요.",
+      "todayTitle": "오늘의 활동",
+      "todayBody": "조회 {{visits}}회, 오디오 {{audio}}회, QR {{qr}}회.",
+      "quietTitle": "새 활동 없음",
+      "quietBody": "오늘은 조회, 오디오, QR 스캔 기록이 없습니다."
+    }
   },
   "admin": {
     "title": "관리자 대시보드",
@@ -426,6 +605,49 @@
     "emptyPendingOwnerRequests": "대기 중인 점주 신청이 없습니다.",
     "emptyPendingShopIntros": "대기 중인 가게 소개가 없습니다.",
     "emptyOwnerHistory": "아직 점주 신청 이력이 없습니다.",
-    "emptyShopIntroHistory": "아직 가게 소개 검토 이력이 없습니다."
+    "emptyShopIntroHistory": "아직 가게 소개 검토 이력이 없습니다.",
+    "badge": "System admin",
+    "sections": {
+      "overview": "Overview",
+      "overviewKicker": "System overview",
+      "overviewDescription": "Quick view of pending requests and basic metrics.",
+      "ownerRequests": "Review owners",
+      "ownerRequestsKicker": "Upgrade requests",
+      "ownerRequestsDescription": "Approve or reject requests to become shop owners.",
+      "shopIntros": "Review content",
+      "shopIntrosKicker": "Shop introductions",
+      "shopIntrosDescription": "Moderate shop introduction content before it is displayed.",
+      "statistics": "Statistics",
+      "statisticsKicker": "Top shops & POIs",
+      "statisticsDescription": "See the most interacted shops and places.",
+      "managePois": "Manage POI",
+      "managePoisKicker": "Map places",
+      "managePoisDescription": "Add, edit and delete POIs shown on the map.",
+      "foodTours": "Manage tours",
+      "foodToursKicker": "Travel routes",
+      "foodToursDescription": "Create and manage food tourism routes."
+    }
+  },
+  "qr": {
+    "kicker": "상점 QR",
+    "title": "공개 상점 상세 페이지 열기",
+    "subtitle": "코드를 스캔하거나 {{name}}의 공개 링크를 여세요.",
+    "poiFallbackName": "내 상점",
+    "baseUrlLabel": "공개 도메인",
+    "baseUrlPlaceholder": "https://your-domain.vercel.app",
+    "detailLinkLabel": "상점 상세 링크",
+    "localHint": "이것은 사설 주소입니다. 고객이 QR 링크를 열 수 있도록 Vercel 도메인으로 바꾸세요.",
+    "readyHint": "이 링크는 고객의 휴대폰이나 다른 기기에서 열 수 있습니다.",
+    "copy": "링크 복사",
+    "copied": "복사됨",
+    "open": "상세 페이지 열기",
+    "missingUrl": "QR 링크가 아직 없습니다."
+  },
+  "favorites": {
+    "title": "???? ??",
+    "subtitle": "??? ????? ??? ?????.",
+    "empty": "?? ????? ????. ??? ???? ??? ?? ?????.",
+    "add": "???? ??",
+    "remove": "???? ??"
   }
 }

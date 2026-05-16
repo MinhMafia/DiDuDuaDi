@@ -1,0 +1,48 @@
+@startuml architecture_32_tong_quat
+skinparam backgroundColor White
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName "Times New Roman"
+skinparam defaultFontSize 12
+
+top to bottom direction
+
+actor "User\n(Admin / Owner / User)" as User
+
+cloud "Vercel\nFrontend Hosting" as FrontendHost {
+  component "Frontend SPA\nReact 18 + Vite" as Frontend
+  component "Routing & State\nReact Router\nRedux Toolkit\nReact Query" as State
+}
+
+node "Azure\nBackend Hosting" as Backend {
+  component "ASP.NET Core API\nControllers" as Controllers
+  component "Services\nBusiness Logic" as Services
+  component "Repositories\nDapper" as Repositories
+  component "JWT Authentication\nRole-based\nAuthorization" as Auth
+}
+
+database "Aiven MySQL\nMySQL 8.0+" as Database
+
+cloud "External Services & APIs" as External {
+  component "OpenStreetMap / Leaflet\nMap display" as MapApi
+  component "OSRM Routing\nRoute calculation" as RoutingApi
+  component "Google Translate\nAuto translation" as TranslateApi
+  component "Web Speech API /\nGoogle Cloud TTS" as TtsApi
+}
+
+User -down-> Frontend : Open web app
+Frontend -down-> State : Route, cache,\nglobal state
+Frontend -down-> Controllers : HTTPS REST API\nJWT Bearer token
+
+Controllers -right-> Auth : Validate token\nand role
+Controllers -down-> Services : Call business logic
+Services -down-> Repositories : Request data access
+Repositories -down-> Database : SQL queries
+
+Frontend -right-> MapApi : Display map\nand POI markers
+Frontend -right-> RoutingApi : Request route\npolyline
+Frontend -right-> TtsApi : Play narration\nin browser
+Services -right-> TranslateApi : Translate POI /\nmenu content
+Services -right-> TtsApi : Generate/fallback\nTTS when needed
+
+@enduml

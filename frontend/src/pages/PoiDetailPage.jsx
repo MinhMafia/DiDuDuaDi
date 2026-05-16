@@ -19,7 +19,11 @@ export default function PoiDetailPage() {
   const [translatedPoiContent, setTranslatedPoiContent] = useState({});
   const trackedViewRef = useRef("");
 
-  const { data: poi, isLoading, error } = useQuery({
+  const {
+    data: poi,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["poi-public", id],
     queryFn: () => getPoiById(id),
     enabled: Boolean(id),
@@ -29,6 +33,7 @@ export default function PoiDetailPage() {
   useEffect(() => {
     if (!poi || !id) return;
 
+    // Thống kê QR từ QR
     const params = new URLSearchParams(location.search);
     const source = params.get("source") === "qr" ? "qr" : "public-detail";
     const trackingKey = `${poi.id || id}:${i18n.language}:${source}`;
@@ -47,8 +52,8 @@ export default function PoiDetailPage() {
   }, [id, i18n.language, location.search, poi]);
 
   const speechLanguage =
-    SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)?.speechLocale ||
-    "vi-VN";
+    SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)
+      ?.speechLocale || "vi-VN";
 
   useEffect(() => {
     let isCanceled = false;
@@ -91,7 +96,11 @@ export default function PoiDetailPage() {
               i18n.language,
               speechLanguage,
             ),
-            name: await translateDisplayField(item.name, i18n.language, speechLanguage),
+            name: await translateDisplayField(
+              item.name,
+              i18n.language,
+              speechLanguage,
+            ),
           })),
         );
       }
@@ -160,7 +169,11 @@ export default function PoiDetailPage() {
     <div className="poi-detail-page">
       <div className="poi-detail-container">
         <header className="poi-detail-header">
-          <button type="button" className="poi-detail-back" onClick={() => navigate(-1)}>
+          <button
+            type="button"
+            className="poi-detail-back"
+            onClick={() => navigate(-1)}
+          >
             {t("poiDetail.backToPrevious")}
           </button>
 
@@ -226,8 +239,12 @@ export default function PoiDetailPage() {
               <div className="poi-detail-menu">
                 {menuItems.map((item, index) => {
                   const itemName =
-                    getLocalizedValue(item.name, i18n.language) || t("poiDetail.unknownDish");
-                  const itemDescription = getLocalizedValue(item.description, i18n.language);
+                    getLocalizedValue(item.name, i18n.language) ||
+                    t("poiDetail.unknownDish");
+                  const itemDescription = getLocalizedValue(
+                    item.description,
+                    i18n.language,
+                  );
 
                   return (
                     <div key={item.id || index} className="poi-menu-item">
@@ -339,7 +356,10 @@ async function safeTranslate(text, targetLanguage) {
 }
 
 async function translateDisplayField(value, language, speechLanguage) {
-  if (shouldTranslatePlainText(value, language) || shouldDynamicallyTranslate(value, language)) {
+  if (
+    shouldTranslatePlainText(value, language) ||
+    shouldDynamicallyTranslate(value, language)
+  ) {
     return safeTranslate(getTranslationSeed(value, language), speechLanguage);
   }
 

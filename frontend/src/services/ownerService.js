@@ -10,6 +10,11 @@ export async function updateShopProfile(payload) {
   return response.data;
 }
 
+export async function updateShopOpenStatus(payload) {
+  const response = await apiClient.patch("/owner/shop-open-status", payload);
+  return response.data;
+}
+
 export async function createMenuItem(payload) {
   const response = await apiClient.post("/owner/menu-items", payload);
   return response.data;

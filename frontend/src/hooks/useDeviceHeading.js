@@ -4,10 +4,24 @@ const PERMISSION_IDLE = "idle";
 const PERMISSION_GRANTED = "granted";
 const PERMISSION_DENIED = "denied";
 const PERMISSION_UNSUPPORTED = "unsupported";
+const HEADING_MIN_UPDATE_DELTA_DEGREES = 5;
+const HEADING_UPDATE_INTERVAL_MS = 180;
+const HEADING_SMOOTHING_ALPHA = 0.22;
 
 function normalizeHeading(value) {
   if (!Number.isFinite(value)) return null;
   return ((value % 360) + 360) % 360;
+}
+
+function getShortestAngleDelta(from, to) {
+  return ((to - from + 540) % 360) - 180;
+}
+
+function smoothHeading(previous, next) {
+  if (!Number.isFinite(previous)) return next;
+
+  const delta = getShortestAngleDelta(previous, next);
+  return normalizeHeading(previous + delta * HEADING_SMOOTHING_ALPHA);
 }
 
 function getHeadingFromEvent(event) {
@@ -34,6 +48,8 @@ export default function useDeviceHeading() {
   const [error, setError] = useState("");
   const [isListening, setIsListening] = useState(false);
   const handlerRef = useRef(null);
+  const smoothedHeadingRef = useRef(null);
+  const lastUpdateTimeRef = useRef(0);
   const isSupported = canUseDeviceOrientation();
 
   const stopHeading = useCallback(() => {
@@ -42,6 +58,8 @@ export default function useDeviceHeading() {
     window.removeEventListener("deviceorientationabsolute", handlerRef.current, true);
     window.removeEventListener("deviceorientation", handlerRef.current, true);
     handlerRef.current = null;
+    smoothedHeadingRef.current = null;
+    lastUpdateTimeRef.current = 0;
     setIsListening(false);
   }, []);
 
@@ -61,7 +79,30 @@ export default function useDeviceHeading() {
       const nextHeading = getHeadingFromEvent(event);
       if (!Number.isFinite(nextHeading)) return;
 
-      setHeading(nextHeading);
+      const now = Date.now();
+      const previousHeading = smoothedHeadingRef.current;
+      const delta = Number.isFinite(previousHeading)
+        ? Math.abs(getShortestAngleDelta(previousHeading, nextHeading))
+        : Infinity;
+
+      if (
+        Number.isFinite(previousHeading) &&
+        delta < HEADING_MIN_UPDATE_DELTA_DEGREES
+      ) {
+        return;
+      }
+
+      if (
+        lastUpdateTimeRef.current &&
+        now - lastUpdateTimeRef.current < HEADING_UPDATE_INTERVAL_MS
+      ) {
+        return;
+      }
+
+      const smoothedHeading = smoothHeading(previousHeading, nextHeading);
+      smoothedHeadingRef.current = smoothedHeading;
+      lastUpdateTimeRef.current = now;
+      setHeading(smoothedHeading);
       setError("");
     };
 

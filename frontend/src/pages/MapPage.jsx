@@ -10,7 +10,10 @@ import PoiQrCard from "../components/common/PoiQrCard";
 import useDeviceHeading from "../hooks/useDeviceHeading";
 import useGeolocation from "../hooks/useGeolocation";
 import { SUPPORTED_LANGUAGES } from "../i18n";
-import { setAutoNarrateOnTouch, setAutoPlayAudio } from "../store/slices/appSlice";
+import {
+  setAutoNarrateOnTouch,
+  setAutoPlayAudio,
+} from "../store/slices/appSlice";
 import {
   getVisitorSessionKey,
   trackAudioPlay,
@@ -46,7 +49,9 @@ export default function MapPage() {
   const queryClient = useQueryClient();
   const currentUser = useSelector((state) => state.app.currentUser);
   const autoPlayAudio = useSelector((state) => state.app.autoPlayAudio);
-  const autoNarrateOnTouch = useSelector((state) => state.app.autoNarrateOnTouch);
+  const autoNarrateOnTouch = useSelector(
+    (state) => state.app.autoNarrateOnTouch,
+  );
   const searchContainerRef = useRef(null);
   const autoFocusedPoiRef = useRef("");
   const heardPoiIdsRef = useRef(new Set());
@@ -62,12 +67,16 @@ export default function MapPage() {
   const [poiSearchTerm, setPoiSearchTerm] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
-    typeof window !== "undefined" ? window.matchMedia("(max-width: 768px)").matches : false,
+    typeof window !== "undefined"
+      ? window.matchMedia("(max-width: 768px)").matches
+      : false,
   );
   const [mobilePanel, setMobilePanel] = useState("map");
   const [mapCenter, setMapCenter] = useState(VINH_KHANH_CENTER);
   const [mapZoom, setMapZoom] = useState(DEFAULT_MAP_ZOOM);
-  const [networkSnapshot, setNetworkSnapshot] = useState(() => getNetworkSnapshot());
+  const [networkSnapshot, setNetworkSnapshot] = useState(() =>
+    getNetworkSnapshot(),
+  );
   const [viewCenter, setViewCenter] = useState(null);
   const [translatedPoiContent, setTranslatedPoiContent] = useState({});
   const {
@@ -93,8 +102,8 @@ export default function MapPage() {
   const numericRadius = radius === ALL_RADIUS_OPTION ? null : Number(radius);
 
   const speechLanguage =
-    SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)?.speechLocale ||
-    "vi-VN";
+    SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)
+      ?.speechLocale || "vi-VN";
 
   const allPoisQuery = useQuery({
     queryKey: ["pois"],
@@ -105,12 +114,24 @@ export default function MapPage() {
   const toursQuery = useQuery({
     queryKey: ["tours"],
     queryFn: getTours,
-    select: (response) => (Array.isArray(response) ? response : response?.data ?? []),
+    select: (response) =>
+      Array.isArray(response) ? response : (response?.data ?? []),
   });
 
   const nearbyPoisQuery = useQuery({
-    queryKey: ["pois", "nearby", effectiveLocation?.lat, effectiveLocation?.lng, numericRadius],
-    queryFn: () => getNearbyPois(effectiveLocation.lat, effectiveLocation.lng, numericRadius),
+    queryKey: [
+      "pois",
+      "nearby",
+      effectiveLocation?.lat,
+      effectiveLocation?.lng,
+      numericRadius,
+    ],
+    queryFn: () =>
+      getNearbyPois(
+        effectiveLocation.lat,
+        effectiveLocation.lng,
+        numericRadius,
+      ),
     enabled: Boolean(effectiveLocation && numericRadius),
     select: (response) => response.data ?? [],
   });
@@ -119,12 +140,14 @@ export default function MapPage() {
   const tours = toursQuery.data ?? [];
   const rawVisiblePois = effectiveLocation
     ? numericRadius
-      ? nearbyPoisQuery.data ?? []
+      ? (nearbyPoisQuery.data ?? [])
       : allPois
     : allPois;
 
   const radiusLabel =
-    radius === ALL_RADIUS_OPTION ? t("map.radiusAllOption") : `${numericRadius}m`;
+    radius === ALL_RADIUS_OPTION
+      ? t("map.radiusAllOption")
+      : `${numericRadius}m`;
 
   const selectedTour = useMemo(
     () => tours.find((tour) => tour.id === selectedTourId) ?? null,
@@ -171,7 +194,9 @@ export default function MapPage() {
             );
           }
 
-          if (shouldTranslatePlainText(poi.approvedIntroduction, i18n.language)) {
+          if (
+            shouldTranslatePlainText(poi.approvedIntroduction, i18n.language)
+          ) {
             translatedEntry.displayIntroduction = await safeTranslate(
               poi.approvedIntroduction,
               speechLanguage,
@@ -187,7 +212,11 @@ export default function MapPage() {
                   i18n.language,
                   speechLanguage,
                 ),
-                name: await translateDisplayField(item.name, i18n.language, speechLanguage),
+                name: await translateDisplayField(
+                  item.name,
+                  i18n.language,
+                  speechLanguage,
+                ),
               })),
             );
 
@@ -217,37 +246,38 @@ export default function MapPage() {
     };
   }, [i18n.language, rawDisplayPois, speechLanguage]);
 
-  const displayPois = useMemo(
-    () => {
-      const mapped = rawDisplayPois.map((poi) => {
-        const translatedEntry = translatedPoiContent[poi.id] ?? {};
+  const displayPois = useMemo(() => {
+    const mapped = rawDisplayPois.map((poi) => {
+      const translatedEntry = translatedPoiContent[poi.id] ?? {};
 
       return {
         ...poi,
-        audioUrl: resolveBackendUrl(resolveNarrationAudioUrl(poi, i18n.language)),
+        audioUrl: resolveBackendUrl(
+          resolveNarrationAudioUrl(poi, i18n.language),
+        ),
         displayDescription:
           translatedEntry.displayDescription ||
-            getLocalizedValue(poi.description, i18n.language),
-          displayIntroduction:
-            translatedEntry.displayIntroduction || poi.approvedIntroduction || "",
-          displayCategory: getCategoryLabel(poi.category, t),
-          displayName:
-            translatedEntry.displayName || getLocalizedValue(poi.name, i18n.language),
-          menuItems: translatedEntry.menuItems || poi.menuItems || [],
-        };
-      });
+          getLocalizedValue(poi.description, i18n.language),
+        displayIntroduction:
+          translatedEntry.displayIntroduction || poi.approvedIntroduction || "",
+        displayCategory: getCategoryLabel(poi.category, t),
+        displayName:
+          translatedEntry.displayName ||
+          getLocalizedValue(poi.name, i18n.language),
+        isTemporarilyClosed: Boolean(poi.isTemporarilyClosed),
+        menuItems: translatedEntry.menuItems || poi.menuItems || [],
+      };
+    });
 
-      return mapped.sort((a, b) => {
-        if (selectedTour) {
-          return (a.tourOrder ?? 0) - (b.tourOrder ?? 0);
-        }
+    return mapped.sort((a, b) => {
+      if (selectedTour) {
+        return (a.tourOrder ?? 0) - (b.tourOrder ?? 0);
+      }
 
-        if (a.isFavorite === b.isFavorite) return 0;
-        return a.isFavorite ? -1 : 1;
-      });
-    },
-    [i18n.language, rawDisplayPois, selectedTour, t, translatedPoiContent],
-  );
+      if (a.isFavorite === b.isFavorite) return 0;
+      return a.isFavorite ? -1 : 1;
+    });
+  }, [i18n.language, rawDisplayPois, selectedTour, t, translatedPoiContent]);
 
   const normalizedSearchTerm = normalizeForSearch(poiSearchTerm.trim());
   const poiSearchResults = useMemo(() => {
@@ -256,8 +286,13 @@ export default function MapPage() {
     return displayPois
       .filter((poi) => {
         const name = normalizeForSearch(poi.displayName);
-        const category = normalizeForSearch(poi.displayCategory || poi.category);
-        return name.includes(normalizedSearchTerm) || category.includes(normalizedSearchTerm);
+        const category = normalizeForSearch(
+          poi.displayCategory || poi.category,
+        );
+        return (
+          name.includes(normalizedSearchTerm) ||
+          category.includes(normalizedSearchTerm)
+        );
       })
       .slice(0, 8);
   }, [displayPois, normalizedSearchTerm]);
@@ -341,7 +376,9 @@ export default function MapPage() {
     if (typeof window === "undefined") return undefined;
 
     const connection =
-      navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      navigator.connection ||
+      navigator.mozConnection ||
+      navigator.webkitConnection;
     const syncNetworkStatus = () => setNetworkSnapshot(getNetworkSnapshot());
 
     syncNetworkStatus();
@@ -414,41 +451,48 @@ export default function MapPage() {
   }, [effectiveLocation, selectedPoi]);
 
   const isLoading =
-    allPoisQuery.isLoading || Boolean(effectiveLocation && numericRadius && nearbyPoisQuery.isLoading);
-  const queryError = allPoisQuery.error || (numericRadius ? nearbyPoisQuery.error : null) || toursQuery.error;
+    allPoisQuery.isLoading ||
+    Boolean(effectiveLocation && numericRadius && nearbyPoisQuery.isLoading);
+  const queryError =
+    allPoisQuery.error ||
+    (numericRadius ? nearbyPoisQuery.error : null) ||
+    toursQuery.error;
 
-  const nearestPoi = useMemo(() => {
-    if (!effectiveLocation || !displayPois.length) return null;
+  // Tính khoảng cách các POI gần
+  const nearestPoi =
+    useMemo(() => {
+      if (!effectiveLocation || !displayPois.length) return null;
 
-    let minDistance = Infinity;
-    const candidates = [];
+      let minDistance = Infinity;
+      const candidates = [];
 
-    for (const poi of displayPois) {
-      const dist = calculateDistanceMeters(effectiveLocation, poi.location);
-      if (dist < minDistance) {
-        minDistance = dist;
-        candidates.length = 0;
-        candidates.push(poi);
-        continue;
+      for (const poi of displayPois) {
+        const dist = calculateDistanceMeters(effectiveLocation, poi.location);
+        if (dist < minDistance) {
+          minDistance = dist;
+          candidates.length = 0;
+          candidates.push(poi);
+          continue;
+        }
+
+        if (Math.abs(dist - minDistance) <= NEAREST_POI_TIE_EPSILON_METERS) {
+          candidates.push(poi);
+        }
       }
 
-      if (Math.abs(dist - minDistance) <= NEAREST_POI_TIE_EPSILON_METERS) {
-        candidates.push(poi);
+      if (!candidates.length) {
+        return null;
       }
-    }
 
-    if (!candidates.length) {
-      return null;
-    }
-
-    return (
-      candidates.find((poi) => poi.id === selectedPoi?.id) ??
-      candidates.find((poi) => !heardPoiIdsRef.current.has(poi.id)) ??
-      candidates.find((poi) => poi.id === autoFocusedPoiRef.current) ??
-      candidates[0] ??
-      null
-    );
-  }, [displayPois, effectiveLocation, selectedPoi?.id]) ?? (displayPois[0] || null);
+      return (
+        candidates.find((poi) => poi.id === selectedPoi?.id) ??
+        candidates.find((poi) => !heardPoiIdsRef.current.has(poi.id)) ??
+        candidates.find((poi) => poi.id === autoFocusedPoiRef.current) ??
+        candidates[0] ??
+        null
+      );
+    }, [displayPois, effectiveLocation, selectedPoi?.id]) ??
+    (displayPois[0] || null);
 
   const nearestPoiDistance =
     nearestPoi && effectiveLocation
@@ -503,46 +547,63 @@ export default function MapPage() {
 
       // Snapshot the previous value of both queries
       const allPoisQueryKey = ["pois"];
-      const nearbyPoisQueryKey = ["pois", "nearby", effectiveLocation?.lat, effectiveLocation?.lng, numericRadius];
-      
+      const nearbyPoisQueryKey = [
+        "pois",
+        "nearby",
+        effectiveLocation?.lat,
+        effectiveLocation?.lng,
+        numericRadius,
+      ];
+
       const previousAllPois = queryClient.getQueryData(allPoisQueryKey);
       const previousNearbyPois = queryClient.getQueryData(nearbyPoisQueryKey);
 
       // The function to update a POI's favorite status in a list
       const updatePoiInList = (oldData) => {
-          if (!oldData) return oldData;
-          // Kiểm tra nếu cache lưu object chứa .data (API response)
-          if (oldData.data && Array.isArray(oldData.data)) {
-              return {
-                  ...oldData,
-                  data: oldData.data.map(poi => 
-                      poi.id === poiId ? { ...poi, isFavorite: !isFavorite } : poi
-                  )
-              };
-          }
-          // Dự phòng nếu cache đã là mảng
-          if (Array.isArray(oldData)) {
-              return oldData.map(poi => 
-                  poi.id === poiId ? { ...poi, isFavorite: !isFavorite } : poi
-              );
-          }
-          return oldData;
+        if (!oldData) return oldData;
+        // Kiểm tra nếu cache lưu object chứa .data (API response)
+        if (oldData.data && Array.isArray(oldData.data)) {
+          return {
+            ...oldData,
+            data: oldData.data.map((poi) =>
+              poi.id === poiId ? { ...poi, isFavorite: !isFavorite } : poi,
+            ),
+          };
+        }
+        // Dự phòng nếu cache đã là mảng
+        if (Array.isArray(oldData)) {
+          return oldData.map((poi) =>
+            poi.id === poiId ? { ...poi, isFavorite: !isFavorite } : poi,
+          );
+        }
+        return oldData;
       };
 
       // Optimistically update to the new value
       queryClient.setQueryData(allPoisQueryKey, updatePoiInList);
       if (effectiveLocation && numericRadius) {
-          queryClient.setQueryData(nearbyPoisQueryKey, updatePoiInList);
+        queryClient.setQueryData(nearbyPoisQueryKey, updatePoiInList);
       }
 
       // Return a context object with the snapshotted value
-      return { previousAllPois, previousNearbyPois, allPoisQueryKey, nearbyPoisQueryKey };
+      return {
+        previousAllPois,
+        previousNearbyPois,
+        allPoisQueryKey,
+        nearbyPoisQueryKey,
+      };
     },
     // If the mutation fails, use the context returned from onMutate to roll back
     onError: (err, variables, context) => {
-      queryClient.setQueryData(context.allPoisQueryKey, context.previousAllPois);
+      queryClient.setQueryData(
+        context.allPoisQueryKey,
+        context.previousAllPois,
+      );
       if (context?.nearbyPoisQueryKey) {
-        queryClient.setQueryData(context.nearbyPoisQueryKey, context.previousNearbyPois);
+        queryClient.setQueryData(
+          context.nearbyPoisQueryKey,
+          context.previousNearbyPois,
+        );
       }
     },
     // Always refetch after error or success to ensure data is in sync with the server
@@ -557,7 +618,10 @@ export default function MapPage() {
       alert(t("auth.loginRequired"));
       return;
     }
-    toggleFavoriteMutation.mutate({ poiId: poi.id, isFavorite: poi.isFavorite });
+    toggleFavoriteMutation.mutate({
+      poiId: poi.id,
+      isFavorite: poi.isFavorite,
+    });
   }
 
   function handleSelectPoi(poi, options = {}) {
@@ -711,9 +775,12 @@ export default function MapPage() {
   }
 
   const distanceToViewCenter =
-    viewCenter && effectiveLocation ? calculateDistanceMeters(effectiveLocation, viewCenter) : 0;
+    viewCenter && effectiveLocation
+      ? calculateDistanceMeters(effectiveLocation, viewCenter)
+      : 0;
   const showSearchBtn = distanceToViewCenter > 50;
 
+  // Đánh dấu dã nghe và thống kê
   function handleAudioPlaybackStart() {
     if (!selectedPoi?.shopId) return;
 
@@ -741,18 +808,25 @@ export default function MapPage() {
           : routeQuery.data
             ? t("map.routeSummary", {
                 distance: formatDistance(routeQuery.data.distanceMeters),
-                minutes: Math.max(1, Math.round(routeQuery.data.durationSeconds / 60)),
+                minutes: Math.max(
+                  1,
+                  Math.round(routeQuery.data.durationSeconds / 60),
+                ),
               })
-          : ""
+            : ""
       : "";
   const selectedPoiSpeechText = selectedPoi
     ? selectedPoi.displayDescription || selectedPoi.displayIntroduction || ""
     : "";
   const networkPresentation = describeNetwork(networkSnapshot, t);
-  const deviceHeadingDegrees = Number.isFinite(deviceHeading) ? Math.round(deviceHeading) : null;
+  const deviceHeadingDegrees = Number.isFinite(deviceHeading)
+    ? Math.round(deviceHeading)
+    : null;
   const canShowRealHeading = Boolean(location) && !demoLocation;
   const isDeviceHeadingActive =
-    isDeviceHeadingListening && canShowRealHeading && Number.isFinite(deviceHeadingDegrees);
+    isDeviceHeadingListening &&
+    canShowRealHeading &&
+    Number.isFinite(deviceHeadingDegrees);
   const deviceHeadingPresentation = getDeviceHeadingPresentation({
     degrees: deviceHeadingDegrees,
     error: deviceHeadingError,
@@ -765,10 +839,12 @@ export default function MapPage() {
     t,
   });
   const hasGpsPermissionIssue =
-    geolocationPermissionState === "denied" || geoErrorCode === "permission_denied";
+    geolocationPermissionState === "denied" ||
+    geoErrorCode === "permission_denied";
   const hasLiveGpsLocation = Boolean(location) && !hasGpsPermissionIssue;
   const shouldShowGpsRequest =
-    !demoLocation && (!hasLiveGpsLocation || Boolean(geoError) || hasGpsPermissionIssue);
+    !demoLocation &&
+    (!hasLiveGpsLocation || Boolean(geoError) || hasGpsPermissionIssue);
   const gpsRequestLabel = geoLoading
     ? t("map.gpsRequesting", { defaultValue: "Đang lấy GPS..." })
     : hasGpsPermissionIssue
@@ -792,7 +868,9 @@ export default function MapPage() {
           </div>
 
           <div className="status-row">
-            <span className={`status-pill ${demoLocation || hasLiveGpsLocation ? "ok" : ""}`}>
+            <span
+              className={`status-pill ${demoLocation || hasLiveGpsLocation ? "ok" : ""}`}
+            >
               {gpsStatusLabel}
             </span>
             {shouldShowGpsRequest ? (
@@ -811,7 +889,9 @@ export default function MapPage() {
             >
               {networkPresentation.label}
             </span>
-            <span className="status-pill">{t("map.poiCount", { count: displayPois.length })}</span>
+            <span className="status-pill">
+              {t("map.poiCount", { count: displayPois.length })}
+            </span>
             {selectedTour ? (
               <span className="status-pill ok">
                 {t("map.tourActiveBadge", {
@@ -823,7 +903,11 @@ export default function MapPage() {
         </header>
 
         {isMobileViewport ? (
-          <div className="map-mobile-switch" role="tablist" aria-label={t("map.liveMap")}>
+          <div
+            className="map-mobile-switch"
+            role="tablist"
+            aria-label={t("map.liveMap")}
+          >
             <button
               type="button"
               role="tab"
@@ -848,7 +932,9 @@ export default function MapPage() {
         <div className="map-content-grid">
           <div
             className={`map-stage-card${
-              isMobileViewport && mobilePanel !== "map" ? " is-hidden-mobile" : ""
+              isMobileViewport && mobilePanel !== "map"
+                ? " is-hidden-mobile"
+                : ""
             }`}
           >
             <div className="map-toolbar">
@@ -864,7 +950,9 @@ export default function MapPage() {
                       {option}m
                     </option>
                   ))}
-                  <option value={ALL_RADIUS_OPTION}>{t("map.radiusAllOption")}</option>
+                  <option value={ALL_RADIUS_OPTION}>
+                    {t("map.radiusAllOption")}
+                  </option>
                 </select>
               </label>
 
@@ -909,7 +997,9 @@ export default function MapPage() {
                         </button>
                       ))
                     ) : (
-                      <p className="map-search-empty">{t("map.searchNoResult")}</p>
+                      <p className="map-search-empty">
+                        {t("map.searchNoResult")}
+                      </p>
                     )}
                   </div>
                 ) : null}
@@ -943,30 +1033,34 @@ export default function MapPage() {
                     dispatch(setAutoNarrateOnTouch(event.target.checked))
                   }
                 />
-                <span>
-                  {t("map.autoNarrateOnTouch")}
-                </span>
+                <span>{t("map.autoNarrateOnTouch")}</span>
               </label>
 
               <label className="map-toggle-chip">
                 <input
                   type="checkbox"
                   checked={autoPlayAudio}
-                  onChange={(event) => dispatch(setAutoPlayAudio(event.target.checked))}
+                  onChange={(event) =>
+                    dispatch(setAutoPlayAudio(event.target.checked))
+                  }
                 />
-                <span>
-                  {t("map.autoNarrateNearby")}
-                </span>
+                <span>{t("map.autoNarrateNearby")}</span>
               </label>
             </div>
 
             <div className="map-canvas">
               {showSearchBtn ? (
-                <button className="search-area-btn" onClick={handleSearchThisArea} type="button">
+                <button
+                  className="search-area-btn"
+                  onClick={handleSearchThisArea}
+                  type="button"
+                >
                   {t("map.searchThisArea")}
                 </button>
               ) : null}
-              <div className={`map-heading-control ${deviceHeadingPresentation.toneClass}`}>
+              <div
+                className={`map-heading-control ${deviceHeadingPresentation.toneClass}`}
+              >
                 <button
                   type="button"
                   className={`map-heading-button ${isDeviceHeadingActive ? "active" : ""}`}
@@ -984,7 +1078,9 @@ export default function MapPage() {
                   <span>{deviceHeadingPresentation.label}</span>
                 </button>
                 {deviceHeadingPresentation.note ? (
-                  <span className="map-heading-note">{deviceHeadingPresentation.note}</span>
+                  <span className="map-heading-note">
+                    {deviceHeadingPresentation.note}
+                  </span>
                 ) : null}
               </div>
               <MapView
@@ -1004,7 +1100,9 @@ export default function MapPage() {
                 userHeading={deviceHeading}
                 userLocation={effectiveLocation}
                 userLocationLabel={
-                  demoLocation ? t("map.demoLocationLabel") : t("map.userLocationLabel")
+                  demoLocation
+                    ? t("map.demoLocationLabel")
+                    : t("map.userLocationLabel")
                 }
                 routePath={routePath}
                 onSelectPoi={(poi) =>
@@ -1023,7 +1121,8 @@ export default function MapPage() {
                 {effectiveLocation ? (
                   <>
                     <strong>{t("map.locationNote")}</strong>{" "}
-                    {effectiveLocation.lat.toFixed(5)}, {effectiveLocation.lng.toFixed(5)}
+                    {effectiveLocation.lat.toFixed(5)},{" "}
+                    {effectiveLocation.lng.toFixed(5)}
                   </>
                 ) : (
                   <strong>{t("map.usingDefaultCenter")}</strong>
@@ -1043,7 +1142,9 @@ export default function MapPage() {
 
           <aside
             className={`map-side-panel${
-              isMobileViewport && mobilePanel !== "list" ? " is-hidden-mobile" : ""
+              isMobileViewport && mobilePanel !== "list"
+                ? " is-hidden-mobile"
+                : ""
             }`}
           >
             <article className="panel-card">
@@ -1056,7 +1157,9 @@ export default function MapPage() {
                       {selectedTour
                         ? t("map.tourSelectedSummary", {
                             count: rawTourPois.length,
-                            duration: selectedTour.estimatedDurationMinutes || rawTourPois.length * 20,
+                            duration:
+                              selectedTour.estimatedDurationMinutes ||
+                              rawTourPois.length * 20,
                           })
                         : t("map.tourHint")}
                     </p>
@@ -1103,14 +1206,21 @@ export default function MapPage() {
                       >
                         <span>{poi.tourOrder}</span>
                         <strong>{poi.displayName}</strong>
+                        {poi.isTemporarilyClosed ? (
+                          <em className="poi-inline-closed">Tạm đóng cửa</em>
+                        ) : null}
                       </button>
                     ))}
                   </div>
                 ) : null}
               </div>
 
-              {geoLoading ? <p className="supporting-text">{t("map.requestingLocation")}</p> : null}
-              {geoError ? <p className="error-text">{geoErrorMessage}</p> : null}
+              {geoLoading ? (
+                <p className="supporting-text">{t("map.requestingLocation")}</p>
+              ) : null}
+              {geoError ? (
+                <p className="error-text">{geoErrorMessage}</p>
+              ) : null}
               {shouldShowGpsRequest ? (
                 <div className="gps-request-card">
                   <button
@@ -1140,7 +1250,9 @@ export default function MapPage() {
                   })}
                 </p>
               ) : null}
-              {demoLocation ? <p className="supporting-text">{t("map.demoHint")}</p> : null}
+              {demoLocation ? (
+                <p className="supporting-text">{t("map.demoHint")}</p>
+              ) : null}
               {nearestPoi && nearestPoiDistance ? (
                 <p className="supporting-text">
                   {t("map.nearestPoi", {
@@ -1151,7 +1263,9 @@ export default function MapPage() {
               ) : null}
               {isLoading ? <Loading /> : null}
               {queryError ? (
-                <p className="error-text">{queryError.message || t("map.loadError")}</p>
+                <p className="error-text">
+                  {queryError.message || t("map.loadError")}
+                </p>
               ) : null}
 
               {!isLoading && !queryError && displayPois.length === 0 ? (
@@ -1171,12 +1285,21 @@ export default function MapPage() {
                       key={poi.id}
                       type="button"
                       className={`poi-card ${selectedPoi?.id === poi.id ? "active" : ""}`}
-                      onClick={() => handleSelectPoi(poi, { touchTriggered: true })}
+                      onClick={() =>
+                        handleSelectPoi(poi, { touchTriggered: true })
+                      }
                     >
                       <div className="poi-card-head">
                         <div className="poi-card-info">
                           <strong>{poi.displayName}</strong>
-                          <span className="poi-category">{poi.displayCategory}</span>
+                          <span className="poi-category">
+                            {poi.displayCategory}
+                          </span>
+                          {poi.isTemporarilyClosed ? (
+                            <span className="poi-closed-badge">
+                              Tạm đóng cửa
+                            </span>
+                          ) : null}
                           {selectedTour ? (
                             <span className="poi-tour-stop">
                               {t("map.tourStopLabel", { order: poi.tourOrder })}
@@ -1188,10 +1311,24 @@ export default function MapPage() {
                             type="button"
                             className={`poi-favorite-btn ${poi.isFavorite ? "active" : ""}`}
                             onClick={(e) => handleToggleFavorite(e, poi)}
-                            title={poi.isFavorite ? t("favorites.remove") : t("favorites.add")}
+                            title={
+                              poi.isFavorite
+                                ? t("favorites.remove")
+                                : t("favorites.add")
+                            }
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
                             </svg>
                           </button>
                         )}
@@ -1199,9 +1336,12 @@ export default function MapPage() {
                       <p>{poi.displayDescription || t("map.noDescription")}</p>
                       <div className="poi-meta">
                         <span>
-                          {poi.location.lat.toFixed(4)}, {poi.location.lng.toFixed(4)}
+                          {poi.location.lat.toFixed(4)},{" "}
+                          {poi.location.lng.toFixed(4)}
                         </span>
-                        {distance ? <span>{formatDistance(distance)}</span> : null}
+                        {distance ? (
+                          <span>{formatDistance(distance)}</span>
+                        ) : null}
                       </div>
                     </button>
                   );
@@ -1229,7 +1369,12 @@ export default function MapPage() {
                   <div className="selected-poi-head">
                     <div>
                       <strong>{selectedPoi.displayName}</strong>
-                      <span className="poi-category">{selectedPoi.displayCategory}</span>
+                      <span className="poi-category">
+                        {selectedPoi.displayCategory}
+                      </span>
+                      {selectedPoi.isTemporarilyClosed ? (
+                        <span className="poi-closed-badge">Tạm đóng cửa</span>
+                      ) : null}
                     </div>
                     <button
                       type="button"
@@ -1240,10 +1385,14 @@ export default function MapPage() {
                     </button>
                   </div>
 
-                  <p>{selectedPoi.displayDescription || t("map.noDescription")}</p>
+                  <p>
+                    {selectedPoi.displayDescription || t("map.noDescription")}
+                  </p>
 
                   {selectedPoi.shopAddress ? (
-                    <p className="selected-poi-address">{selectedPoi.shopAddress}</p>
+                    <p className="selected-poi-address">
+                      {selectedPoi.shopAddress}
+                    </p>
                   ) : null}
                   {selectedPoiDistance ? (
                     <p>
@@ -1383,7 +1532,10 @@ async function safeTranslate(text, targetLanguage) {
 }
 
 async function translateDisplayField(value, language, speechLanguage) {
-  if (shouldTranslatePlainText(value, language) || shouldDynamicallyTranslate(value, language)) {
+  if (
+    shouldTranslatePlainText(value, language) ||
+    shouldDynamicallyTranslate(value, language)
+  ) {
     return safeTranslate(getTranslationSeed(value, language), speechLanguage);
   }
 
@@ -1419,7 +1571,10 @@ function getStrictLocalizedValue(value, language) {
   const languageBase = normalizedLanguage.split("-")[0];
   const matchingKey = Object.keys(value).find((key) => {
     const normalizedKey = key.toLowerCase();
-    return normalizedKey === normalizedLanguage || normalizedKey.split("-")[0] === languageBase;
+    return (
+      normalizedKey === normalizedLanguage ||
+      normalizedKey.split("-")[0] === languageBase
+    );
   });
 
   return matchingKey ? value[matchingKey] : "";
@@ -1428,13 +1583,15 @@ function getStrictLocalizedValue(value, language) {
 function getGeolocationErrorMessage(errorCode, fallbackMessage, t) {
   if (errorCode === "permission_denied") {
     return t("map.gpsPermissionDenied", {
-      defaultValue: "Bạn cần cho phép quyền vị trí để app xác định GPS hiện tại.",
+      defaultValue:
+        "Bạn cần cho phép quyền vị trí để app xác định GPS hiện tại.",
     });
   }
 
   if (errorCode === "position_unavailable") {
     return t("map.gpsUnavailable", {
-      defaultValue: "Chưa lấy được vị trí hiện tại. Hãy kiểm tra GPS hoặc kết nối mạng.",
+      defaultValue:
+        "Chưa lấy được vị trí hiện tại. Hãy kiểm tra GPS hoặc kết nối mạng.",
     });
   }
 
@@ -1495,7 +1652,9 @@ function getDeviceHeadingPresentation({
     return {
       disabled: false,
       label: t("map.headingLabel", { degrees }),
-      note: t("map.headingFacing", { direction: getHeadingDirectionLabel(degrees, t) }),
+      note: t("map.headingFacing", {
+        direction: getHeadingDirectionLabel(degrees, t),
+      }),
       toneClass: "is-good",
     };
   }

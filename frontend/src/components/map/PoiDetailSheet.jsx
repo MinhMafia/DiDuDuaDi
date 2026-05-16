@@ -37,6 +37,9 @@ export default function PoiDetailSheet({
               <span className="poi-category">
                 {poi.displayCategory || poi.category}
               </span>
+              {poi.isTemporarilyClosed ? (
+                <span className="poi-closed-badge">Tạm đóng cửa</span>
+              ) : null}
               {distanceLabel ? <span>{distanceLabel}</span> : null}
             </div>
           </div>
@@ -64,6 +67,11 @@ export default function PoiDetailSheet({
               <p>
                 <strong>{t("map.labels.openingHours")}:</strong>{" "}
                 {poi.openingHours}
+              </p>
+            ) : null}
+            {poi.isTemporarilyClosed ? (
+              <p className="poi-closed-message">
+                Quán hiện đang tạm đóng cửa.
               </p>
             ) : null}
             {poi.phone ? (

@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Howl } from "howler";
 import { useTranslation } from "react-i18next";
-import { playCloudTts, stopAllCloudTts, translateText } from "../../services/translateService";
+import {
+  playCloudTts,
+  stopAllCloudTts,
+  translateText,
+} from "../../services/translateService";
 
 const AUDIO_PROBE_SRC =
   "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAACAgICA";
@@ -116,7 +120,8 @@ export default function SpeechGuidePlayer({
 
   useEffect(() => {
     const playbackKeyChanged = previousPlaybackKeyRef.current !== playbackKey;
-    const speechLanguageChanged = previousSpeechLanguageRef.current !== speechLanguage;
+    const speechLanguageChanged =
+      previousSpeechLanguageRef.current !== speechLanguage;
 
     previousPlaybackKeyRef.current = playbackKey;
     previousSpeechLanguageRef.current = speechLanguage;
@@ -169,7 +174,15 @@ export default function SpeechGuidePlayer({
     } else if (speechText) {
       startSpeech();
     }
-  }, [audioUrl, onPlaybackStart, playbackKey, speechLanguage, speechText, triggerAutoSpeak, voices]);
+  }, [
+    audioUrl,
+    onPlaybackStart,
+    playbackKey,
+    speechLanguage,
+    speechText,
+    triggerAutoSpeak,
+    voices,
+  ]);
 
   function togglePlayback() {
     if (audioUrl) {
@@ -217,7 +230,10 @@ export default function SpeechGuidePlayer({
     if (!currentPlayer) return;
 
     const currentProgress = Number(currentPlayer.seek() || 0);
-    const nextProgress = Math.min(duration || currentProgress, currentProgress + 5);
+    const nextProgress = Math.min(
+      duration || currentProgress,
+      currentProgress + 5,
+    );
     currentPlayer.seek(nextProgress);
     setProgress(nextProgress);
   }
@@ -284,7 +300,11 @@ export default function SpeechGuidePlayer({
       else return -1;
 
       const name = voice.name.toLowerCase();
-      if (name.includes("google") || name.includes("online") || name.includes("natural")) {
+      if (
+        name.includes("google") ||
+        name.includes("online") ||
+        name.includes("natural")
+      ) {
         score += 20;
       }
       if (voice.localService === false) {
@@ -330,6 +350,7 @@ export default function SpeechGuidePlayer({
 
       window.setTimeout(() => {
         if (speechSessionRef.current === sessionId) {
+          //giọng đọc phù hợp
           window.speechSynthesis.speak(utterance);
         }
       }, 40);
@@ -338,64 +359,76 @@ export default function SpeechGuidePlayer({
     };
 
     if (!canUseSpeechSynthesis && !isVietnamese) {
-      cloudTtsPlayerRef.current = playCloudTts(finalSpeechText, speechLanguage, {
-        onPlay: () => {
-          setIsPlaying(true);
-          setAudioAccessState("ready");
-          onPlaybackStartRef.current?.();
+      cloudTtsPlayerRef.current = playCloudTts(
+        finalSpeechText,
+        speechLanguage,
+        {
+          onPlay: () => {
+            setIsPlaying(true);
+            setAudioAccessState("ready");
+            onPlaybackStartRef.current?.();
+          },
+          onEnd: () => {
+            cloudTtsPlayerRef.current = null;
+            setIsPlaying(false);
+          },
+          onError: () => {
+            cloudTtsPlayerRef.current = null;
+            setIsPlaying(false);
+            setAudioAccessState("failed");
+          },
         },
-        onEnd: () => {
-          cloudTtsPlayerRef.current = null;
-          setIsPlaying(false);
-        },
-        onError: () => {
-          cloudTtsPlayerRef.current = null;
-          setIsPlaying(false);
-          setAudioAccessState("failed");
-        },
-      });
+      );
       return;
     }
 
     if (shouldPreferCloudTts) {
-      cloudTtsPlayerRef.current = playCloudTts(finalSpeechText, speechLanguage, {
-        onPlay: () => {
-          setIsPlaying(true);
-          setAudioAccessState("ready");
-          onPlaybackStartRef.current?.();
-        },
-        onEnd: () => {
-          cloudTtsPlayerRef.current = null;
-          setIsPlaying(false);
-        },
-        onError: () => {
-          cloudTtsPlayerRef.current = null;
-          if (!speakWithBrowserTts()) {
+      cloudTtsPlayerRef.current = playCloudTts(
+        finalSpeechText,
+        speechLanguage,
+        {
+          onPlay: () => {
+            setIsPlaying(true);
+            setAudioAccessState("ready");
+            onPlaybackStartRef.current?.();
+          },
+          onEnd: () => {
+            cloudTtsPlayerRef.current = null;
             setIsPlaying(false);
-            setAudioAccessState("failed");
-          }
+          },
+          onError: () => {
+            cloudTtsPlayerRef.current = null;
+            if (!speakWithBrowserTts()) {
+              setIsPlaying(false);
+              setAudioAccessState("failed");
+            }
+          },
         },
-      });
+      );
       return;
     }
 
     if (!speakWithBrowserTts()) {
-      cloudTtsPlayerRef.current = playCloudTts(finalSpeechText, speechLanguage, {
-        onPlay: () => {
-          setIsPlaying(true);
-          setAudioAccessState("ready");
-          onPlaybackStartRef.current?.();
+      cloudTtsPlayerRef.current = playCloudTts(
+        finalSpeechText,
+        speechLanguage,
+        {
+          onPlay: () => {
+            setIsPlaying(true);
+            setAudioAccessState("ready");
+            onPlaybackStartRef.current?.();
+          },
+          onEnd: () => {
+            cloudTtsPlayerRef.current = null;
+            setIsPlaying(false);
+          },
+          onError: () => {
+            cloudTtsPlayerRef.current = null;
+            setIsPlaying(false);
+            setAudioAccessState("failed");
+          },
         },
-        onEnd: () => {
-          cloudTtsPlayerRef.current = null;
-          setIsPlaying(false);
-        },
-        onError: () => {
-          cloudTtsPlayerRef.current = null;
-          setIsPlaying(false);
-          setAudioAccessState("failed");
-        },
-      });
+      );
     }
   }
 
@@ -454,13 +487,19 @@ export default function SpeechGuidePlayer({
   const primaryButtonLabel = isTranslating
     ? t("audio.translating")
     : isPlaying
-      ? (isSpeechMode ? t("audio.stop") : t("audio.pause"))
+      ? isSpeechMode
+        ? t("audio.stop")
+        : t("audio.pause")
       : t("audio.play");
   const audioAccessPresentation = describeAudioAccess(audioAccessState, t);
 
   if (variant === "compact") {
     return (
-      <div className="audio-guide-compact" role="group" aria-label={t("audio.title")}>
+      <div
+        className="audio-guide-compact"
+        role="group"
+        aria-label={t("audio.title")}
+      >
         <button
           type="button"
           className={`audio-guide-compact-button${isPlaying ? " is-active" : ""}`}
@@ -480,7 +519,9 @@ export default function SpeechGuidePlayer({
           <strong>{t("audio.title")}</strong>
           <p>{title || t("audio.noPoiSelected")}</p>
         </div>
-        <span className={`audio-guide-mode-pill ${modeClassName}`}>{modeLabel}</span>
+        <span className={`audio-guide-mode-pill ${modeClassName}`}>
+          {modeLabel}
+        </span>
       </div>
 
       <div className="audio-guide-timeline">
@@ -511,7 +552,9 @@ export default function SpeechGuidePlayer({
           className="audio-guide-control secondary"
           onClick={handleRewindFiveSeconds}
           disabled={!audioUrl || isTranslating}
-          title={!audioUrl ? t("audio.rewindRequiresAudioFile") : t("audio.rewind5")}
+          title={
+            !audioUrl ? t("audio.rewindRequiresAudioFile") : t("audio.rewind5")
+          }
         >
           {t("audio.rewind5")}
         </button>
@@ -528,7 +571,11 @@ export default function SpeechGuidePlayer({
           className="audio-guide-control secondary"
           onClick={handleForwardFiveSeconds}
           disabled={!audioUrl || isTranslating}
-          title={!audioUrl ? t("audio.forwardRequiresAudioFile") : t("audio.forward5")}
+          title={
+            !audioUrl
+              ? t("audio.forwardRequiresAudioFile")
+              : t("audio.forward5")
+          }
         >
           {t("audio.forward5")}
         </button>
@@ -542,11 +589,15 @@ export default function SpeechGuidePlayer({
         </button>
       </div>
 
-      {audioUrl ? <p className="audio-guide-note">{t("audio.seekHint")}</p> : null}
+      {audioUrl ? (
+        <p className="audio-guide-note">{t("audio.seekHint")}</p>
+      ) : null}
 
       {!audioUrl && speechText ? (
         <p className="audio-guide-note">
-          {isTranslating ? t("audio.translatingHint") : t("audio.seekUnavailable")}
+          {isTranslating
+            ? t("audio.translatingHint")
+            : t("audio.seekUnavailable")}
         </p>
       ) : null}
 
@@ -557,8 +608,12 @@ export default function SpeechGuidePlayer({
       <div className="audio-guide-diagnostics">
         <div className="audio-guide-status-grid single">
           <article className="audio-guide-status-card">
-            <span className="audio-guide-status-label">{t("audio.accessTitle")}</span>
-            <strong className={`audio-guide-status-pill ${audioAccessPresentation.toneClass}`}>
+            <span className="audio-guide-status-label">
+              {t("audio.accessTitle")}
+            </span>
+            <strong
+              className={`audio-guide-status-pill ${audioAccessPresentation.toneClass}`}
+            >
               {audioAccessPresentation.label}
             </strong>
             <p>{audioAccessPresentation.hint}</p>
@@ -576,7 +631,9 @@ export default function SpeechGuidePlayer({
               ? t("audio.accessChecking")
               : t("audio.accessAction")}
           </button>
-          <p className="audio-guide-permission-note">{t("audio.permissionNote")}</p>
+          <p className="audio-guide-permission-note">
+            {t("audio.permissionNote")}
+          </p>
         </div>
       </div>
     </section>
@@ -602,7 +659,10 @@ function getNetworkSnapshot() {
     };
   }
 
-  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const connection =
+    navigator.connection ||
+    navigator.mozConnection ||
+    navigator.webkitConnection;
 
   return {
     downlink: Number(connection?.downlink || 0),
@@ -663,7 +723,9 @@ function formatNetworkHint(snapshot, t) {
   }
 
   if (snapshot.downlink > 0) {
-    parts.push(t("audio.downlinkHint", { speed: snapshot.downlink.toFixed(1) }));
+    parts.push(
+      t("audio.downlinkHint", { speed: snapshot.downlink.toFixed(1) }),
+    );
   }
 
   if (snapshot.saveData) {

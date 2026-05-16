@@ -144,7 +144,11 @@ export default function MapView({
             radius={isSelected ? 12 : 9}
           >
             {shouldShowTooltip ? (
-              <Tooltip direction="top" offset={[0, -8]} className="poi-hover-tooltip">
+              <Tooltip
+                direction="top"
+                offset={[0, -8]}
+                className="poi-hover-tooltip"
+              >
                 <div className="poi-hover-tooltip-content">
                   <strong title={poi.displayName}>{poi.displayName}</strong>
                   <span className="poi-category">{poi.category}</span>

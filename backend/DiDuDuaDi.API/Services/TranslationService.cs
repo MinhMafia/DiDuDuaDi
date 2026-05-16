@@ -11,7 +11,8 @@ namespace DiDuDuaDi.API.Services
         Task<(string TranslatedName, string TranslatedDesc)> TranslatePoiContentAsync(
             string name,
             string desc,
-            string targetLangCode);
+            string targetLangCode,
+            string sourceLangCode = "vi");
     }
 
     public class GoogleFreeTranslationService : ITranslationService
@@ -28,18 +29,28 @@ namespace DiDuDuaDi.API.Services
         public async Task<(string TranslatedName, string TranslatedDesc)> TranslatePoiContentAsync(
             string name,
             string desc,
-            string targetLangCode)
+            string targetLangCode,
+            string sourceLangCode = "vi")
         {
             // Giữ nguyên tiếng Việt nếu là "vi", ngược lại bỏ dấu
-            string translatedName = targetLangCode.Equals("vi", System.StringComparison.OrdinalIgnoreCase)
-                ? name
-                : RemoveDiacritics(name);
+            if (targetLangCode.Equals(sourceLangCode, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return (name, desc);
+            }
+
+            string translatedName = name;
             string translatedDesc = desc;
 
             // Dịch Description (nếu có)
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var resultName = await _translator.TranslateAsync(name, targetLangCode, sourceLangCode);
+                translatedName = resultName.Translation;
+            }
+
             if (!string.IsNullOrWhiteSpace(desc))
             {
-                var resultDesc = await _translator.TranslateAsync(desc, targetLangCode, "vi");
+                var resultDesc = await _translator.TranslateAsync(desc, targetLangCode, sourceLangCode);
                 translatedDesc = resultDesc.Translation;
             }
 

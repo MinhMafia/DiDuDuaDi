@@ -1,4 +1,4 @@
-﻿{
+{
   "appName": "DiDuDuaDi",
   "hello": "Xin chào",
   "layout": {
@@ -215,19 +215,19 @@
     "autoPlayReady": "sẵn sàng tự động phát"
   },
   "qr": {
-    "kicker": "QR quán",
+    "kicker": "Mã QR quán",
     "title": "Mở nhanh trang chi tiết quán",
     "subtitle": "Quét mã hoặc mở link công khai của {{name}}.",
-    "poiFallbackName": "địa điểm này",
-    "baseUrlLabel": "Base URL để tạo QR",
-    "baseUrlPlaceholder": "Ví dụ: https://di-du-dua-di.vercel.app",
+    "poiFallbackName": "quán của bạn",
+    "baseUrlLabel": "Tên miền công khai",
+    "baseUrlPlaceholder": "https://ten-mien-cua-ban.vercel.app",
     "detailLinkLabel": "Link chi tiết quán",
-    "localHint": "Link này đang là địa chỉ nội bộ. Hãy đổi sang domain Vercel để khách quét QR truy cập được.",
+    "localHint": "Đây là địa chỉ riêng. Hãy đổi sang tên miền Vercel để khách mở được QR.",
     "readyHint": "Link này đã sẵn sàng để khách mở trên điện thoại hoặc thiết bị khác.",
     "copy": "Sao chép link",
     "copied": "Đã sao chép",
     "open": "Mở trang chi tiết",
-    "missingUrl": "Chưa có URL hợp lệ"
+    "missingUrl": "Chưa tạo được link QR."
   },
   "poiDetail": {
     "loading": "Đang tải thông tin quán...",
@@ -247,7 +247,11 @@
     },
     "notUpdated": "Chưa cập nhật",
     "unknownName": "Chưa có tên quán",
-    "unknownDish": "Món chưa đặt tên"
+    "unknownDish": "Món chưa đặt tên",
+    "device": {
+      "strong": "Cấu hình máy mạnh",
+      "weak": "Cấu hình máy yếu"
+    }
   },
   "common": {
     "loading": "Đang tải...",
@@ -408,6 +412,7 @@
     "today": "Hôm nay",
     "viewMap": "Xem bản đồ quán",
     "summaryFallback": "Thêm vài dòng giới thiệu ngắn để khách hiểu quán của bạn hơn.",
+    "standeeFallback": "Quét mã để xem thực đơn, thông tin quán và phần giới thiệu mới nhất.",
     "summaryUnavailable": "Chưa cập nhật",
     "saveProfile": "Lưu thông tin quán",
     "saving": "Đang lưu...",
@@ -418,12 +423,48 @@
     "hidden": "Đang ẩn",
     "edit": "Sửa",
     "delete": "Xóa",
+    "close": "Đóng",
+    "keepItem": "Giữ lại",
+    "deleting": "Đang xóa...",
+    "menuCreateHint": "Nhập thông tin cơ bản, món đang hiện sẽ xuất hiện trên trang khách.",
+    "menuEditHint": "Cập nhật tên, giá, hình ảnh và trạng thái hiển thị của món.",
+    "menuVisibleHint": "Khách có thể thấy món này.",
+    "menuHiddenHint": "Món đang được ẩn khỏi trang khách.",
+    "menuPreviewTitle": "Món sẽ hiển thị",
     "feedback": {
       "saved": "Đã cập nhật thông tin quán.",
       "poiSaved": "Đã cập nhật thông tin hiển thị trên bản đồ.",
       "menuCreated": "Đã thêm món mới.",
       "menuUpdated": "Đã cập nhật món.",
-      "menuDeleted": "Đã xóa món."
+      "menuDeleted": "Đã xóa món.",
+      "error": "Không lưu được thay đổi. Hãy kiểm tra kết nối hoặc thử lại sau.",
+      "errorWithDetail": "Không lưu được thay đổi: {{message}}",
+      "opened": "Đã chuyển sang đang mở cửa.",
+      "closed": "Đã chuyển sang tạm đóng cửa."
+    },
+    "deleteConfirm": {
+      "kicker": "Xác nhận xóa",
+      "title": "Xóa món này?",
+      "body": "Món sẽ bị xóa khỏi thực đơn của quán và không hiển thị với khách nữa.",
+      "warning": "Hành động này không thể hoàn tác.",
+      "cancel": "Hủy",
+      "confirm": "Xóa món"
+    },
+    "autoTranslate": {
+      "kicker": "Tự động dịch",
+      "title": "Nhập bằng một ngôn ngữ",
+      "description": "Hệ thống sẽ tự dịch nội dung này sang Việt, Anh, Trung, Nhật, Hàn, Pháp và Thái sau khi lưu.",
+      "helper": "Hệ thống sẽ dùng nội dung này để tạo bản dịch cho các ngôn ngữ còn lại."
+    },
+    "preview": {
+      "kicker": "Xem trước",
+      "emptyMenuName": "Tên món sẽ hiện ở đây",
+      "emptyMenuDescription": "Thêm mô tả ngắn để khách hiểu món trước khi chọn."
+    },
+    "validation": {
+      "poiSourceRequired": "Vui lòng nhập tên và mô tả trước khi tự dịch.",
+      "imageDataUrl": "Ô hình ảnh chỉ nhận link ảnh công khai, không nhận ảnh dán/base64.",
+      "imageUrlTooLong": "Link hình ảnh quá dài. Vui lòng dùng link ngắn hơn 500 ký tự."
     },
     "stats": {
       "totalVisits": "Lượt xem quán",
@@ -489,6 +530,9 @@
       "poiNameEn": "Tên hiển thị (Tiếng Anh)",
       "poiDescriptionVi": "Mô tả hiển thị (Tiếng Việt)",
       "poiDescriptionEn": "Mô tả hiển thị (Tiếng Anh)",
+      "sourceLanguage": "Ngôn ngữ đang nhập",
+      "poiSourceName": "Tên hiển thị",
+      "poiSourceDescription": "Mô tả hiển thị",
       "menuDescription": "Mô tả món",
       "price": "Giá bán",
       "order": "Thứ tự hiển thị",
@@ -497,7 +541,44 @@
       "expireAfterHours": "Hết hạn sau (giờ)",
       "note": "Ghi chú"
     },
-    "savePoi": "Lưu thông tin bản đồ"
+    "savePoi": "Lưu thông tin bản đồ",
+    "qrStandeeKicker": "Thực đơn số",
+    "qrStandeeTitle": "Quét mã để xem thực đơn",
+    "printStandee": "In standee",
+    "placeholders": {
+      "menuName": "Ví dụ: Bò lá lốt phần đặc biệt",
+      "menuDescription": "Mô tả ngắn về hương vị, khẩu phần hoặc món ăn kèm.",
+      "imageUrl": "Dán link ảnh https://..., không dán ảnh base64"
+    },
+    "languageNames": {
+      "vi": "Tiếng Việt",
+      "en": "English",
+      "zh": "中文",
+      "ja": "日本語",
+      "ko": "한국어",
+      "fr": "Français",
+      "th": "ไทย"
+    },
+    "header": {
+      "open": "Đang mở cửa",
+      "closed": "Tạm đóng cửa",
+      "toolsAria": "Công cụ quán",
+      "notificationsAria": "Thông báo"
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "count": "{{count}} mục",
+      "reviewTitle": "Trạng thái duyệt",
+      "reviewBody": "Quán đang ở trạng thái: {{status}}.",
+      "qrReadyTitle": "QR quán đã sẵn sàng",
+      "qrReadyBody": "Khách có thể quét QR để mở trang chi tiết quán.",
+      "qrMissingTitle": "Chưa có QR quán",
+      "qrMissingBody": "Cập nhật thông tin trên bản đồ để tạo QR công khai.",
+      "todayTitle": "Tương tác hôm nay",
+      "todayBody": "{{visits}} lượt xem, {{audio}} audio, {{qr}} QR.",
+      "quietTitle": "Chưa có tương tác mới",
+      "quietBody": "Hôm nay chưa ghi nhận lượt xem, audio hoặc QR mới."
+    }
   },
   "admin": {
     "title": "Bảng điều khiển admin",

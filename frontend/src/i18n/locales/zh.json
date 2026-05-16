@@ -11,7 +11,8 @@
     "owner": "店主",
     "admin": "管理员",
     "routes": "路线",
-    "settings": "设置"
+    "settings": "设置",
+    "favorites": "??"
   },
   "auth": {
     "badge": "系统登录",
@@ -46,7 +47,8 @@
       "user": "用户",
       "owner": "店主",
       "admin": "管理员"
-    }
+    },
+    "loginRequired": "???????????"
   },
   "map": {
     "title": "永庆美食街探索地图",
@@ -153,7 +155,12 @@
     "autoPlayTitle": "自动播放语音导览",
     "autoPlayDescription": "开启后，当你靠近兴趣点时，应用可以自动开始播放语音导览。",
     "enabled": "开",
-    "disabled": "关"
+    "disabled": "关",
+    "voiceTitle": "Available browser voices",
+    "voiceDescription": "Check which voices this browser can use for each language and which one the app will prefer.",
+    "voiceReady": "Native voice available",
+    "voiceMissing": "Using fallback",
+    "voiceFallback": "No matching voice found"
   },
   "audio": {
     "title": "语音导览",
@@ -208,7 +215,9 @@
     "placeholder": "询问美食、餐馆或地图...",
     "send": "发送",
     "close": "关闭",
-    "fabLabel": "AI"
+    "fabLabel": "AI",
+    "emptyReply": "I do not have a suitable answer right now.",
+    "connectionError": "Could not connect to the AI assistant."
   },
   "home": {
     "title": "DiDuDuaDi 系统测试面板",
@@ -283,6 +292,82 @@
       "idCardImageUrl": "身份证照片链接",
       "businessLicenseImageUrl": "营业执照照片链接（如有）",
       "note": "备注"
+    },
+    "tabs": {
+      "new": "New registration",
+      "history": "History & status"
+    },
+    "latestRequestTitle": "Latest registration request",
+    "reviewNote": "Admin note",
+    "waitingReviewTitle": "Your request is waiting for review",
+    "waitingReviewDescription": "Admin will review the request, shop location and submitted documents before replying.",
+    "paymentTitle": "Owner upgrade payment information",
+    "paymentDescription": "Your request has been initially approved. Use the QR code or transfer note below to complete the owner upgrade.",
+    "feeAmount": "Upgrade fee",
+    "paymentReference": "Reference code",
+    "paymentRequestedAt": "Payment created at",
+    "transferMemo": "Transfer memo",
+    "qrLabel": "Payment QR code",
+    "qrUnavailable": "No payment QR code is available for this request yet.",
+    "rejectedTitle": "Your previous request was rejected",
+    "rejectedDescription": "You can review the rejection reason and submit a new request with updated information.",
+    "formLockedTitle": "Your current request is being processed",
+    "formLockedMessage": "You cannot create another request right now.",
+    "formLockedDescription": "Follow the status in History & status. If the request is rejected, use Edit from old request to resubmit faster.",
+    "formTitle": "Create a new restaurant registration request",
+    "editFormTitle": "Edit pending restaurant registration request",
+    "updateSubmit": "Update pending request",
+    "cancelEdit": "Cancel edit",
+    "updateSuccess": "Pending request updated.",
+    "cancelSuccess": "Registration request cancelled. You can create a new one.",
+    "cancelError": "Could not cancel the registration request.",
+    "prefillSuccess": "Old request content has been loaded into the form.",
+    "editPending": "Edit request",
+    "editPendingLoaded": "Pending request has been loaded into the form for editing.",
+    "cancelPending": "Cancel request",
+    "cancelPendingTitle": "Cancel pending request?",
+    "cancelPendingDescription": "After cancellation, this request remains in history and you can create a new registration request.",
+    "confirmCancel": "Cancel request",
+    "keepPending": "Keep request",
+    "emptyNote": "No extra note.",
+    "mapPicker": {
+      "title": "Choose shop location on the map",
+      "hint": "Tap directly on the map to capture accurate GPS coordinates for the shop. You can still adjust latitude and longitude manually if needed.",
+      "selectedCoordinates": "Selected coordinates: {{lat}}, {{lng}}"
+    },
+    "placeholders": {
+      "shopName": "Enter the restaurant name you want to register",
+      "address": "Enter an address in the Vinh Khanh area",
+      "latitude": "Example: 10.758700",
+      "longitude": "Example: 106.703100",
+      "note": "Add shop details, opening hours or anything you want admin to know"
+    },
+    "validation": {
+      "shopNameRequired": "Please enter the restaurant name.",
+      "addressRequired": "Please enter the restaurant address.",
+      "latitudeRequired": "Please enter latitude.",
+      "longitudeRequired": "Please enter longitude."
+    },
+    "status": {
+      "pending": "Pending review",
+      "paymentPending": "Payment pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "history": {
+      "title": "Registration request history",
+      "count_zero": "0 old requests",
+      "count_one": "{{count}} old request",
+      "count_other": "{{count}} old requests",
+      "empty": "You have no previous requests to review.",
+      "submittedAt": "Submitted at",
+      "reviewedAt": "Reviewed at",
+      "reviewResult": "Response / cancellation reason",
+      "noReviewReason": "No admin response yet.",
+      "editFromOld": "Edit from old request",
+      "viewIdCard": "View submitted ID image",
+      "viewBusinessLicense": "View submitted business license"
     }
   },
   "owner": {
@@ -318,7 +403,11 @@
       "menuCreated": "已添加新菜品。",
       "menuUpdated": "已更新菜品。",
       "menuDeleted": "已删除菜品。",
-      "claimCreated": "已创建兑换码"
+      "claimCreated": "已创建兑换码",
+      "error": "Could not save changes. Check your connection or try again.",
+      "errorWithDetail": "Could not save changes: {{message}}",
+      "opened": "已切换为营业中。",
+      "closed": "已切换为暂停营业。"
     },
     "stats": {
       "totalVisits": "兴趣点访问次数",
@@ -358,7 +447,12 @@
       "claimKicker": "现金支付",
       "claimHistoryKicker": "追踪已发放码",
       "claimHistory": "最近的兑换码",
-      "claimHistoryDescription": "顾客到店时快速查看最近发放的兑换码。"
+      "claimHistoryDescription": "顾客到店时快速查看最近发放的兑换码。",
+      "overviewDescription": "See the main shop activity, current dishes, and recent interactions at a glance.",
+      "qrDescription": "Create a QR code so visitors can quickly open the shop detail page.",
+      "qrReady": "Ready",
+      "qrMissing": "No POI yet",
+      "qrMissingDescription": "No primary place is available for a QR code yet. Update the map information first."
     },
     "fields": {
       "shopName": "店铺名称",
@@ -382,9 +476,94 @@
       "available": "对游客可见",
       "amount": "金额",
       "expireAfterHours": "过期时间（小时）",
-      "note": "备注"
+      "note": "备注",
+      "sourceLanguage": "源语言",
+      "poiSourceName": "显示名称",
+      "poiSourceDescription": "显示描述"
     },
-    "savePoi": "保存兴趣点内容"
+    "savePoi": "保存兴趣点内容",
+    "standeeFallback": "扫码查看菜单、店铺信息和最新介绍。",
+    "close": "Close",
+    "keepItem": "Keep item",
+    "deleting": "Deleting...",
+    "menuCreateHint": "Enter the basics. Visible dishes will appear on the public page.",
+    "menuEditHint": "Update the dish details and save to refresh the customer page.",
+    "menuVisibleHint": "Visitors can see this dish.",
+    "menuHiddenHint": "This dish is hidden from visitors.",
+    "menuPreviewTitle": "Public dish preview",
+    "deleteConfirm": {
+      "kicker": "Confirm delete",
+      "title": "Delete this dish?",
+      "body": "This dish will be removed from the menu and hidden from visitors.",
+      "warning": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete item"
+    },
+    "autoTranslate": {
+      "kicker": "自动翻译",
+      "title": "用一种语言填写",
+      "description": "选择源语言并输入名称和描述，保存后将生成其他语言版本。",
+      "helper": "系统会使用此内容生成其他语言版本。"
+    },
+    "preview": {
+      "kicker": "Preview",
+      "emptyMenuName": "Dish name",
+      "emptyMenuDescription": "A short description will appear here."
+    },
+    "validation": {
+      "imageDataUrl": "Image only accepts a public image URL, not pasted/base64 image data.",
+      "imageUrlTooLong": "Image URL is too long. Please use a shorter URL.",
+      "poiSourceRequired": "Please enter a POI name and description before saving."
+    },
+    "qrStandeeKicker": "数字菜单",
+    "qrStandeeTitle": "扫码查看菜单",
+    "printStandee": "打印立牌",
+    "placeholders": {
+      "menuName": "Example: Special grilled beef in betel leaf",
+      "menuDescription": "Describe the flavor, portion, or side dishes.",
+      "imageUrl": "Paste an https:// image link, not base64 data"
+    },
+    "settingsTitle": "Shop settings",
+    "settingsSubtitle": "Update shop profile and map display information.",
+    "today": "今天",
+    "categories": {
+      "food": "餐饮",
+      "street_food": "街头小吃",
+      "grilled_food": "烧烤",
+      "dessert": "甜点",
+      "seafood": "海鲜",
+      "snack": "小吃",
+      "drinks": "饮品"
+    },
+    "languageNames": {
+      "vi": "Tiếng Việt",
+      "en": "English",
+      "zh": "中文",
+      "ja": "日本語",
+      "ko": "한국어",
+      "fr": "Français",
+      "th": "ไทย"
+    },
+    "header": {
+      "open": "营业中",
+      "closed": "暂停营业",
+      "toolsAria": "店铺工具",
+      "notificationsAria": "通知"
+    },
+    "notifications": {
+      "title": "通知",
+      "count": "{{count}} 项",
+      "reviewTitle": "审核状态",
+      "reviewBody": "店铺当前状态：{{status}}。",
+      "qrReadyTitle": "店铺二维码已就绪",
+      "qrReadyBody": "顾客可以扫码打开店铺详情页。",
+      "qrMissingTitle": "暂无店铺二维码",
+      "qrMissingBody": "请更新地图内容以生成公开二维码。",
+      "todayTitle": "今日互动",
+      "todayBody": "{{visits}} 次浏览，{{audio}} 次音频，{{qr}} 次扫码。",
+      "quietTitle": "暂无新互动",
+      "quietBody": "今天还没有浏览、音频或扫码记录。"
+    }
   },
   "admin": {
     "title": "管理员控制台",
@@ -426,6 +605,49 @@
     "emptyPendingOwnerRequests": "没有待审核的店主申请。",
     "emptyPendingShopIntros": "没有待审核的店铺介绍。",
     "emptyOwnerHistory": "尚无店主申请历史。",
-    "emptyShopIntroHistory": "尚无店铺介绍审核历史。"
+    "emptyShopIntroHistory": "尚无店铺介绍审核历史。",
+    "badge": "System admin",
+    "sections": {
+      "overview": "Overview",
+      "overviewKicker": "System overview",
+      "overviewDescription": "Quick view of pending requests and basic metrics.",
+      "ownerRequests": "Review owners",
+      "ownerRequestsKicker": "Upgrade requests",
+      "ownerRequestsDescription": "Approve or reject requests to become shop owners.",
+      "shopIntros": "Review content",
+      "shopIntrosKicker": "Shop introductions",
+      "shopIntrosDescription": "Moderate shop introduction content before it is displayed.",
+      "statistics": "Statistics",
+      "statisticsKicker": "Top shops & POIs",
+      "statisticsDescription": "See the most interacted shops and places.",
+      "managePois": "Manage POI",
+      "managePoisKicker": "Map places",
+      "managePoisDescription": "Add, edit and delete POIs shown on the map.",
+      "foodTours": "Manage tours",
+      "foodToursKicker": "Travel routes",
+      "foodToursDescription": "Create and manage food tourism routes."
+    }
+  },
+  "qr": {
+    "kicker": "店铺QR",
+    "title": "打开公开店铺详情页",
+    "subtitle": "扫码或打开{{name}}的公开链接。",
+    "poiFallbackName": "你的店铺",
+    "baseUrlLabel": "公开域名",
+    "baseUrlPlaceholder": "https://your-domain.vercel.app",
+    "detailLinkLabel": "店铺详情链接",
+    "localHint": "这是私有地址。请改为 Vercel 域名，以便顾客打开 QR 链接。",
+    "readyHint": "此链接已可在手机或其他设备上打开。",
+    "copy": "复制链接",
+    "copied": "已复制",
+    "open": "打开详情页",
+    "missingUrl": "暂无 QR 链接。"
+  },
+  "favorites": {
+    "title": "????",
+    "subtitle": "?????????????",
+    "empty": "????????????????????????",
+    "add": "?????",
+    "remove": "????"
   }
 }

@@ -13,6 +13,7 @@ public class POI
     public string? ShopAddress { get; set; }
     public string? OpeningHours { get; set; }
     public string? Phone { get; set; }
+    public bool IsTemporarilyClosed { get; set; }
     public string? ApprovedIntroduction { get; set; }
     public List<MenuItemSummary> MenuItems { get; set; } = [];
     public double Radius { get; set; } = 500;

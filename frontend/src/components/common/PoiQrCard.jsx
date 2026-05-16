@@ -62,13 +62,17 @@ export default function PoiQrCard({
   const resolvedBaseUrl = normalizePublicBaseUrl(baseUrl);
 
   return (
-    <section className={`poi-qr-card${compact ? " compact" : ""}${minimal ? " minimal" : ""}`}>
+    <section
+      className={`poi-qr-card${compact ? " compact" : ""}${minimal ? " minimal" : ""}`}
+    >
       {!minimal ? (
         <div className="poi-qr-card-head">
           <div>
             <p className="poi-qr-kicker">{t("qr.kicker")}</p>
             <h3>{t("qr.title")}</h3>
-            <p>{t("qr.subtitle", { name: poiName || t("qr.poiFallbackName") })}</p>
+            <p>
+              {t("qr.subtitle", { name: poiName || t("qr.poiFallbackName") })}
+            </p>
           </div>
         </div>
       ) : null}
@@ -113,7 +117,11 @@ export default function PoiQrCard({
               )}
 
               <div className="poi-qr-actions">
-                <button type="button" className="poi-qr-button" onClick={handleCopyLink}>
+                <button
+                  type="button"
+                  className="poi-qr-button"
+                  onClick={handleCopyLink}
+                >
                   {copied ? t("qr.copied") : t("qr.copy")}
                 </button>
                 <a

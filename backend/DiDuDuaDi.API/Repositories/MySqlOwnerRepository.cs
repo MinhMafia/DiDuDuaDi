@@ -79,6 +79,31 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
         return refreshedShop is null ? null : BuildDashboard(connection, refreshedShop);
     }
 
+    public OwnerShopDashboard? UpdateShopOpenStatus(string username, UpdateShopOpenStatusRequest request)
+    {
+        using var connection = connectionFactory.CreateConnection();
+        var shop = GetShopRow(connection, username);
+        if (shop is null)
+        {
+            return null;
+        }
+
+        connection.Execute(
+            """
+            UPDATE shops
+            SET is_temporarily_closed = @IsTemporarilyClosed
+            WHERE id = @ShopId;
+            """,
+            new
+            {
+                ShopId = shop.ShopId,
+                request.IsTemporarilyClosed
+            });
+
+        var refreshedShop = GetShopRowById(connection, shop.ShopId);
+        return refreshedShop is null ? null : BuildDashboard(connection, refreshedShop);
+    }
+
     public OwnerShopDashboard? UpdatePoiContent(string username, UpdateOwnerPoiContentRequest request)
     {
         using var connection = connectionFactory.CreateConnection();
@@ -128,6 +153,9 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
             return null;
         }
 
+        connection.Open();
+        using var tx = connection.BeginTransaction();
+
         const string sql = """
             INSERT INTO menu_items (
                 shop_id,
@@ -149,19 +177,33 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
             );
             """;
 
-        connection.Execute(sql, new
+        try
         {
-            ShopId = shop.ShopId,
-            request.Name,
-            request.Description,
-            request.Price,
-            request.ImageUrl,
-            request.IsAvailable,
-            request.DisplayOrder
-        });
-        var menuItemId = connection.ExecuteScalar<long>("SELECT LAST_INSERT_ID();");
+            connection.Execute(sql, new
+            {
+                ShopId = shop.ShopId,
+                Name = request.Name.Trim(),
+                Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
+                request.Price,
+                ImageUrl = string.IsNullOrWhiteSpace(request.ImageUrl) ? null : request.ImageUrl.Trim(),
+                request.IsAvailable,
+                request.DisplayOrder
+            }, tx);
 
-        return GetMenuItem(connection, shop.ShopId, menuItemId);
+            var menuItemId = connection.ExecuteScalar<long>(
+                "SELECT CAST(LAST_INSERT_ID() AS SIGNED);",
+                transaction: tx);
+
+            var item = GetMenuItem(connection, shop.ShopId, menuItemId, tx);
+            tx.Commit();
+
+            return item;
+        }
+        catch
+        {
+            tx.Rollback();
+            throw;
+        }
     }
 
     public MenuItemSummary? UpdateMenuItem(string username, long menuItemId, UpsertMenuItemRequest request)
@@ -247,7 +289,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
             IntroReviewStatus = shop.IntroReviewStatus,
             OpeningHours = shop.OpeningHours,
             Phone = shop.Phone,
-            ImageUrl = shop.ImageUrl
+            ImageUrl = shop.ImageUrl,
+            IsTemporarilyClosed = shop.IsTemporarilyClosed
         };
 
         dashboard.MenuItems = connection.Query<MenuItemSummary>(
@@ -403,7 +446,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
                 s.intro_review_status AS IntroReviewStatus,
                 s.opening_hours AS OpeningHours,
                 s.phone AS Phone,
-                s.image_url AS ImageUrl
+                s.image_url AS ImageUrl,
+                s.is_temporarily_closed AS IsTemporarilyClosed
             FROM shops s
             INNER JOIN accounts a ON a.id = s.owner_account_id
             INNER JOIN roles r ON r.id = a.role_id
@@ -428,14 +472,19 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
                 s.intro_review_status AS IntroReviewStatus,
                 s.opening_hours AS OpeningHours,
                 s.phone AS Phone,
-                s.image_url AS ImageUrl
+                s.image_url AS ImageUrl,
+                s.is_temporarily_closed AS IsTemporarilyClosed
             FROM shops s
             WHERE s.id = @shopId
             LIMIT 1;
             """,
             new { shopId });
 
-    private static MenuItemSummary? GetMenuItem(System.Data.IDbConnection connection, Guid shopId, long menuItemId) =>
+    private static MenuItemSummary? GetMenuItem(
+        System.Data.IDbConnection connection,
+        Guid shopId,
+        long menuItemId,
+        System.Data.IDbTransaction? tx = null) =>
         connection.QuerySingleOrDefault<MenuItemSummary>(
             """
             SELECT
@@ -451,7 +500,8 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
               AND shop_id = @ShopId
             LIMIT 1;
             """,
-            new { MenuItemId = menuItemId, ShopId = shopId });
+            new { MenuItemId = menuItemId, ShopId = shopId },
+            tx);
 
     private sealed class ShopRow
     {
@@ -466,6 +516,7 @@ public class MySqlOwnerRepository(IDbConnectionFactory connectionFactory) : IOwn
         public string IntroReviewStatus { get; init; } = "approved";
         public string? OpeningHours { get; init; }
         public string? Phone { get; init; }
+        public bool IsTemporarilyClosed { get; init; }
         public string? ImageUrl { get; init; }
     }
 }

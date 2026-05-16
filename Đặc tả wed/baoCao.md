@@ -513,7 +513,7 @@ td.center {
 <li><span class="bold">NFR-13:</span> Hệ thống có khả năng mở rộng thêm chức năng mới nhờ kiến trúc Repository pattern phân tầng rõ ràng.</li>
 <li><span class="bold">NFR-14:</span> Dễ dàng bổ sung thêm ngôn ngữ thuyết minh mới thông qua cơ chế dictionary-based localization.</li>
 <li><span class="bold">NFR-15:</span> Mã nguồn được tổ chức rõ ràng theo mô hình Controllers → Services → Repositories → Data, thuận tiện cho việc bảo trì và nâng cấp.</li>
-<li><span class="bold">NFR-16:</span> Hỗ trợ triển khai thông qua Docker Compose với các service MySQL, Backend và Frontend độc lập.</li>
+<li><span class="bold">NFR-16:</span> Hỗ trợ triển khai tách riêng frontend, backend và database thông qua Vercel, Azure và Aiven MySQL; đồng thời hỗ trợ Docker Compose cho môi trường cục bộ/kiểm thử.</li>
 </ul>
 
 <h3>5. Yêu cầu về khả năng sử dụng</h3>
@@ -1013,9 +1013,35 @@ Cơ sở dữ liệu quan hệ MySQL lưu trữ toàn bộ dữ liệu hệ th�
 <h4>b. Sơ đồ kiến trúc tổng quát</h4>
 
 <div class="figure-placeholder">
-[Chèn hình sơ đồ kiến trúc tổng quát tại đây]
+[Chèn hình render từ file architecture_32_tong_quat.puml tại đây]
 </div>
 <p class="figure-caption">Hình 32: Sơ đồ kiến trúc tổng quát của hệ thống DiDuDuaDi</p>
+
+<h4>c. Nhóm API chính của hệ thống</h4>
+
+<p>Backend cung cấp RESTful API cho frontend. Báo cáo không liệt kê toàn bộ endpoint chi tiết như tài liệu API riêng, mà nhóm theo các controller/chức năng chính để thể hiện phạm vi giao tiếp giữa frontend và backend.</p>
+
+<table>
+<tr><th style="width:22%;">Nhóm API</th><th style="width:32%;">Endpoint tiêu biểu</th><th style="width:30%;">Chức năng</th><th style="width:16%;">Quyền truy cập</th></tr>
+<tr><td>Auth</td><td>/api/auth/login, /api/auth/register, /api/auth/owner-upgrade-request</td><td>Đăng nhập, đăng ký, gửi và xử lý yêu cầu nâng cấp Owner</td><td>Public/User/Admin</td></tr>
+<tr><td>POIs</td><td>/api/pois, /api/pois/nearby, /api/pois/{id}</td><td>Tra cứu POI, tìm POI gần vị trí hiện tại, quản lý POI</td><td>Public/Admin</td></tr>
+<tr><td>Owner</td><td>/api/owner/dashboard, /api/owner/shop-profile, /api/owner/poi-content, /api/owner/menu-items</td><td>Dashboard Owner, cập nhật shop, nội dung POI và thực đơn</td><td>Owner</td></tr>
+<tr><td>Admin</td><td>/api/admin/shop-intros, /api/admin/food-tours</td><td>Kiểm duyệt nội dung giới thiệu, quản lý Food Tour</td><td>Admin</td></tr>
+<tr><td>Analytics</td><td>/api/analytics/visitor-heartbeat, /api/analytics/poi-view, /api/analytics/audio-play</td><td>Ghi nhận truy cập, lượt xem POI, lượt nghe audio và thống kê</td><td>Public/Admin</td></tr>
+<tr><td>User/Tours/AI/TTS</td><td>/api/users/me/favorites, /api/tours, /api/ai/chat, /api/tts/google</td><td>POI yêu thích, Food Tour, chat trợ lý AI và Text-to-Speech</td><td>User/Public</td></tr>
+</table>
+
+<h4>d. Mô hình triển khai</h4>
+
+<p>Hệ thống được triển khai theo mô hình tách riêng ba thành phần chính: frontend, backend và database. Frontend React được build và deploy lên <span class="bold">Vercel</span>, backend ASP.NET Core API được triển khai trên <span class="bold">Azure</span>, còn cơ sở dữ liệu MySQL production sử dụng <span class="bold">Aiven MySQL</span>. Mô hình này giúp frontend có CDN và HTTPS sẵn, backend có môi trường chạy API độc lập, còn database được quản lý như dịch vụ cloud riêng.</p>
+
+<table>
+<tr><th style="width:24%;">Thành phần</th><th style="width:24%;">Nền tảng triển khai</th><th style="width:52%;">Vai trò</th></tr>
+<tr><td>Frontend</td><td>Vercel</td><td>Host bản build React/Vite, cung cấp URL public cho người dùng truy cập.</td></tr>
+<tr><td>Backend API</td><td>Azure</td><td>Chạy ASP.NET Core REST API, xử lý xác thực JWT, nghiệp vụ, phân quyền và kết nối database.</td></tr>
+<tr><td>Database</td><td>Aiven MySQL</td><td>Lưu trữ dữ liệu accounts, shops, POIs, translations, menu, tour, favorites, analytics và chat.</td></tr>
+<tr><td>Môi trường cục bộ</td><td>Docker Compose</td><td>Hỗ trợ chạy thử các service độc lập trong quá trình phát triển hoặc kiểm thử.</td></tr>
+</table>
 
 <h3>4. Công nghệ sử dụng</h3>
 
@@ -1049,9 +1075,10 @@ Cơ sở dữ liệu quan hệ MySQL lưu trữ toàn bộ dữ liệu hệ th�
 <h4>4.3. DevOps</h4>
 
 <ul>
-<li><span class="bold">Docker + Docker Compose:</span> Đóng gói và triển khai các service độc lập (MySQL, Backend, Frontend) cho môi trường chạy cục bộ hoặc triển khai.</li>
-<li><span class="bold">MySQL 8.0+ / Aiven MySQL:</span> Cơ sở dữ liệu quan hệ lưu trữ tài khoản, shop, POI, bản dịch, menu, tour và analytics.</li>
-<li><span class="bold">Nginx:</span> Reverse proxy cho frontend trong container.</li>
+<li><span class="bold">Vercel:</span> Triển khai frontend React/Vite, cung cấp hosting tĩnh, HTTPS và quy trình build/deploy nhanh.</li>
+<li><span class="bold">Azure:</span> Triển khai backend ASP.NET Core API, phục vụ các endpoint REST cho frontend.</li>
+<li><span class="bold">Aiven MySQL:</span> Dịch vụ cơ sở dữ liệu MySQL cloud cho môi trường production.</li>
+<li><span class="bold">Docker + Docker Compose:</span> Đóng gói và chạy các service độc lập (MySQL, Backend, Frontend) trong môi trường cục bộ hoặc kiểm thử.</li>
 </ul>
 
 <!-- ======================== X. KẾT LUẬN ======================== -->
@@ -1072,7 +1099,7 @@ Cơ sở dữ liệu quan hệ MySQL lưu trữ toàn bộ dữ liệu hệ th�
 <li>Dashboard cho Admin duyệt owner upgrade requests và shop introductions.</li>
 <li>Chatbot AI hỗ trợ tra cứu và gợi ý POI.</li>
 <li>Analytics tracking cho lượt truy cập và lượt phát audio.</li>
-<li>Triển khai qua Docker Compose với kiến trúc phân tầng rõ ràng.</li>
+<li>Triển khai theo mô hình tách riêng frontend trên Vercel, backend trên Azure và database trên Aiven MySQL; Docker Compose hỗ trợ môi trường cục bộ/kiểm thử.</li>
 </ul>
 
 <p>Cấu trúc code theo mô hình Repository pattern giúp hệ thống dễ bảo trì và mở rộng trong tương lai.</p>

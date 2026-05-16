@@ -5,7 +5,10 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import {
+  AlertTriangle,
   BarChart3,
+  Bell,
+  CheckCircle2,
   Eye,
   Languages,
   LayoutDashboard,
@@ -35,6 +38,7 @@ import {
   getOwnerDashboard,
   updateMenuItem,
   updatePoiContent,
+  updateShopOpenStatus,
   updateShopProfile,
 } from "../services/ownerService";
 import {
@@ -46,8 +50,23 @@ import "./OwnerDashboardPage.css";
 
 const DEFAULT_OWNER_MAP_CENTER = [10.7587, 106.7031];
 const OWNER_POI_LANGUAGES = [
-  { id: "vi", label: "Tieng Viet" },
-  { id: "en", label: "English" },
+  { id: "vi", labelKey: "owner.languageNames.vi", fallback: "Vietnamese" },
+  { id: "en", labelKey: "owner.languageNames.en", fallback: "English" },
+  { id: "zh", labelKey: "owner.languageNames.zh", fallback: "Chinese" },
+  { id: "ja", labelKey: "owner.languageNames.ja", fallback: "Japanese" },
+  { id: "ko", labelKey: "owner.languageNames.ko", fallback: "Korean" },
+  { id: "fr", labelKey: "owner.languageNames.fr", fallback: "French" },
+  { id: "th", labelKey: "owner.languageNames.th", fallback: "Thai" },
+];
+
+const OWNER_POI_CATEGORY_OPTIONS = [
+  { value: "food", label: "Food" },
+  { value: "street_food", label: "Street food" },
+  { value: "grilled_food", label: "Grilled food" },
+  { value: "seafood", label: "Seafood" },
+  { value: "dessert", label: "Dessert" },
+  { value: "snack", label: "Snacks" },
+  { value: "drinks", label: "Drinks" },
 ];
 
 const EMPTY_PROFILE = {
@@ -71,12 +90,13 @@ const EMPTY_MENU_ITEM = {
   displayOrder: 1,
 };
 
+const MAX_MENU_IMAGE_URL_LENGTH = 500;
+
 const EMPTY_POI_FORM = {
   category: "food",
-  nameVi: "",
-  descriptionVi: "",
-  nameEn: "",
-  descriptionEn: "",
+  sourceLanguage: "vi",
+  sourceName: "",
+  sourceDescription: "",
 };
 
 export default function OwnerDashboardPage() {
@@ -87,11 +107,21 @@ export default function OwnerDashboardPage() {
   const [profileForm, setProfileForm] = useState(EMPTY_PROFILE);
   const [menuForm, setMenuForm] = useState(EMPTY_MENU_ITEM);
   const [poiForm, setPoiForm] = useState(EMPTY_POI_FORM);
-  const [activePoiLanguage, setActivePoiLanguage] = useState("vi");
   const [editingMenuItemId, setEditingMenuItemId] = useState(null);
   const [feedback, setFeedback] = useState("");
+  const [mutationError, setMutationError] = useState("");
   const [copiedQrLink, setCopiedQrLink] = useState(false);
   const [isMenuDialogOpen, setIsMenuDialogOpen] = useState(false);
+  const [deleteTargetItem, setDeleteTargetItem] = useState(null);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notificationsSeen, setNotificationsSeen] = useState(false);
+
+  useEffect(() => {
+    if (!feedback) return undefined;
+
+    const timeoutId = window.setTimeout(() => setFeedback(""), 3200);
+    return () => window.clearTimeout(timeoutId);
+  }, [feedback]);
 
   const dashboardQuery = useQuery({
     queryKey: ["owner-dashboard", currentUser?.username],
@@ -117,10 +147,9 @@ export default function OwnerDashboardPage() {
 
     setPoiForm({
       category: dashboardQuery.data.primaryPoi?.category || "food",
-      nameVi: dashboardQuery.data.primaryPoi?.nameVi || "",
-      descriptionVi: dashboardQuery.data.primaryPoi?.descriptionVi || "",
-      nameEn: dashboardQuery.data.primaryPoi?.nameEn || "",
-      descriptionEn: dashboardQuery.data.primaryPoi?.descriptionEn || "",
+      sourceLanguage: "vi",
+      sourceName: dashboardQuery.data.primaryPoi?.nameVi || "",
+      sourceDescription: dashboardQuery.data.primaryPoi?.descriptionVi || "",
     });
   }, [dashboardQuery.data]);
 
@@ -133,19 +162,23 @@ export default function OwnerDashboardPage() {
     mutationFn: (payload) => updateShopProfile(payload),
     onSuccess: async (response) => {
       setFeedback(response.message || t("owner.feedback.saved"));
+      setMutationError("");
       await invalidateDashboard();
     },
+    onError: (error) => setMutationError(getMutationErrorMessage(error, t)),
   });
 
   const createMenuMutation = useMutation({
     mutationFn: (payload) => createMenuItem(payload),
     onSuccess: async (response) => {
       setFeedback(response.message || t("owner.feedback.menuCreated"));
+      setMutationError("");
       setMenuForm(EMPTY_MENU_ITEM);
       setEditingMenuItemId(null);
       setIsMenuDialogOpen(false);
       await invalidateDashboard();
     },
+    onError: (error) => setMutationError(getMutationErrorMessage(error, t)),
   });
 
   const updateMenuMutation = useMutation({
@@ -153,27 +186,49 @@ export default function OwnerDashboardPage() {
       updateMenuItem(menuItemId, payload),
     onSuccess: async (response) => {
       setFeedback(response.message || t("owner.feedback.menuUpdated"));
+      setMutationError("");
       setMenuForm(EMPTY_MENU_ITEM);
       setEditingMenuItemId(null);
       setIsMenuDialogOpen(false);
       await invalidateDashboard();
     },
+    onError: (error) => setMutationError(getMutationErrorMessage(error, t)),
   });
 
   const deleteMenuMutation = useMutation({
     mutationFn: (menuItemId) => deleteMenuItem(menuItemId),
     onSuccess: async (response) => {
       setFeedback(response.message || t("owner.feedback.menuDeleted"));
+      setMutationError("");
+      setDeleteTargetItem(null);
       await invalidateDashboard();
     },
+    onError: (error) => setMutationError(getMutationErrorMessage(error, t)),
   });
 
   const poiMutation = useMutation({
     mutationFn: (payload) => updatePoiContent(payload),
     onSuccess: async (response) => {
       setFeedback(response.message || t("owner.feedback.poiSaved"));
+      setMutationError("");
       await invalidateDashboard();
     },
+    onError: (error) => setMutationError(getMutationErrorMessage(error, t)),
+  });
+
+  const openStatusMutation = useMutation({
+    mutationFn: (payload) => updateShopOpenStatus(payload),
+    onSuccess: async (response) => {
+      setFeedback(
+        response.message ||
+          (response.data?.isTemporarilyClosed
+            ? t("owner.feedback.closed")
+            : t("owner.feedback.opened")),
+      );
+      setMutationError("");
+      await invalidateDashboard();
+    },
+    onError: (error) => setMutationError(getMutationErrorMessage(error, t)),
   });
 
   const dashboard = dashboardQuery.data;
@@ -203,13 +258,72 @@ export default function OwnerDashboardPage() {
       dashboard?.description,
     t("owner.summaryFallback"),
   );
+  const standeeSummaryText = getFriendlyOwnerSummary(
+    primaryPoi?.descriptionVi ||
+      dashboard?.approvedIntroduction ||
+      dashboard?.description,
+    t("owner.standeeFallback", {
+      defaultValue:
+        "Scan the code to view the menu, shop information, and latest introduction.",
+    }),
+  );
   const coverImage =
     dashboard?.imageUrl ||
     menuItems.find((item) => item.imageUrl)?.imageUrl ||
     "";
+  const isShopOpen = !dashboard?.isTemporarilyClosed;
+  const shopOpenLabel = isShopOpen
+    ? t("owner.header.open")
+    : t("owner.header.closed");
+  const notificationItems = [
+    {
+      id: "status",
+      title: t("owner.notifications.reviewTitle"),
+      body: t("owner.notifications.reviewBody", {
+        status: activeStatusLabel,
+      }),
+    },
+    primaryPoiId
+      ? {
+          id: "qr",
+          title: t("owner.notifications.qrReadyTitle"),
+          body: t("owner.notifications.qrReadyBody"),
+        }
+      : {
+          id: "qr-missing",
+          title: t("owner.notifications.qrMissingTitle"),
+          body: t("owner.notifications.qrMissingBody"),
+        },
+    stats?.visitCountToday || stats?.audioPlayCountToday || stats?.qrScanCountToday
+      ? {
+          id: "today",
+          title: t("owner.notifications.todayTitle"),
+          body: t("owner.notifications.todayBody", {
+            visits: stats?.visitCountToday ?? 0,
+            audio: stats?.audioPlayCountToday ?? 0,
+            qr: stats?.qrScanCountToday ?? 0,
+          }),
+        }
+      : {
+          id: "quiet",
+          title: t("owner.notifications.quietTitle"),
+          body: t("owner.notifications.quietBody"),
+        },
+  ];
+  const hasUnreadNotifications = notificationItems.length > 0 && !notificationsSeen;
   const qrDetailUrl = primaryPoiId
     ? buildPoiDetailUrl(primaryPoiId, getInitialPublicBaseUrl())
     : "";
+
+  function handleToggleShopOpen() {
+    setMutationError("");
+    openStatusMutation.mutate({ isTemporarilyClosed: isShopOpen });
+  }
+
+  function handleToggleNotifications() {
+    setIsNotificationOpen((value) => !value);
+    setNotificationsSeen(true);
+  }
 
   const sections = [
     {
@@ -253,6 +367,7 @@ export default function OwnerDashboardPage() {
   function handleProfileSubmit(event) {
     event.preventDefault();
     setFeedback("");
+    setMutationError("");
     profileMutation.mutate({
       ...profileForm,
       latitude:
@@ -265,12 +380,31 @@ export default function OwnerDashboardPage() {
   function handlePoiSubmit(event) {
     event.preventDefault();
     setFeedback("");
+    setMutationError("");
+    if (!poiForm.sourceName.trim() || !poiForm.sourceDescription.trim()) {
+      setMutationError(
+        t("owner.validation.poiSourceRequired", {
+          defaultValue: "Please enter a name and description before saving.",
+        }),
+      );
+      return;
+    }
     poiMutation.mutate(poiForm);
   }
 
   function handleMenuSubmit(event) {
     event.preventDefault();
     setFeedback("");
+    setMutationError("");
+
+    const imageValidationMessage = getMenuImageUrlValidationMessage(
+      menuForm.imageUrl,
+      t,
+    );
+    if (imageValidationMessage) {
+      setMutationError(imageValidationMessage);
+      return;
+    }
 
     const payload = buildMenuPayload(menuForm);
 
@@ -312,6 +446,7 @@ export default function OwnerDashboardPage() {
   }
 
   function handleToggleMenuAvailability(item) {
+    setMutationError("");
     updateMenuMutation.mutate({
       menuItemId: item.id,
       payload: buildMenuPayload({
@@ -319,6 +454,17 @@ export default function OwnerDashboardPage() {
         isAvailable: !item.isAvailable,
       }),
     });
+  }
+
+  function requestDeleteMenuItem(item) {
+    setFeedback("");
+    setMutationError("");
+    setDeleteTargetItem(item);
+  }
+
+  function confirmDeleteMenuItem() {
+    if (!deleteTargetItem) return;
+    deleteMenuMutation.mutate(deleteTargetItem.id);
   }
 
   async function handleCopyQrLink() {
@@ -606,7 +752,7 @@ export default function OwnerDashboardPage() {
             items={menuItems}
             emptyText={t("owner.empty.menu")}
             onEdit={startEditMenuItem}
-            onDelete={(id) => deleteMenuMutation.mutate(id)}
+            onDelete={requestDeleteMenuItem}
             onToggle={handleToggleMenuAvailability}
             t={t}
           />
@@ -630,85 +776,143 @@ export default function OwnerDashboardPage() {
                       ? t("owner.sections.editMenu")
                       : t("owner.addMenu")}
                   </h2>
-                  <p>{t("owner.menuSubtitle")}</p>
+                  <p>
+                    {editingMenuItemId
+                      ? t("owner.menuEditHint", {
+                          defaultValue:
+                            "Update the dish name, price, image, and visibility.",
+                        })
+                      : t("owner.menuCreateHint", {
+                          defaultValue: "Update the dish details and save.",
+                        })}
+                  </p>
                 </div>
                 <button
                   type="button"
                   className="owner-dialog-close"
                   onClick={closeMenuDialog}
-                  aria-label={t("owner.cancelEdit")}
+                  aria-label={
+                    editingMenuItemId
+                      ? t("owner.cancelEdit")
+                      : t("owner.close", { defaultValue: "Close" })
+                  }
                 >
                   <X size={20} aria-hidden="true" />
                 </button>
               </div>
 
               <form className="owner-form" onSubmit={handleMenuSubmit}>
-                <div className="owner-form-grid two">
-                  <FormInput
-                    label={t("owner.fields.menuName")}
-                    value={menuForm.name}
-                    onChange={(value) =>
-                      setMenuForm((prev) => ({ ...prev, name: value }))
-                    }
-                  />
-                  <FormInput
-                    label={t("owner.fields.price")}
-                    type="number"
-                    min="0"
-                    step="1000"
-                    value={menuForm.price}
-                    onChange={(value) =>
-                      setMenuForm((prev) => ({ ...prev, price: value }))
-                    }
-                  />
+                <div className="owner-menu-form-shell">
+                  <div className="owner-menu-form-fields">
+                    <div className="owner-form-grid two">
+                      <FormInput
+                        label={t("owner.fields.menuName")}
+                        required
+                        placeholder={t("owner.placeholders.menuName", {
+                          defaultValue: "Example: Special grilled beef in betel leaf",
+                        })}
+                        value={menuForm.name}
+                        onChange={(value) =>
+                          setMenuForm((prev) => ({ ...prev, name: value }))
+                        }
+                      />
+                      <FormInput
+                        label={t("owner.fields.price")}
+                        type="number"
+                        min="0"
+                        step="1000"
+                        required
+                        placeholder="69000"
+                        value={menuForm.price}
+                        onChange={(value) =>
+                          setMenuForm((prev) => ({ ...prev, price: value }))
+                        }
+                      />
+                    </div>
+
+                    <FormTextArea
+                      label={t("owner.fields.menuDescription")}
+                      rows="4"
+                      placeholder={t("owner.placeholders.menuDescription", {
+                        defaultValue:
+                          "Describe the flavor, portion, or side dishes.",
+                      })}
+                      value={menuForm.description}
+                      onChange={(value) =>
+                        setMenuForm((prev) => ({
+                          ...prev,
+                          description: value,
+                        }))
+                      }
+                    />
+
+                    <div className="owner-form-grid two">
+                      <FormInput
+                        label={t("owner.fields.imageUrl")}
+                        placeholder={t("owner.placeholders.imageUrl", {
+                          defaultValue:
+                            "Paste an https:// image link, not base64 data",
+                        })}
+                        value={menuForm.imageUrl}
+                        onChange={(value) =>
+                          setMenuForm((prev) => ({
+                            ...prev,
+                            imageUrl: value,
+                          }))
+                        }
+                      />
+                      <FormInput
+                        label={t("owner.fields.order")}
+                        type="number"
+                        min="0"
+                        value={menuForm.displayOrder}
+                        onChange={(value) =>
+                          setMenuForm((prev) => ({
+                            ...prev,
+                            displayOrder: value,
+                          }))
+                        }
+                      />
+                    </div>
+
+                    <label className="owner-switch-line owner-menu-visibility">
+                      <input
+                        type="checkbox"
+                        checked={menuForm.isAvailable}
+                        onChange={(event) =>
+                          setMenuForm((prev) => ({
+                            ...prev,
+                            isAvailable: event.target.checked,
+                          }))
+                        }
+                      />
+                      <span>{t("owner.fields.available")}</span>
+                      <small>
+                        {menuForm.isAvailable
+                          ? t("owner.menuVisibleHint", {
+                              defaultValue: "Visitors can see this dish.",
+                            })
+                          : t("owner.menuHiddenHint", {
+                              defaultValue: "This dish is hidden from visitors.",
+                            })}
+                      </small>
+                    </label>
+                  </div>
+
+                  <aside className="owner-menu-preview-panel">
+                    <p className="owner-section-kicker">
+                      {t("owner.preview.kicker", { defaultValue: "Preview" })}
+                    </p>
+                    <h3>
+                      {t("owner.menuPreviewTitle", {
+                        defaultValue: "Public dish preview",
+                      })}
+                    </h3>
+                    <DishPreviewCard item={menuForm} t={t} />
+                  </aside>
                 </div>
 
-                <FormTextArea
-                  label={t("owner.fields.menuDescription")}
-                  rows="3"
-                  value={menuForm.description}
-                  onChange={(value) =>
-                    setMenuForm((prev) => ({ ...prev, description: value }))
-                  }
-                />
-
-                <div className="owner-form-grid two">
-                  <FormInput
-                    label={t("owner.fields.imageUrl")}
-                    value={menuForm.imageUrl}
-                    onChange={(value) =>
-                      setMenuForm((prev) => ({ ...prev, imageUrl: value }))
-                    }
-                  />
-                  <FormInput
-                    label={t("owner.fields.order")}
-                    type="number"
-                    min="0"
-                    value={menuForm.displayOrder}
-                    onChange={(value) =>
-                      setMenuForm((prev) => ({
-                        ...prev,
-                        displayOrder: value,
-                      }))
-                    }
-                  />
-                </div>
-
-                <label className="owner-switch-line">
-                  <input
-                    type="checkbox"
-                    checked={menuForm.isAvailable}
-                    onChange={(event) =>
-                      setMenuForm((prev) => ({
-                        ...prev,
-                        isAvailable: event.target.checked,
-                      }))
-                    }
-                  />
-                  <span>{t("owner.fields.available")}</span>
-                </label>
-
-                <div className="owner-action-row">
+                <div className="owner-action-row owner-dialog-actions">
                   <button
                     type="submit"
                     className="owner-button"
@@ -717,19 +921,116 @@ export default function OwnerDashboardPage() {
                       updateMenuMutation.isPending
                     }
                   >
-                    {editingMenuItemId
-                      ? t("owner.updateMenu")
-                      : t("owner.addMenu")}
+                    {createMenuMutation.isPending || updateMenuMutation.isPending
+                      ? t("owner.saving")
+                      : editingMenuItemId
+                        ? t("owner.updateMenu")
+                        : t("owner.addMenu")}
                   </button>
                   <button
                     type="button"
                     className="owner-button secondary"
                     onClick={closeMenuDialog}
                   >
-                    {t("owner.cancelEdit")}
+                    {editingMenuItemId
+                      ? t("owner.cancelEdit")
+                      : t("owner.close", { defaultValue: "Close" })}
                   </button>
                 </div>
               </form>
+            </section>
+          </div>
+        ) : null}
+
+        {deleteTargetItem ? (
+          <div
+            className="owner-dialog-backdrop owner-alert-backdrop"
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) {
+                setDeleteTargetItem(null);
+              }
+            }}
+          >
+            <section
+              className="owner-section-card owner-dialog-panel owner-confirm-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="owner-delete-dialog-title"
+            >
+              <div className="owner-confirm-head">
+                <div className="owner-confirm-icon" aria-hidden="true">
+                  <AlertTriangle size={24} />
+                </div>
+                <div>
+                  <p className="owner-section-kicker">
+                    {t("owner.deleteConfirm.kicker", {
+                      defaultValue: "Confirm delete",
+                    })}
+                  </p>
+                  <h2 id="owner-delete-dialog-title">
+                    {t("owner.deleteConfirm.title", {
+                      defaultValue: "Delete this dish?",
+                    })}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  className="owner-dialog-close owner-confirm-close"
+                  onClick={() => setDeleteTargetItem(null)}
+                  disabled={deleteMenuMutation.isPending}
+                  aria-label={t("owner.close", { defaultValue: "Close" })}
+                >
+                  <X size={18} aria-hidden="true" />
+                </button>
+              </div>
+
+              <p className="owner-confirm-message">
+                {t("owner.deleteConfirm.body", {
+                  defaultValue:
+                    "This dish will be removed from the menu and hidden from visitors.",
+                })}
+              </p>
+
+              <div className="owner-delete-item-preview">
+                <div className="owner-delete-item-image">
+                  {deleteTargetItem.imageUrl ? (
+                    <img
+                      src={deleteTargetItem.imageUrl}
+                      alt={getFriendlyDisplayName(deleteTargetItem.name)}
+                    />
+                  ) : (
+                    <div className="owner-image-fallback">
+                      {buildInitials(deleteTargetItem.name)}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <strong>{getFriendlyDisplayName(deleteTargetItem.name)}</strong>
+                  <span>{formatCurrency(deleteTargetItem.price)}</span>
+                </div>
+              </div>
+
+              <div className="owner-action-row">
+                <button
+                  type="button"
+                  className="owner-button secondary"
+                  onClick={() => setDeleteTargetItem(null)}
+                  disabled={deleteMenuMutation.isPending}
+                >
+                  {t("owner.keepItem", { defaultValue: "Keep item" })}
+                </button>
+                <button
+                  type="button"
+                  className="owner-button danger"
+                  onClick={confirmDeleteMenuItem}
+                  disabled={deleteMenuMutation.isPending}
+                >
+                  {deleteMenuMutation.isPending
+                    ? t("owner.deleting", { defaultValue: "Deleting..." })
+                    : t("owner.delete")}
+                </button>
+              </div>
             </section>
           </div>
         ) : null}
@@ -855,71 +1156,79 @@ export default function OwnerDashboardPage() {
           </div>
 
           <form className="owner-form" onSubmit={handlePoiSubmit}>
-            <FormInput
+            <FormSelect
               label={t("owner.fields.poiCategory")}
               value={poiForm.category}
+              options={OWNER_POI_CATEGORY_OPTIONS.map((option) => ({
+                ...option,
+                label: translateOwnerCategory(t, option.value) || option.label,
+              }))}
               onChange={(value) =>
                 setPoiForm((prev) => ({ ...prev, category: value }))
               }
             />
             <div className="owner-language-card">
-              <div
-                className="owner-language-tabs"
-                role="tablist"
-                aria-label="POI languages"
-              >
-                {OWNER_POI_LANGUAGES.map((language) => (
-                  <button
-                    key={language.id}
-                    type="button"
-                    className={
-                      activePoiLanguage === language.id ? "active" : ""
-                    }
-                    onClick={() => setActivePoiLanguage(language.id)}
-                  >
-                    <Languages size={16} aria-hidden="true" />
-                    {language.label}
-                  </button>
-                ))}
+              <div className="owner-auto-translate-head">
+                <div>
+                  <p className="owner-section-kicker">
+                    {t("owner.autoTranslate.kicker", {
+                      defaultValue: "Auto translate",
+                    })}
+                  </p>
+                  <h3>
+                    {t("owner.autoTranslate.title", {
+                      defaultValue: "Write in one language",
+                    })}
+                  </h3>
+                  <p>
+                    {t("owner.autoTranslate.description", {
+                      defaultValue:
+                        "The system will translate this content into the supported languages after saving.",
+                    })}
+                  </p>
+                </div>
+                <FormSelect
+                  label={t("owner.fields.sourceLanguage", {
+                    defaultValue: "Input language",
+                  })}
+                  value={poiForm.sourceLanguage}
+                  options={OWNER_POI_LANGUAGES.map((language) => ({
+                    value: language.id,
+                    label: t(language.labelKey, { defaultValue: language.fallback }),
+                  }))}
+                  onChange={(value) =>
+                    setPoiForm((prev) => ({
+                      ...prev,
+                      sourceLanguage: value,
+                    }))
+                  }
+                />
               </div>
 
-              {activePoiLanguage === "vi" ? (
-                <div className="owner-language-panel">
-                  <FormInput
-                    label={t("owner.fields.poiNameVi")}
-                    value={poiForm.nameVi}
-                    onChange={(value) =>
-                      setPoiForm((prev) => ({ ...prev, nameVi: value }))
-                    }
-                  />
-                  <FormTextArea
-                    label={t("owner.fields.poiDescriptionVi")}
-                    rows="6"
-                    value={poiForm.descriptionVi}
-                    onChange={(value) =>
-                      setPoiForm((prev) => ({ ...prev, descriptionVi: value }))
-                    }
-                  />
-                </div>
-              ) : (
-                <div className="owner-language-panel">
-                  <FormInput
-                    label={t("owner.fields.poiNameEn")}
-                    value={poiForm.nameEn}
-                    onChange={(value) =>
-                      setPoiForm((prev) => ({ ...prev, nameEn: value }))
-                    }
-                  />
-                  <FormTextArea
-                    label={t("owner.fields.poiDescriptionEn")}
-                    rows="6"
-                    value={poiForm.descriptionEn}
-                    onChange={(value) =>
-                      setPoiForm((prev) => ({ ...prev, descriptionEn: value }))
-                    }
-                  />
-                </div>
-              )}
+              <div className="owner-language-panel">
+                <FormInput
+                  label={t("owner.fields.poiSourceName", {
+                    defaultValue: "Displayed name",
+                  })}
+                  value={poiForm.sourceName}
+                  onChange={(value) =>
+                    setPoiForm((prev) => ({ ...prev, sourceName: value }))
+                  }
+                />
+                <FormTextArea
+                  label={t("owner.fields.poiSourceDescription", {
+                    defaultValue: "Displayed description",
+                  })}
+                  rows="6"
+                  value={poiForm.sourceDescription}
+                  onChange={(value) =>
+                    setPoiForm((prev) => ({
+                      ...prev,
+                      sourceDescription: value,
+                    }))
+                  }
+                />
+              </div>
             </div>
             <button
               type="submit"
@@ -951,9 +1260,17 @@ export default function OwnerDashboardPage() {
                   </div>
                 </div>
                 <div className="owner-standee-body">
-                  <p className="owner-section-kicker">Digital menu</p>
-                  <h3>Quet ma de xem thuc don</h3>
-                  <p>{heroSummaryText}</p>
+                  <p className="owner-section-kicker">
+                    {t("owner.qrStandeeKicker", {
+                      defaultValue: "Digital menu",
+                    })}
+                  </p>
+                  <h3>
+                    {t("owner.qrStandeeTitle", {
+                      defaultValue: "Scan to view the menu",
+                    })}
+                  </h3>
+                  <p>{standeeSummaryText}</p>
                   <PoiQrCard
                     poiId={primaryPoiId}
                     poiName={displayPrimaryPoiNameVi || displayShopName}
@@ -999,7 +1316,9 @@ export default function OwnerDashboardPage() {
                     onClick={handlePrintStandee}
                   >
                     <Printer size={18} aria-hidden="true" />
-                    In standee
+                    {t("owner.printStandee", {
+                      defaultValue: "Print standee",
+                    })}
                   </button>
                 </div>
               </div>
@@ -1053,23 +1372,68 @@ export default function OwnerDashboardPage() {
     <section className="owner-page">
       <div className="owner-shell">
         <header className="owner-shop-header">
-          <ShopImage src={coverImage} label={displayShopName} compact />
-          <div className="owner-shop-header-copy">
-            {/* <p className="owner-kicker">{t("owner.badge")}</p> */}
-            <h1>{displayShopName || t("owner.noShop")}</h1>
-            <p>{heroSummaryText}</p>
-            <div className="owner-shop-header-meta">
-              {primaryPoiCategoryLabel ? (
-                <span className="owner-shop-meta">
-                  {primaryPoiCategoryLabel}
+          <div className="owner-shop-header-identity">
+            <ShopImage src={coverImage} label={displayShopName} compact />
+            <div className="owner-shop-header-copy">
+              {/* <p className="owner-kicker">{t("owner.badge")}</p> */}
+              <h1>{displayShopName || t("owner.noShop")}</h1>
+              <div className="owner-shop-header-meta">
+                {primaryPoiCategoryLabel ? (
+                  <span className="owner-shop-meta">
+                    {primaryPoiCategoryLabel}
+                  </span>
+                ) : null}
+                <span
+                  className={`owner-status-pill owner-status-pill-${statusTone}`}
+                >
+                  {activeStatusLabel}
                 </span>
-              ) : null}
-              <span
-                className={`owner-status-pill owner-status-pill-${statusTone}`}
-              >
-                {activeStatusLabel}
-              </span>
+              </div>
             </div>
+          </div>
+          <div className="owner-shop-header-actions" aria-label={t("owner.header.toolsAria")}>
+            <button
+              type="button"
+              className={`owner-open-state${isShopOpen ? " active" : ""}`}
+              aria-pressed={isShopOpen}
+              disabled={openStatusMutation.isPending}
+              onClick={handleToggleShopOpen}
+              title={shopOpenLabel}
+            >
+              <span aria-hidden="true" />
+              {shopOpenLabel}
+            </button>
+            <button
+              type="button"
+              className={`owner-notification-button${
+                hasUnreadNotifications ? " has-unread" : ""
+              }`}
+              aria-expanded={isNotificationOpen}
+              aria-label={t("owner.header.notificationsAria")}
+              onClick={handleToggleNotifications}
+            >
+              <Bell size={21} strokeWidth={1.9} />
+              {hasUnreadNotifications ? <span aria-hidden="true" /> : null}
+            </button>
+            {isNotificationOpen ? (
+              <div className="owner-notification-popover" role="status">
+                <div className="owner-notification-head">
+                  <strong>{t("owner.notifications.title")}</strong>
+                  <small>{t("owner.notifications.count", { count: notificationItems.length })}</small>
+                </div>
+                <div className="owner-notification-list">
+                  {notificationItems.map((item) => (
+                    <div className="owner-notification-item" key={item.id}>
+                      <span aria-hidden="true" />
+                      <div>
+                        <strong>{item.title}</strong>
+                        <p>{item.body}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         </header>
 
@@ -1088,16 +1452,24 @@ export default function OwnerDashboardPage() {
                   </span>
                   <span className="owner-nav-copy">
                     <strong>{section.label}</strong>
-                    <small>{section.description}</small>
                   </span>
-                  <span className="owner-nav-badge">{section.badge}</span>
                 </button>
               ))}
             </nav>
           </aside>
 
           <main className="owner-main">
-            {feedback ? <div className="owner-feedback">{feedback}</div> : null}
+            {feedback ? (
+              <div className="owner-feedback owner-toast" role="status">
+                <CheckCircle2 size={19} aria-hidden="true" />
+                <span>{feedback}</span>
+              </div>
+            ) : null}
+            {mutationError ? (
+              <div className="owner-error owner-inline-error">
+                {mutationError}
+              </div>
+            ) : null}
 
             <div className="owner-stage">{renderActivePanel()}</div>
           </main>
@@ -1115,6 +1487,24 @@ function FormInput({ label, onChange, ...inputProps }) {
         {...inputProps}
         onChange={(event) => onChange(event.target.value)}
       />
+    </label>
+  );
+}
+
+function FormSelect({ label, options, onChange, ...selectProps }) {
+  return (
+    <label className="owner-field">
+      <span>{label}</span>
+      <select
+        {...selectProps}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }
@@ -1260,7 +1650,7 @@ function DishMenuGrid({ items, emptyText, onEdit, onDelete, onToggle, t }) {
               <button
                 type="button"
                 className="owner-link-button danger"
-                onClick={() => onDelete(item.id)}
+                onClick={() => onDelete(item)}
               >
                 <Trash2 size={15} aria-hidden="true" />
                 {t("owner.delete")}
@@ -1270,6 +1660,53 @@ function DishMenuGrid({ items, emptyText, onEdit, onDelete, onToggle, t }) {
         </article>
       ))}
     </div>
+  );
+}
+
+function DishPreviewCard({ item, t }) {
+  const name =
+    getFriendlyDisplayName(item.name) ||
+    t("owner.preview.emptyMenuName", {
+      defaultValue: "Dish name appears here",
+    });
+  const description =
+    item.description ||
+    t("owner.preview.emptyMenuDescription", {
+      defaultValue: "Add a short description so visitors understand the dish before choosing.",
+    });
+
+  const imageValidationMessage = getMenuImageUrlValidationMessage(
+    item.imageUrl,
+    t,
+  );
+
+  return (
+    <article
+      className={`owner-menu-preview-card${item.isAvailable ? "" : " is-hidden"}`}
+    >
+      <div className="owner-menu-preview-image">
+        {item.imageUrl && !imageValidationMessage ? (
+          <img src={item.imageUrl} alt={name} />
+        ) : (
+          <div className="owner-image-fallback">{buildInitials(name)}</div>
+        )}
+      </div>
+      <div className="owner-menu-preview-body">
+        <div>
+          <strong>{name}</strong>
+          <span>{formatCurrency(item.price)}</span>
+        </div>
+        <p>{description}</p>
+        <small>
+          {item.isAvailable
+            ? t("owner.available")
+            : t("owner.hidden")}
+        </small>
+        {imageValidationMessage ? (
+          <em>{imageValidationMessage}</em>
+        ) : null}
+      </div>
+    </article>
   );
 }
 
@@ -1413,11 +1850,56 @@ function getFriendlyOwnerSummary(value, fallback) {
     return fallback;
   }
 
-  if (/(demo|test|placeholder|POI|dashboard|tính năng)/i.test(normalized)) {
+  if (isOwnerSummaryPlaceholder(normalized)) {
     return fallback;
   }
 
   return normalized;
+}
+
+function isOwnerSummaryPlaceholder(value) {
+  return /demo|test|placeholder|POI|dashboard|feature|add a short introduction|complete.*profile|fill in.*shop|th[eê]m.*gi[oơ]i thi[eệ]u|ho[aà]n thi[eệ]n.*h[oồ] s[oơ]|店舗情報|完全なプロフィール|店铺信息|完整.*资料|가게 정보|전체 프로필|กรอกข้อมูลร้าน|โปรไฟล์ครบถ้วน/i.test(
+    value,
+  );
+}
+
+function getMenuImageUrlValidationMessage(value, t) {
+  const imageUrl = String(value || "").trim();
+  if (!imageUrl) return "";
+
+  if (/^data:image\//i.test(imageUrl)) {
+    return t("owner.validation.imageDataUrl", {
+      defaultValue:
+        "Image only accepts a public image link, not pasted/base64 image data.",
+    });
+  }
+
+  if (imageUrl.length > MAX_MENU_IMAGE_URL_LENGTH) {
+    return t("owner.validation.imageUrlTooLong", {
+      defaultValue: "Image URL is too long. Please use a link under 500 characters.",
+    });
+  }
+
+  return "";
+}
+
+function getMutationErrorMessage(error, t) {
+  const serverMessage =
+    error?.response?.data?.message ||
+    error?.response?.data?.title ||
+    error?.message;
+
+  if (serverMessage) {
+    return t("owner.feedback.errorWithDetail", {
+      defaultValue: "Could not save changes: {{message}}",
+      message: serverMessage,
+    });
+  }
+
+  return t("owner.feedback.error", {
+    defaultValue:
+      "Could not save changes. Check your connection or try again.",
+  });
 }
 
 function translateOwnerCategory(t, value) {

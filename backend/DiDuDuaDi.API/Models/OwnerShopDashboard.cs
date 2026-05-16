@@ -14,6 +14,7 @@ public class OwnerShopDashboard
     public string? OpeningHours { get; set; }
     public string? Phone { get; set; }
     public string? ImageUrl { get; set; }
+    public bool IsTemporarilyClosed { get; set; }
     public OwnerPoiContentSummary? PrimaryPoi { get; set; }
     public List<MenuItemSummary> MenuItems { get; set; } = [];
     public List<ClaimCodeSummary> RecentClaimCodes { get; set; } = [];

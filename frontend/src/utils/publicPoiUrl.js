@@ -1,5 +1,11 @@
 const QR_BASE_URL_STORAGE_KEY = "didududadi.qrBaseUrl";
 const DEFAULT_PUBLIC_APP_URL = "https://di-du-dua-di.vercel.app";
+export const STRONG_DEVICE_QR_CODE = "1";
+export const WEAK_DEVICE_QR_CODE = "0";
+export const QR_DEVICE_PROFILES = {
+  strong: "strong",
+  weak: "weak",
+};
 
 function isPrivateOrLocalBaseUrl(baseUrl) {
   const normalizedBaseUrl = normalizePublicBaseUrl(baseUrl);
@@ -22,7 +28,9 @@ export function normalizePublicBaseUrl(value) {
 }
 
 export function getInitialPublicBaseUrl() {
-  const configuredBaseUrl = normalizePublicBaseUrl(import.meta.env.VITE_PUBLIC_APP_URL);
+  const configuredBaseUrl = normalizePublicBaseUrl(
+    import.meta.env.VITE_PUBLIC_APP_URL,
+  );
 
   if (typeof window === "undefined") {
     return configuredBaseUrl || DEFAULT_PUBLIC_APP_URL;
@@ -61,13 +69,32 @@ export function persistPublicBaseUrl(value) {
   window.localStorage.setItem(QR_BASE_URL_STORAGE_KEY, normalizedValue);
 }
 
-export function buildPoiDetailUrl(poiId, baseUrl, source = "qr") {
+export function getRandomQrDeviceCode() {
+  return Math.random() >= 0.5 ? STRONG_DEVICE_QR_CODE : WEAK_DEVICE_QR_CODE;
+}
+
+export function resolveQrDeviceProfile(deviceCode) {
+  return String(deviceCode ?? "").trim() === STRONG_DEVICE_QR_CODE
+    ? QR_DEVICE_PROFILES.strong
+    : QR_DEVICE_PROFILES.weak;
+}
+
+export function getQrDeviceProfileFromSearch(search) {
+  const params = new URLSearchParams(search || "");
+  return resolveQrDeviceProfile(params.get("device"));
+}
+
+export function buildPoiDetailUrl(poiId, baseUrl, source = "qr", deviceCode) {
   const normalizedBaseUrl = normalizePublicBaseUrl(baseUrl);
   if (!poiId || !normalizedBaseUrl) return "";
 
   const url = new URL(`${normalizedBaseUrl}/poi/${poiId}`);
   if (source) {
     url.searchParams.set("source", source);
+  }
+  const normalizedDeviceCode = String(deviceCode ?? "").trim();
+  if (source === "qr" && normalizedDeviceCode) {
+    url.searchParams.set("device", normalizedDeviceCode);
   }
 
   return url.toString();

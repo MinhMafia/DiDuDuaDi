@@ -772,6 +772,48 @@
   text-transform: capitalize;
 }
 
+.poi-closed-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+
+.poi-closed-badge::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  margin-right: 7px;
+  border-radius: 999px;
+  background: #94a3b8;
+}
+
+.poi-closed-message {
+  width: fit-content;
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  color: #475569;
+  background: #f8fafc;
+  font-weight: 800;
+}
+
+.poi-inline-closed {
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: #475569;
+  background: #f1f5f9;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
 .poi-tour-stop {
   display: inline-flex;
   align-items: center;

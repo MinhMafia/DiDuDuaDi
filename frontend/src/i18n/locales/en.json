@@ -11,7 +11,8 @@
     "owner": "Owner",
     "admin": "Admin",
     "routes": "Routes",
-    "settings": "Settings"
+    "settings": "Settings",
+    "favorites": "Favorites"
   },
   "auth": {
     "badge": "System login",
@@ -211,16 +212,16 @@
     "kicker": "Shop QR",
     "title": "Open the public shop detail page",
     "subtitle": "Scan the code or open the public link for {{name}}.",
-    "poiFallbackName": "this place",
-    "baseUrlLabel": "Base URL for QR",
-    "baseUrlPlaceholder": "Example: https://di-du-dua-di.vercel.app",
+    "poiFallbackName": "your shop",
+    "baseUrlLabel": "Public domain",
+    "baseUrlPlaceholder": "https://your-domain.vercel.app",
     "detailLinkLabel": "Shop detail link",
     "localHint": "This is a private address. Switch it to the Vercel domain so customers can open the QR link.",
     "readyHint": "This link is ready for customers to open on phones or other devices.",
     "copy": "Copy link",
     "copied": "Copied",
     "open": "Open detail page",
-    "missingUrl": "No valid URL yet"
+    "missingUrl": "No QR link is available yet."
   },
   "poiDetail": {
     "loading": "Loading shop details...",
@@ -240,7 +241,11 @@
     },
     "notUpdated": "Not updated",
     "unknownName": "Unnamed shop",
-    "unknownDish": "Unnamed dish"
+    "unknownDish": "Unnamed dish",
+    "device": {
+      "strong": "High-performance device",
+      "weak": "Low-performance device"
+    }
   },
   "common": {
     "loading": "Loading...",
@@ -404,6 +409,7 @@
     "latestCode": "Latest code",
     "viewMap": "Open map view",
     "summaryFallback": "Add a short introduction so visitors can understand your shop more easily.",
+    "standeeFallback": "Scan the code to view the menu, shop information, and latest introduction.",
     "summaryUnavailable": "Not updated yet",
     "saveProfile": "Save shop profile",
     "saving": "Saving...",
@@ -414,12 +420,48 @@
     "hidden": "Hidden",
     "edit": "Edit",
     "delete": "Delete",
+    "close": "Close",
+    "keepItem": "Keep item",
+    "deleting": "Deleting...",
+    "menuCreateHint": "Enter the basics. Visible dishes will appear on the public shop page.",
+    "menuEditHint": "Update the dish name, price, image, and visibility.",
+    "menuVisibleHint": "Visitors can see this dish.",
+    "menuHiddenHint": "This dish is hidden from visitors.",
+    "menuPreviewTitle": "Public dish preview",
     "feedback": {
       "saved": "Shop profile updated.",
       "poiSaved": "Map information updated.",
       "menuCreated": "Menu item created.",
       "menuUpdated": "Menu item updated.",
-      "menuDeleted": "Menu item deleted."
+      "menuDeleted": "Menu item deleted.",
+      "error": "Could not save changes. Check your connection or try again.",
+      "errorWithDetail": "Could not save changes: {{message}}",
+      "opened": "Switched to open now.",
+      "closed": "Switched to temporarily closed."
+    },
+    "deleteConfirm": {
+      "kicker": "Confirm delete",
+      "title": "Delete this dish?",
+      "body": "This dish will be removed from the menu and hidden from visitors.",
+      "warning": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete item"
+    },
+    "autoTranslate": {
+      "kicker": "Auto translate",
+      "title": "Write in one language",
+      "description": "After saving, the system will translate this content into Vietnamese, English, Chinese, Japanese, Korean, French, and Thai.",
+      "helper": "The system will use this content to generate the remaining language versions."
+    },
+    "preview": {
+      "kicker": "Preview",
+      "emptyMenuName": "Dish name appears here",
+      "emptyMenuDescription": "Add a short description so visitors understand the dish before choosing."
+    },
+    "validation": {
+      "poiSourceRequired": "Please enter a name and description before auto translation.",
+      "imageDataUrl": "Image only accepts a public image link, not pasted/base64 image data.",
+      "imageUrlTooLong": "Image URL is too long. Please use a link under 500 characters."
     },
     "stats": {
       "totalVisits": "Shop views",
@@ -463,7 +505,11 @@
       "editMenu": "Edit menu item",
       "menuListKicker": "Currently visible",
       "menuList": "Current dishes",
-      "menuListDescription": "These are the dishes visitors currently see when they open your shop."
+      "menuListDescription": "These are the dishes visitors currently see when they open your shop.",
+      "qrDescription": "Create a QR code so visitors can quickly open the shop detail page.",
+      "qrReady": "Ready",
+      "qrMissing": "No POI yet",
+      "qrMissingDescription": "No primary place is available for a QR code yet. Update the map information first."
     },
     "fields": {
       "shopName": "Shop name",
@@ -481,6 +527,9 @@
       "poiNameEn": "Displayed name (English)",
       "poiDescriptionVi": "Displayed description (Vietnamese)",
       "poiDescriptionEn": "Displayed description (English)",
+      "sourceLanguage": "Input language",
+      "poiSourceName": "Displayed name",
+      "poiSourceDescription": "Displayed description",
       "menuDescription": "Dish description",
       "price": "Price",
       "order": "Display order",
@@ -489,7 +538,44 @@
       "expireAfterHours": "Expire after (hours)",
       "note": "Note"
     },
-    "savePoi": "Save map information"
+    "savePoi": "Save map information",
+    "qrStandeeKicker": "Digital menu",
+    "qrStandeeTitle": "Scan to view the menu",
+    "printStandee": "Print standee",
+    "placeholders": {
+      "menuName": "Example: Special grilled beef in betel leaf",
+      "menuDescription": "Describe the flavor, portion, or side dishes.",
+      "imageUrl": "Paste an https:// image link, not base64 data"
+    },
+    "languageNames": {
+      "vi": "Tiếng Việt",
+      "en": "English",
+      "zh": "中文",
+      "ja": "日本語",
+      "ko": "한국어",
+      "fr": "Français",
+      "th": "ไทย"
+    },
+    "header": {
+      "open": "Open now",
+      "closed": "Temporarily closed",
+      "toolsAria": "Shop tools",
+      "notificationsAria": "Notifications"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "count": "{{count}} items",
+      "reviewTitle": "Review status",
+      "reviewBody": "The shop is currently: {{status}}.",
+      "qrReadyTitle": "Shop QR is ready",
+      "qrReadyBody": "Customers can scan the QR code to open the public shop detail page.",
+      "qrMissingTitle": "No shop QR yet",
+      "qrMissingBody": "Update the map content to generate a public QR link.",
+      "todayTitle": "Today's activity",
+      "todayBody": "{{visits}} views, {{audio}} audio plays, {{qr}} QR scans.",
+      "quietTitle": "No new activity yet",
+      "quietBody": "No views, audio plays, or QR scans have been recorded today."
+    }
   },
   "admin": {
     "title": "Admin dashboard",
@@ -553,5 +639,12 @@
       "foodToursKicker": "Travel itineraries",
       "foodToursDescription": "Create and manage culinary tour routes."
     }
+  },
+  "favorites": {
+    "title": "Favorite restaurants",
+    "subtitle": "Places you saved to visit later.",
+    "empty": "You have not saved any favorite restaurants yet. Explore the map and tap the heart on places you want to keep.",
+    "add": "Add to favorites",
+    "remove": "Remove from favorites"
   }
 }

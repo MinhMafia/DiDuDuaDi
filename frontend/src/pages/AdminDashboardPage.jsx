@@ -690,17 +690,34 @@ export default function AdminDashboardPage() {
         <div className="admin-activity-layout">
           <div className="admin-activity-chart">
             <ResponsiveContainer width="100%" height={330}>
-              <AreaChart data={chartRows} margin={{ top: 18, right: 18, left: 0, bottom: 8 }}>
+              <AreaChart
+                data={chartRows}
+                margin={{ top: 18, right: 18, left: 0, bottom: 8 }}
+              >
                 <defs>
-                  <linearGradient id="adminActivityArea" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient
+                    id="adminActivityArea"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
                     <stop offset="5%" stopColor="#2563EB" stopOpacity={0.32} />
                     <stop offset="56%" stopColor="#10B981" stopOpacity={0.16} />
-                    <stop offset="100%" stopColor="#10B981" stopOpacity={0.02} />
+                    <stop
+                      offset="100%"
+                      stopColor="#10B981"
+                      stopOpacity={0.02}
+                    />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                <YAxis
+                  allowDecimals={false}
+                  tickLine={false}
+                  axisLine={false}
+                />
                 <Tooltip cursor={{ stroke: "#2563EB", strokeWidth: 1.5 }} />
                 <Area
                   type="monotone"
@@ -708,8 +725,18 @@ export default function AdminDashboardPage() {
                   stroke="#2563EB"
                   strokeWidth={3}
                   fill="url(#adminActivityArea)"
-                  activeDot={{ r: 5, stroke: "#10B981", strokeWidth: 3, fill: "#ffffff" }}
-                  dot={{ r: 3, stroke: "#2563EB", strokeWidth: 2, fill: "#ffffff" }}
+                  activeDot={{
+                    r: 5,
+                    stroke: "#10B981",
+                    strokeWidth: 3,
+                    fill: "#ffffff",
+                  }}
+                  dot={{
+                    r: 3,
+                    stroke: "#2563EB",
+                    strokeWidth: 2,
+                    fill: "#ffffff",
+                  }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -1017,7 +1044,9 @@ export default function AdminDashboardPage() {
           <div>
             <p className="admin-section-kicker">Báo cáo</p>
             <h2>Xuất thống kê Excel</h2>
-            <p>Xuất danh sách top quán theo khoảng thời gian và chỉ số đã chọn.</p>
+            <p>
+              Xuất danh sách top quán theo khoảng thời gian và chỉ số đã chọn.
+            </p>
           </div>
           <Button
             type="primary"
@@ -1092,7 +1121,8 @@ export default function AdminDashboardPage() {
                 render: (text) => text || "-",
               },
               {
-                title: statsMetric === "audio" ? "Số lượt audio" : "Số lượt xem",
+                title:
+                  statsMetric === "audio" ? "Số lượt audio" : "Số lượt xem",
                 dataIndex: "count",
                 align: "right",
                 render: (count) => <Tag color="blue">{count ?? 0}</Tag>,
@@ -1846,7 +1876,11 @@ function TopActivityList({ emptyText, isLoading, items, subtitle, title }) {
 
 function resolveActivityName(item) {
   const name =
-    item?.name || item?.Name || item?.shopName || item?.displayName || item?.slug;
+    item?.name ||
+    item?.Name ||
+    item?.shopName ||
+    item?.displayName ||
+    item?.slug;
 
   if (typeof name === "object" && name !== null) {
     return name.vi || name.en || "N/A";

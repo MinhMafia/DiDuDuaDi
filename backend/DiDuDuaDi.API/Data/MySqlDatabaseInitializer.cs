@@ -428,6 +428,13 @@ public class MySqlDatabaseInitializer(
             "shops",
             "intro_review_note",
             "ALTER TABLE shops ADD COLUMN intro_review_note VARCHAR(500) NULL AFTER intro_review_status;");
+
+        EnsureColumn(
+            connection,
+            databaseName,
+            "shops",
+            "is_temporarily_closed",
+            "ALTER TABLE shops ADD COLUMN is_temporarily_closed TINYINT(1) NOT NULL DEFAULT 0 AFTER image_url;");
     }
 
     private void EnsureOwnerReviewColumns(System.Data.IDbConnection connection, string databaseName)

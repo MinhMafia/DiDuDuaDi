@@ -133,6 +133,7 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
                 s.address_line AS ShopAddress,
                 s.opening_hours AS OpeningHours,
                 s.phone AS Phone,
+                s.is_temporarily_closed AS IsTemporarilyClosedInt,
                 COALESCE(s.approved_intro, s.description) AS ApprovedIntroduction,
                 pt.language_code AS LanguageCode,
                 pt.name AS Name,
@@ -165,6 +166,7 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
                     ShopAddress = row.ShopAddress,
                     OpeningHours = row.OpeningHours,
                     Phone = row.Phone,
+                    IsTemporarilyClosed = row.IsTemporarilyClosedInt == 1,
                     ApprovedIntroduction = row.ApprovedIntroduction,
                     Category = row.Category,
                     Location = new GeoPoint((double)row.Latitude, (double)row.Longitude),
@@ -262,6 +264,7 @@ public class MySqlPoiRepository(IDbConnectionFactory connectionFactory) : IPoiRe
         public string? ShopAddress { get; init; }
         public string? OpeningHours { get; init; }
         public string? Phone { get; init; }
+        public int IsTemporarilyClosedInt { get; init; }
         public string? ApprovedIntroduction { get; init; }
         public string? LanguageCode { get; init; }
         public string? Name { get; init; }

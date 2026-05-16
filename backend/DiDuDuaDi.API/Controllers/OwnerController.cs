@@ -13,6 +13,8 @@ namespace DiDuDuaDi.API.Controllers;
 [Authorize(Roles = "owner")]
 public class OwnerController(IOwnerRepository ownerRepository, ITranslationService translationService, ITextToSpeechService textToSpeechService) : ControllerBase
 {
+    private const int MaxMenuImageUrlLength = 500;
+
     [HttpGet("dashboard")]
     public ActionResult<ApiResponse<OwnerShopDashboard>> GetDashboard()
     {
@@ -64,6 +66,28 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
         return Ok(new ApiResponse<OwnerShopDashboard>(dashboard, true, "Shop profile updated"));
     }
 
+    [HttpPatch("shop-open-status")]
+    public ActionResult<ApiResponse<OwnerShopDashboard>> UpdateShopOpenStatus([FromBody] UpdateShopOpenStatusRequest request)
+    {
+        var username = User.FindFirstValue(ClaimTypes.Name);
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return BadRequest(new ApiResponse<OwnerShopDashboard>(null!, false, "Username is required"));
+        }
+
+        var dashboard = ownerRepository.UpdateShopOpenStatus(username, request);
+        if (dashboard is null)
+        {
+            return NotFound(new ApiResponse<OwnerShopDashboard>(null!, false, "Owner shop not found"));
+        }
+
+        var message = request.IsTemporarilyClosed
+            ? "Shop marked as temporarily closed"
+            : "Shop marked as open";
+
+        return Ok(new ApiResponse<OwnerShopDashboard>(dashboard, true, message));
+    }
+
     [HttpPut("poi-content")]
     public async Task<ActionResult<ApiResponse<OwnerShopDashboard>>> UpdatePoiContent([FromBody] UpdateOwnerPoiContentRequest request)
     {
@@ -73,10 +97,18 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
             return BadRequest(new ApiResponse<OwnerShopDashboard>(null!, false, "Username is required"));
         }
 
-        if (string.IsNullOrWhiteSpace(request.NameVi)
-            || string.IsNullOrWhiteSpace(request.DescriptionVi))
+        var sourceLanguage = NormalizePoiLanguageCode(request.SourceLanguage) ?? "vi";
+        var sourceName = !string.IsNullOrWhiteSpace(request.SourceName)
+            ? request.SourceName.Trim()
+            : ResolveLegacyPoiName(request, sourceLanguage);
+        var sourceDescription = !string.IsNullOrWhiteSpace(request.SourceDescription)
+            ? request.SourceDescription.Trim()
+            : ResolveLegacyPoiDescription(request, sourceLanguage);
+
+        if (string.IsNullOrWhiteSpace(sourceName)
+            || string.IsNullOrWhiteSpace(sourceDescription))
         {
-            return BadRequest(new ApiResponse<OwnerShopDashboard>(null!, false, "POI name and description are required in VI"));
+            return BadRequest(new ApiResponse<OwnerShopDashboard>(null!, false, "POI name and description are required"));
         }
 
         var dashboard = await ownerRepository.UpdatePoiContentAsync(username, request);
@@ -89,23 +121,19 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
 
         if (poiId != null) // Đảm bảo POI tồn tại
         {
-            string? audioUrlVi = await textToSpeechService.GenerateAndSaveAudioAsync(request.DescriptionVi, "vi", poiId.Value.ToString());
-            
-            ownerRepository.UpsertPoiTranslation(
-                poiId.Value,
-                "vi", 
-                request.NameVi, 
-                request.DescriptionVi,
-                audioUrlVi
-            );
-            await Task.Delay(1000);
-
-            string[] targetLanguages = new[] { "en", "zh", "ja", "ko", "fr", "th" };
+            string[] targetLanguages = new[] { "vi", "en", "zh", "ja", "ko", "fr", "th" };
 
             foreach (var lang in targetLanguages)
             {
                 // Gọi API dịch thuật (Hàm này vẫn cần await vì nó gọi ra ngoài internet)
-                var (translatedName, translatedDesc) = await translationService.TranslatePoiContentAsync(request.NameVi, request.DescriptionVi, lang);
+                var (translatedName, translatedDesc) =
+                    lang == sourceLanguage
+                        ? (sourceName, sourceDescription)
+                        : await translationService.TranslatePoiContentAsync(
+                            sourceName,
+                            sourceDescription,
+                            lang,
+                            sourceLanguage);
 
                 string? audioUrl = await textToSpeechService.GenerateAndSaveAudioAsync(translatedDesc, lang, poiId.Value.ToString());
 
@@ -130,9 +158,10 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
             return BadRequest(new ApiResponse<MenuItemSummary>(null!, false, "Username is required"));
         }
 
-        if (string.IsNullOrWhiteSpace(request.Name) || request.Price < 0)
+        var menuValidationError = ValidateMenuItemRequest(request);
+        if (menuValidationError is not null)
         {
-            return BadRequest(new ApiResponse<MenuItemSummary>(null!, false, "Invalid menu item data"));
+            return BadRequest(new ApiResponse<MenuItemSummary>(null!, false, menuValidationError));
         }
 
         var item = ownerRepository.CreateMenuItem(username, request);
@@ -155,9 +184,10 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
             return BadRequest(new ApiResponse<MenuItemSummary>(null!, false, "Username is required"));
         }
 
-        if (string.IsNullOrWhiteSpace(request.Name) || request.Price < 0)
+        var menuValidationError = ValidateMenuItemRequest(request);
+        if (menuValidationError is not null)
         {
-            return BadRequest(new ApiResponse<MenuItemSummary>(null!, false, "Invalid menu item data"));
+            return BadRequest(new ApiResponse<MenuItemSummary>(null!, false, menuValidationError));
         }
 
         var item = ownerRepository.UpdateMenuItem(username, menuItemId, request);
@@ -185,6 +215,65 @@ public class OwnerController(IOwnerRepository ownerRepository, ITranslationServi
         }
 
         return Ok(new ApiResponse<bool>(true, true, "Menu item deleted"));
+    }
+
+    private static string? ValidateMenuItemRequest(UpsertMenuItemRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name) || request.Price < 0)
+        {
+            return "Invalid menu item data";
+        }
+
+        var imageUrl = request.ImageUrl?.Trim();
+        if (string.IsNullOrEmpty(imageUrl))
+        {
+            return null;
+        }
+
+        if (imageUrl.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Image URL must be a public image link, not a base64/data URL";
+        }
+
+        if (imageUrl.Length > MaxMenuImageUrlLength)
+        {
+            return $"Image URL must be at most {MaxMenuImageUrlLength} characters";
+        }
+
+        return null;
+    }
+
+    private static string? NormalizePoiLanguageCode(string? languageCode)
+    {
+        var normalized = languageCode?.Trim().ToLowerInvariant();
+        return normalized switch
+        {
+            "vi" or "en" or "zh" or "ja" or "ko" or "fr" or "th" => normalized,
+            "zh-cn" or "zh-tw" or "cn" => "zh",
+            "jp" => "ja",
+            "kr" => "ko",
+            _ => null
+        };
+    }
+
+    private static string ResolveLegacyPoiName(UpdateOwnerPoiContentRequest request, string sourceLanguage)
+    {
+        if (sourceLanguage == "en" && !string.IsNullOrWhiteSpace(request.NameEn))
+        {
+            return request.NameEn.Trim();
+        }
+
+        return request.NameVi?.Trim() ?? string.Empty;
+    }
+
+    private static string ResolveLegacyPoiDescription(UpdateOwnerPoiContentRequest request, string sourceLanguage)
+    {
+        if (sourceLanguage == "en" && !string.IsNullOrWhiteSpace(request.DescriptionEn))
+        {
+            return request.DescriptionEn.Trim();
+        }
+
+        return request.DescriptionVi?.Trim() ?? string.Empty;
     }
 
 }

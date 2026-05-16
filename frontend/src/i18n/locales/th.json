@@ -11,7 +11,8 @@
     "owner": "เจ้าของร้าน",
     "admin": "แอดมิน",
     "routes": "เส้นทาง",
-    "settings": "ตั้งค่า"
+    "settings": "ตั้งค่า",
+    "favorites": "??????????"
   },
   "auth": {
     "badge": "เข้าสู่ระบบ",
@@ -46,7 +47,8 @@
       "user": "ผู้ใช้",
       "owner": "เจ้าของร้าน",
       "admin": "แอดมิน"
-    }
+    },
+    "loginRequired": "??????????????????????????????????"
   },
   "map": {
     "title": "แผนที่ถนนอาหารวิงห์คั้ญ",
@@ -153,7 +155,12 @@
     "autoPlayTitle": "เล่นเสียงอัตโนมัติ",
     "autoPlayDescription": "เมื่อเปิดไว้ แอปสามารถเริ่มบรรยายอัตโนมัติเมื่อคุณเข้าใกล้จุดที่สนใจ",
     "enabled": "เปิด",
-    "disabled": "ปิด"
+    "disabled": "ปิด",
+    "voiceTitle": "Available browser voices",
+    "voiceDescription": "Check which voices this browser can use for each language and which one the app will prefer.",
+    "voiceReady": "Native voice available",
+    "voiceMissing": "Using fallback",
+    "voiceFallback": "No matching voice found"
   },
   "audio": {
     "title": "คู่มือเสียง",
@@ -208,7 +215,9 @@
     "placeholder": "ถามเกี่ยวกับอาหาร ร้านอาหาร หรือแผนที่...",
     "send": "ส่ง",
     "close": "ปิด",
-    "fabLabel": "AI"
+    "fabLabel": "AI",
+    "emptyReply": "I do not have a suitable answer right now.",
+    "connectionError": "Could not connect to the AI assistant."
   },
   "home": {
     "title": "แผงทดสอบระบบ DiDuDuaDi",
@@ -283,6 +292,82 @@
       "idCardImageUrl": "URL รูปบัตรประชาชน",
       "businessLicenseImageUrl": "URL รูปใบอนุญาตประกอบการค้า (ถ้ามี)",
       "note": "หมายเหตุ"
+    },
+    "tabs": {
+      "new": "New registration",
+      "history": "History & status"
+    },
+    "latestRequestTitle": "Latest registration request",
+    "reviewNote": "Admin note",
+    "waitingReviewTitle": "Your request is waiting for review",
+    "waitingReviewDescription": "Admin will review the request, shop location and submitted documents before replying.",
+    "paymentTitle": "Owner upgrade payment information",
+    "paymentDescription": "Your request has been initially approved. Use the QR code or transfer note below to complete the owner upgrade.",
+    "feeAmount": "Upgrade fee",
+    "paymentReference": "Reference code",
+    "paymentRequestedAt": "Payment created at",
+    "transferMemo": "Transfer memo",
+    "qrLabel": "Payment QR code",
+    "qrUnavailable": "No payment QR code is available for this request yet.",
+    "rejectedTitle": "Your previous request was rejected",
+    "rejectedDescription": "You can review the rejection reason and submit a new request with updated information.",
+    "formLockedTitle": "Your current request is being processed",
+    "formLockedMessage": "You cannot create another request right now.",
+    "formLockedDescription": "Follow the status in History & status. If the request is rejected, use Edit from old request to resubmit faster.",
+    "formTitle": "Create a new restaurant registration request",
+    "editFormTitle": "Edit pending restaurant registration request",
+    "updateSubmit": "Update pending request",
+    "cancelEdit": "Cancel edit",
+    "updateSuccess": "Pending request updated.",
+    "cancelSuccess": "Registration request cancelled. You can create a new one.",
+    "cancelError": "Could not cancel the registration request.",
+    "prefillSuccess": "Old request content has been loaded into the form.",
+    "editPending": "Edit request",
+    "editPendingLoaded": "Pending request has been loaded into the form for editing.",
+    "cancelPending": "Cancel request",
+    "cancelPendingTitle": "Cancel pending request?",
+    "cancelPendingDescription": "After cancellation, this request remains in history and you can create a new registration request.",
+    "confirmCancel": "Cancel request",
+    "keepPending": "Keep request",
+    "emptyNote": "No extra note.",
+    "mapPicker": {
+      "title": "Choose shop location on the map",
+      "hint": "Tap directly on the map to capture accurate GPS coordinates for the shop. You can still adjust latitude and longitude manually if needed.",
+      "selectedCoordinates": "Selected coordinates: {{lat}}, {{lng}}"
+    },
+    "placeholders": {
+      "shopName": "Enter the restaurant name you want to register",
+      "address": "Enter an address in the Vinh Khanh area",
+      "latitude": "Example: 10.758700",
+      "longitude": "Example: 106.703100",
+      "note": "Add shop details, opening hours or anything you want admin to know"
+    },
+    "validation": {
+      "shopNameRequired": "Please enter the restaurant name.",
+      "addressRequired": "Please enter the restaurant address.",
+      "latitudeRequired": "Please enter latitude.",
+      "longitudeRequired": "Please enter longitude."
+    },
+    "status": {
+      "pending": "Pending review",
+      "paymentPending": "Payment pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "history": {
+      "title": "Registration request history",
+      "count_zero": "0 old requests",
+      "count_one": "{{count}} old request",
+      "count_other": "{{count}} old requests",
+      "empty": "You have no previous requests to review.",
+      "submittedAt": "Submitted at",
+      "reviewedAt": "Reviewed at",
+      "reviewResult": "Response / cancellation reason",
+      "noReviewReason": "No admin response yet.",
+      "editFromOld": "Edit from old request",
+      "viewIdCard": "View submitted ID image",
+      "viewBusinessLicense": "View submitted business license"
     }
   },
   "owner": {
@@ -318,7 +403,11 @@
       "menuCreated": "เพิ่มอาหารใหม่แล้ว",
       "menuUpdated": "อัปเดตอาหารแล้ว",
       "menuDeleted": "ลบอาหารแล้ว",
-      "claimCreated": "สร้างรหัสเคลมแล้ว"
+      "claimCreated": "สร้างรหัสเคลมแล้ว",
+      "error": "Could not save changes. Check your connection or try again.",
+      "errorWithDetail": "Could not save changes: {{message}}",
+      "opened": "Sathanakarn poet yu.",
+      "closed": "Sathanakarn pit chua khrao."
     },
     "stats": {
       "totalVisits": "จำนวนการเข้าชม POI",
@@ -358,7 +447,12 @@
       "claimKicker": "ชำระเงินสด",
       "claimHistoryKicker": "ติดตามรหัสที่ออกแล้ว",
       "claimHistory": "รหัสเคลมล่าสุด",
-      "claimHistoryDescription": "ตรวจสอบรหัสที่ออกเร็วๆ นี้อย่างรวดเร็วเมื่อลูกค้ามาที่ร้าน"
+      "claimHistoryDescription": "ตรวจสอบรหัสที่ออกเร็วๆ นี้อย่างรวดเร็วเมื่อลูกค้ามาที่ร้าน",
+      "overviewDescription": "See the main shop activity, current dishes, and recent interactions at a glance.",
+      "qrDescription": "Create a QR code so visitors can quickly open the shop detail page.",
+      "qrReady": "Ready",
+      "qrMissing": "No POI yet",
+      "qrMissingDescription": "No primary place is available for a QR code yet. Update the map information first."
     },
     "fields": {
       "shopName": "ชื่อร้าน",
@@ -382,9 +476,94 @@
       "available": "แสดงให้นักท่องเที่ยวเห็น",
       "amount": "จำนวนเงิน",
       "expireAfterHours": "หมดอายุหลังจาก (ชั่วโมง)",
-      "note": "หมายเหตุ"
+      "note": "หมายเหตุ",
+      "sourceLanguage": "Phasa thi krok",
+      "poiSourceName": "Chue thi sadaeng",
+      "poiSourceDescription": "Kham athibai thi sadaeng"
     },
-    "savePoi": "บันทึกเนื้อหา POI"
+    "savePoi": "บันทึกเนื้อหา POI",
+    "standeeFallback": "สแกนโค้ดเพื่อดูเมนู ข้อมูลร้าน และคำแนะนำล่าสุด",
+    "close": "Close",
+    "keepItem": "Keep item",
+    "deleting": "Deleting...",
+    "menuCreateHint": "Enter the basics. Visible dishes will appear on the public page.",
+    "menuEditHint": "Update the dish details and save to refresh the customer page.",
+    "menuVisibleHint": "Visitors can see this dish.",
+    "menuHiddenHint": "This dish is hidden from visitors.",
+    "menuPreviewTitle": "Public dish preview",
+    "deleteConfirm": {
+      "kicker": "Confirm delete",
+      "title": "Delete this dish?",
+      "body": "This dish will be removed from the menu and hidden from visitors.",
+      "warning": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete item"
+    },
+    "autoTranslate": {
+      "kicker": "Plae atnomat",
+      "title": "Krok duai phasa diao",
+      "description": "Lueak phasa ton thang lae krok chue kap kham athibai. Phasa uen cha thuk sang muea save.",
+      "helper": "Rabop cha chai nueaha ni phuea sang phasa uen."
+    },
+    "preview": {
+      "kicker": "Preview",
+      "emptyMenuName": "Dish name",
+      "emptyMenuDescription": "A short description will appear here."
+    },
+    "validation": {
+      "imageDataUrl": "Image only accepts a public image URL, not pasted/base64 image data.",
+      "imageUrlTooLong": "Image URL is too long. Please use a shorter URL.",
+      "poiSourceRequired": "Please enter a POI name and description before saving."
+    },
+    "qrStandeeKicker": "เมนูดิจิทัล",
+    "qrStandeeTitle": "สแกนเพื่อดูเมนู",
+    "printStandee": "พิมพ์สแตนดี้",
+    "placeholders": {
+      "menuName": "Example: Special grilled beef in betel leaf",
+      "menuDescription": "Describe the flavor, portion, or side dishes.",
+      "imageUrl": "Paste an https:// image link, not base64 data"
+    },
+    "settingsTitle": "Shop settings",
+    "settingsSubtitle": "Update shop profile and map display information.",
+    "today": "Wan ni",
+    "categories": {
+      "food": "Ahan",
+      "street_food": "Ahan rim thang",
+      "grilled_food": "Yang",
+      "dessert": "Khong wan",
+      "seafood": "Ahan thale",
+      "snack": "Khong wang",
+      "drinks": "Khrueng duem"
+    },
+    "languageNames": {
+      "vi": "Tiếng Việt",
+      "en": "English",
+      "zh": "中文",
+      "ja": "日本語",
+      "ko": "한국어",
+      "fr": "Français",
+      "th": "ไทย"
+    },
+    "header": {
+      "open": "Poet yu",
+      "closed": "Pit chua khrao",
+      "toolsAria": "Khrueng mue ran",
+      "notificationsAria": "Kan chaeng tuean"
+    },
+    "notifications": {
+      "title": "Kan chaeng tuean",
+      "count": "{{count}} rai kan",
+      "reviewTitle": "Sathana kan truat",
+      "reviewBody": "Sathana ran: {{status}}.",
+      "qrReadyTitle": "QR ran phrom laeo",
+      "qrReadyBody": "Lukkha scan QR phuea poet na ran dai.",
+      "qrMissingTitle": "Yang mai mi QR ran",
+      "qrMissingBody": "Update khomun bon phaenthi phuea sang QR.",
+      "todayTitle": "Kitchakam wan ni",
+      "todayBody": "{{visits}} views, {{audio}} audio, {{qr}} QR.",
+      "quietTitle": "Yang mai mi kitchakam mai",
+      "quietBody": "Wan ni yang mai mi views, audio rue QR."
+    }
   },
   "admin": {
     "title": "แดชบอร์ดแอดมิน",
@@ -426,6 +605,49 @@
     "emptyPendingOwnerRequests": "ไม่มีคำขอเจ้าของร้านที่รอดำเนินการ",
     "emptyPendingShopIntros": "ไม่มีคำอธิบายร้านที่รอดำเนินการ",
     "emptyOwnerHistory": "ยังไม่มีประวัติคำขอเจ้าของร้าน",
-    "emptyShopIntroHistory": "ยังไม่มีประวัติการตรวจสอบคำอธิบายร้าน"
+    "emptyShopIntroHistory": "ยังไม่มีประวัติการตรวจสอบคำอธิบายร้าน",
+    "badge": "System admin",
+    "sections": {
+      "overview": "Overview",
+      "overviewKicker": "System overview",
+      "overviewDescription": "Quick view of pending requests and basic metrics.",
+      "ownerRequests": "Review owners",
+      "ownerRequestsKicker": "Upgrade requests",
+      "ownerRequestsDescription": "Approve or reject requests to become shop owners.",
+      "shopIntros": "Review content",
+      "shopIntrosKicker": "Shop introductions",
+      "shopIntrosDescription": "Moderate shop introduction content before it is displayed.",
+      "statistics": "Statistics",
+      "statisticsKicker": "Top shops & POIs",
+      "statisticsDescription": "See the most interacted shops and places.",
+      "managePois": "Manage POI",
+      "managePoisKicker": "Map places",
+      "managePoisDescription": "Add, edit and delete POIs shown on the map.",
+      "foodTours": "Manage tours",
+      "foodToursKicker": "Travel routes",
+      "foodToursDescription": "Create and manage food tourism routes."
+    }
+  },
+  "qr": {
+    "kicker": "คิวอาร์ร้าน",
+    "title": "เปิดหน้ารายละเอียดร้าน",
+    "subtitle": "สแกนโค้ดหรือเปิดลิงก์สาธารณะของ {{name}}",
+    "poiFallbackName": "ร้านของคุณ",
+    "baseUrlLabel": "โดเมนสาธารณะ",
+    "baseUrlPlaceholder": "https://your-domain.vercel.app",
+    "detailLinkLabel": "ลิงก์รายละเอียดร้าน",
+    "localHint": "นี่คือที่อยู่ส่วนตัว โปรดเปลี่ยนเป็นโดเมน Vercel เพื่อให้ลูกค้าเปิด QR ได้",
+    "readyHint": "ลิงก์นี้พร้อมเปิดบนโทรศัพท์หรืออุปกรณ์อื่น",
+    "copy": "คัดลอกลิงก์",
+    "copied": "คัดลอกแล้ว",
+    "open": "เปิดหน้ารายละเอียด",
+    "missingUrl": "ยังไม่มีลิงก์ QR"
+  },
+  "favorites": {
+    "title": "????????",
+    "subtitle": "??????????????????????????????????????????",
+    "empty": "???????????????? ????????????????????????????????????",
+    "add": "?????????????????",
+    "remove": "???????????????"
   }
 }

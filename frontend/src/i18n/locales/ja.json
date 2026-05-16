@@ -11,7 +11,8 @@
     "owner": "店主",
     "admin": "管理者",
     "routes": "ルート",
-    "settings": "設定"
+    "settings": "設定",
+    "favorites": "?????"
   },
   "auth": {
     "badge": "システムログイン",
@@ -46,7 +47,8 @@
       "user": "ユーザー",
       "owner": "店主",
       "admin": "管理者"
-    }
+    },
+    "loginRequired": "????????????????????"
   },
   "map": {
     "title": "ヴィンカイン食通りマップ",
@@ -153,7 +155,12 @@
     "autoPlayTitle": "音声ガイドを自動再生",
     "autoPlayDescription": "有効にすると、スポットに近づいたとき自動で音声ガイドを開始できます。",
     "enabled": "オン",
-    "disabled": "オフ"
+    "disabled": "オフ",
+    "voiceTitle": "Available browser voices",
+    "voiceDescription": "Check which voices this browser can use for each language and which one the app will prefer.",
+    "voiceReady": "Native voice available",
+    "voiceMissing": "Using fallback",
+    "voiceFallback": "No matching voice found"
   },
   "audio": {
     "title": "音声ガイド",
@@ -208,7 +215,9 @@
     "placeholder": "食べ物、店舗、地図について質問...",
     "send": "送信",
     "close": "閉じる",
-    "fabLabel": "AI"
+    "fabLabel": "AI",
+    "emptyReply": "I do not have a suitable answer right now.",
+    "connectionError": "Could not connect to the AI assistant."
   },
   "home": {
     "title": "DiDuDuaDi システムテストパネル",
@@ -260,7 +269,11 @@
     },
     "notUpdated": "未更新",
     "unknownName": "名前未設定の店舗",
-    "unknownDish": "名前未設定の料理"
+    "unknownDish": "名前未設定の料理",
+    "device": {
+      "strong": "高性能端末",
+      "weak": "低性能端末"
+    }
   },
   "common": {
     "loading": "読み込み中...",
@@ -283,6 +296,82 @@
       "idCardImageUrl": "身分証明書画像URL",
       "businessLicenseImageUrl": "営業許可証画像URL（任意）",
       "note": "備考"
+    },
+    "tabs": {
+      "new": "New registration",
+      "history": "History & status"
+    },
+    "latestRequestTitle": "Latest registration request",
+    "reviewNote": "Admin note",
+    "waitingReviewTitle": "Your request is waiting for review",
+    "waitingReviewDescription": "Admin will review the request, shop location and submitted documents before replying.",
+    "paymentTitle": "Owner upgrade payment information",
+    "paymentDescription": "Your request has been initially approved. Use the QR code or transfer note below to complete the owner upgrade.",
+    "feeAmount": "Upgrade fee",
+    "paymentReference": "Reference code",
+    "paymentRequestedAt": "Payment created at",
+    "transferMemo": "Transfer memo",
+    "qrLabel": "Payment QR code",
+    "qrUnavailable": "No payment QR code is available for this request yet.",
+    "rejectedTitle": "Your previous request was rejected",
+    "rejectedDescription": "You can review the rejection reason and submit a new request with updated information.",
+    "formLockedTitle": "Your current request is being processed",
+    "formLockedMessage": "You cannot create another request right now.",
+    "formLockedDescription": "Follow the status in History & status. If the request is rejected, use Edit from old request to resubmit faster.",
+    "formTitle": "Create a new restaurant registration request",
+    "editFormTitle": "Edit pending restaurant registration request",
+    "updateSubmit": "Update pending request",
+    "cancelEdit": "Cancel edit",
+    "updateSuccess": "Pending request updated.",
+    "cancelSuccess": "Registration request cancelled. You can create a new one.",
+    "cancelError": "Could not cancel the registration request.",
+    "prefillSuccess": "Old request content has been loaded into the form.",
+    "editPending": "Edit request",
+    "editPendingLoaded": "Pending request has been loaded into the form for editing.",
+    "cancelPending": "Cancel request",
+    "cancelPendingTitle": "Cancel pending request?",
+    "cancelPendingDescription": "After cancellation, this request remains in history and you can create a new registration request.",
+    "confirmCancel": "Cancel request",
+    "keepPending": "Keep request",
+    "emptyNote": "No extra note.",
+    "mapPicker": {
+      "title": "Choose shop location on the map",
+      "hint": "Tap directly on the map to capture accurate GPS coordinates for the shop. You can still adjust latitude and longitude manually if needed.",
+      "selectedCoordinates": "Selected coordinates: {{lat}}, {{lng}}"
+    },
+    "placeholders": {
+      "shopName": "Enter the restaurant name you want to register",
+      "address": "Enter an address in the Vinh Khanh area",
+      "latitude": "Example: 10.758700",
+      "longitude": "Example: 106.703100",
+      "note": "Add shop details, opening hours or anything you want admin to know"
+    },
+    "validation": {
+      "shopNameRequired": "Please enter the restaurant name.",
+      "addressRequired": "Please enter the restaurant address.",
+      "latitudeRequired": "Please enter latitude.",
+      "longitudeRequired": "Please enter longitude."
+    },
+    "status": {
+      "pending": "Pending review",
+      "paymentPending": "Payment pending",
+      "approved": "Approved",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "history": {
+      "title": "Registration request history",
+      "count_zero": "0 old requests",
+      "count_one": "{{count}} old request",
+      "count_other": "{{count}} old requests",
+      "empty": "You have no previous requests to review.",
+      "submittedAt": "Submitted at",
+      "reviewedAt": "Reviewed at",
+      "reviewResult": "Response / cancellation reason",
+      "noReviewReason": "No admin response yet.",
+      "editFromOld": "Edit from old request",
+      "viewIdCard": "View submitted ID image",
+      "viewBusinessLicense": "View submitted business license"
     }
   },
   "owner": {
@@ -318,7 +407,11 @@
       "menuCreated": "新しい料理を追加しました。",
       "menuUpdated": "料理を更新しました。",
       "menuDeleted": "料理を削除しました。",
-      "claimCreated": "請求コードを作成しました"
+      "claimCreated": "請求コードを作成しました",
+      "error": "Could not save changes. Check your connection or try again.",
+      "errorWithDetail": "Could not save changes: {{message}}",
+      "opened": "営業中に切り替えました。",
+      "closed": "一時休業に切り替えました。"
     },
     "stats": {
       "totalVisits": "POI訪問数",
@@ -358,7 +451,12 @@
       "claimKicker": "現金支払い",
       "claimHistoryKicker": "発行済みコードを追跡",
       "claimHistory": "最近の請求コード",
-      "claimHistoryDescription": "顧客が来店したときに最近発行されたコードをすばやく確認します。"
+      "claimHistoryDescription": "顧客が来店したときに最近発行されたコードをすばやく確認します。",
+      "overviewDescription": "See the main shop activity, current dishes, and recent interactions at a glance.",
+      "qrDescription": "Create a QR code so visitors can quickly open the shop detail page.",
+      "qrReady": "Ready",
+      "qrMissing": "No POI yet",
+      "qrMissingDescription": "No primary place is available for a QR code yet. Update the map information first."
     },
     "fields": {
       "shopName": "店舗名",
@@ -382,9 +480,94 @@
       "available": "観光客に表示",
       "amount": "金額",
       "expireAfterHours": "有効期限（時間）",
-      "note": "備考"
+      "note": "備考",
+      "sourceLanguage": "入力言語",
+      "poiSourceName": "表示名",
+      "poiSourceDescription": "表示説明"
     },
-    "savePoi": "POIコンテンツを保存"
+    "savePoi": "POIコンテンツを保存",
+    "standeeFallback": "コードをスキャンして、メニュー、店舗情報、最新の紹介を確認できます。",
+    "close": "Close",
+    "keepItem": "Keep item",
+    "deleting": "Deleting...",
+    "menuCreateHint": "Enter the basics. Visible dishes will appear on the public page.",
+    "menuEditHint": "Update the dish details and save to refresh the customer page.",
+    "menuVisibleHint": "Visitors can see this dish.",
+    "menuHiddenHint": "This dish is hidden from visitors.",
+    "menuPreviewTitle": "Public dish preview",
+    "deleteConfirm": {
+      "kicker": "Confirm delete",
+      "title": "Delete this dish?",
+      "body": "This dish will be removed from the menu and hidden from visitors.",
+      "warning": "This action cannot be undone.",
+      "cancel": "Cancel",
+      "confirm": "Delete item"
+    },
+    "autoTranslate": {
+      "kicker": "自動翻訳",
+      "title": "1つの言語で入力",
+      "description": "元の言語を選び、名前と説明を入力してください。保存後、他の言語版が生成されます。",
+      "helper": "この内容を使って残りの言語版を生成します。"
+    },
+    "preview": {
+      "kicker": "Preview",
+      "emptyMenuName": "Dish name",
+      "emptyMenuDescription": "A short description will appear here."
+    },
+    "validation": {
+      "poiSourceRequired": "Please enter a POI name and description before saving.",
+      "imageDataUrl": "Image only accepts a public image URL, not pasted/base64 image data.",
+      "imageUrlTooLong": "Image URL is too long. Please use a shorter URL."
+    },
+    "qrStandeeKicker": "デジタルメニュー",
+    "qrStandeeTitle": "スキャンしてメニューを表示",
+    "printStandee": "スタンディーを印刷",
+    "placeholders": {
+      "menuName": "Example: Special grilled beef in betel leaf",
+      "menuDescription": "Describe the flavor, portion, or side dishes.",
+      "imageUrl": "Paste an https:// image link, not base64 data"
+    },
+    "settingsTitle": "Shop settings",
+    "settingsSubtitle": "Update shop profile and map display information.",
+    "today": "今日",
+    "categories": {
+      "food": "飲食",
+      "street_food": "屋台料理",
+      "grilled_food": "焼き物",
+      "dessert": "デザート",
+      "seafood": "シーフード",
+      "snack": "軽食",
+      "drinks": "飲み物"
+    },
+    "languageNames": {
+      "vi": "Tiếng Việt",
+      "en": "English",
+      "zh": "中文",
+      "ja": "日本語",
+      "ko": "한국어",
+      "fr": "Français",
+      "th": "ไทย"
+    },
+    "header": {
+      "open": "営業中",
+      "closed": "一時休業",
+      "toolsAria": "店舗ツール",
+      "notificationsAria": "通知"
+    },
+    "notifications": {
+      "title": "通知",
+      "count": "{{count}}件",
+      "reviewTitle": "審査状況",
+      "reviewBody": "現在の状態：{{status}}。",
+      "qrReadyTitle": "店舗QRの準備ができました",
+      "qrReadyBody": "お客様はQRをスキャンして店舗詳細ページを開けます。",
+      "qrMissingTitle": "店舗QRがまだありません",
+      "qrMissingBody": "地図上のコンテンツを更新して公開QRを作成してください。",
+      "todayTitle": "今日の反応",
+      "todayBody": "{{visits}}回閲覧、{{audio}}回音声、{{qr}}回QRスキャン。",
+      "quietTitle": "新しい反応はまだありません",
+      "quietBody": "今日は閲覧、音声、QRスキャンがまだ記録されていません。"
+    }
   },
   "admin": {
     "title": "管理者ダッシュボード",
@@ -426,6 +609,49 @@
     "emptyPendingOwnerRequests": "保留中の店主申請はありません。",
     "emptyPendingShopIntros": "保留中の店舗紹介はありません。",
     "emptyOwnerHistory": "店主申請履歴はまだありません。",
-    "emptyShopIntroHistory": "店舗紹介レビュー履歴はまだありません。"
+    "emptyShopIntroHistory": "店舗紹介レビュー履歴はまだありません。",
+    "badge": "System admin",
+    "sections": {
+      "overview": "Overview",
+      "overviewKicker": "System overview",
+      "overviewDescription": "Quick view of pending requests and basic metrics.",
+      "ownerRequests": "Review owners",
+      "ownerRequestsKicker": "Upgrade requests",
+      "ownerRequestsDescription": "Approve or reject requests to become shop owners.",
+      "shopIntros": "Review content",
+      "shopIntrosKicker": "Shop introductions",
+      "shopIntrosDescription": "Moderate shop introduction content before it is displayed.",
+      "statistics": "Statistics",
+      "statisticsKicker": "Top shops & POIs",
+      "statisticsDescription": "See the most interacted shops and places.",
+      "managePois": "Manage POI",
+      "managePoisKicker": "Map places",
+      "managePoisDescription": "Add, edit and delete POIs shown on the map.",
+      "foodTours": "Manage tours",
+      "foodToursKicker": "Travel routes",
+      "foodToursDescription": "Create and manage food tourism routes."
+    }
+  },
+  "qr": {
+    "kicker": "店舗QR",
+    "title": "店舗詳細ページを開く",
+    "subtitle": "コードをスキャンするか、{{name}}の公開リンクを開いてください。",
+    "poiFallbackName": "店舗",
+    "baseUrlLabel": "公開ドメイン",
+    "baseUrlPlaceholder": "https://your-domain.vercel.app",
+    "detailLinkLabel": "店舗詳細リンク",
+    "localHint": "これはプライベートアドレスです。顧客がQRリンクを開けるよう、Vercelドメインに変更してください。",
+    "readyHint": "このリンクは顧客のスマホや他の端末で開けます。",
+    "copy": "リンクをコピー",
+    "copied": "コピー済み",
+    "open": "詳細ページを開く",
+    "missingUrl": "QRリンクはまだありません。"
+  },
+  "favorites": {
+    "title": "???????",
+    "subtitle": "???????????",
+    "empty": "???????????????????????????????????",
+    "add": "????????",
+    "remove": "?????????"
   }
 }
