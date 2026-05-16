@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import { trackPoiView } from "../services/analyticsService";
 import { getPoiById } from "../services/poiService";
 import { translateText } from "../services/translateService";
 import { getLocalizedValue } from "../utils/helpers";
+import { getRandomQrDeviceCode, resolveQrDeviceProfile } from "../utils/publicPoiUrl";
 import "./PoiDetailPage.css";
 
 export default function PoiDetailPage() {
@@ -18,6 +19,18 @@ export default function PoiDetailPage() {
   const { i18n, t } = useTranslation();
   const [translatedPoiContent, setTranslatedPoiContent] = useState({});
   const trackedViewRef = useRef("");
+  const qrContext = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const source = params.get("source") === "qr" ? "qr" : "public-detail";
+    const deviceCode =
+      source === "qr" ? params.get("device") || getRandomQrDeviceCode() : params.get("device");
+
+    return {
+      source,
+      deviceCode,
+      deviceProfile: resolveQrDeviceProfile(deviceCode),
+    };
+  }, [location.search]);
 
   const {
     data: poi,
@@ -33,10 +46,7 @@ export default function PoiDetailPage() {
   useEffect(() => {
     if (!poi || !id) return;
 
-    // Thống kê QR từ QR
-    const params = new URLSearchParams(location.search);
-    const source = params.get("source") === "qr" ? "qr" : "public-detail";
-    const trackingKey = `${poi.id || id}:${i18n.language}:${source}`;
+    const trackingKey = `${poi.id || id}:${i18n.language}:${qrContext.source}`;
 
     if (trackedViewRef.current === trackingKey) {
       return;
@@ -47,9 +57,9 @@ export default function PoiDetailPage() {
     trackPoiView({
       poiId: poi.id || id,
       languageCode: i18n.language,
-      source,
+      source: qrContext.source,
     }).catch(() => {});
-  }, [id, i18n.language, location.search, poi]);
+  }, [id, i18n.language, poi, qrContext.source]);
 
   const speechLanguage =
     SUPPORTED_LANGUAGES.find((language) => language.code === i18n.language)
@@ -161,12 +171,18 @@ export default function PoiDetailPage() {
     getLocalizedValue(poi.approvedIntroduction, i18n.language);
   const openingHours = poi.openingHours || t("poiDetail.notUpdated");
   const phone = poi.phone || t("poiDetail.notUpdated");
+  const isQrDetailView = qrContext.source === "qr";
+  const deviceLabel = t(`poiDetail.device.${qrContext.deviceProfile}`);
+  const deviceCodeLabel = qrContext.deviceProfile === "strong" ? "1" : "0";
   const coordinates = poi.location
     ? `${Number(poi.location.lat).toFixed(6)}, ${Number(poi.location.lng).toFixed(6)}`
     : t("poiDetail.notUpdated");
 
   return (
-    <div className="poi-detail-page">
+    <div
+      className={`poi-detail-page poi-detail-device-${qrContext.deviceProfile}`}
+      data-device-profile={qrContext.deviceProfile}
+    >
       <div className="poi-detail-container">
         <header className="poi-detail-header">
           <button
@@ -184,10 +200,24 @@ export default function PoiDetailPage() {
                   <p className="poi-detail-kicker">{t("map.detailTitle")}</p>
                   <h1>{name}</h1>
                 </div>
-                <Tag color="blue">{category}</Tag>
+                <div className="poi-detail-tag-row">
+                  <Tag color="blue">{category}</Tag>
+                  {isQrDetailView ? (
+                    <Tag color={qrContext.deviceProfile === "strong" ? "green" : "orange"}>
+                      {deviceLabel}
+                    </Tag>
+                  ) : null}
+                </div>
               </div>
 
               <p className="poi-detail-summary">{description}</p>
+
+              {isQrDetailView ? (
+                <div className="poi-detail-device-banner">
+                  <strong>{deviceLabel}</strong>
+                  <span>Random test: {deviceCodeLabel}</span>
+                </div>
+              ) : null}
 
               <div className="poi-detail-link-row">
                 <Link to="/login" className="poi-detail-inline-link">

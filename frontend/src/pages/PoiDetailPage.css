@@ -118,6 +118,36 @@
   line-height: 1.7;
 }
 
+.poi-detail-device-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.poi-detail-device-banner span {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.poi-detail-device-strong .poi-detail-device-banner {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.poi-detail-device-weak .poi-detail-device-banner {
+  border-color: #fed7aa;
+  background: #fff7ed;
+}
+
 .poi-detail-link-row {
   display: flex;
   flex-wrap: wrap;
