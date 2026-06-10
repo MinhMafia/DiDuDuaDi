@@ -1,8 +1,4 @@
-:root {
-  --primary: #ff6b35;
-  --bg: #f8fafc;
-  --text: #0f172a;
-}
+@import "tailwindcss";
 
 * {
   box-sizing: border-box;
@@ -16,6 +12,7 @@ body {
     Segoe UI,
     Roboto,
     sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  background: #f6f7fb;
+  color: #18181b;
+  font-variant-numeric: tabular-nums;
 }

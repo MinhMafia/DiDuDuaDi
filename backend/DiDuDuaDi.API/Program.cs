@@ -2,6 +2,7 @@ using DiDuDuaDi.API.Data;
 using DiDuDuaDi.API.Repositories;
 using DiDuDuaDi.API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -34,6 +35,11 @@ builder.Services
         };
     });
 builder.Services.AddAuthorization();
+var databaseConnectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Missing ConnectionStrings:DefaultConnection");
+var efConnectionString = databaseConnectionString.Replace("SslMode=None", "SslMode=Disabled", StringComparison.OrdinalIgnoreCase);
+builder.Services.AddDbContext<DiDuDuaDiDbContext>(options =>
+    options.UseMySQL(efConnectionString));
 builder.Services.AddSingleton<IDbConnectionFactory, MySqlConnectionFactory>();
 builder.Services.AddSingleton<IDatabaseInitializer, MySqlDatabaseInitializer>();
 builder.Services.AddSingleton<ITokenService, JwtTokenService>();

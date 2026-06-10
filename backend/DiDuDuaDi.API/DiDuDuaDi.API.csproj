@@ -4,6 +4,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>DiDuDuaDi.API</RootNamespace>
+    <UseAppHost>false</UseAppHost>
     <DefaultItemExcludes>$(DefaultItemExcludes);bin-temp/**;obj-temp/**</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
@@ -13,7 +14,12 @@
     <PackageReference Include="Dapper" Version="2.1.35" />
     <PackageReference Include="GTranslate" Version="2.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0-preview.3.25172.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.7">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="MySqlConnector" Version="2.4.0" />
+    <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.7" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
   </ItemGroup>
 </Project>
